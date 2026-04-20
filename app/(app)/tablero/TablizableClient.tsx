@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import { useLocale } from '@/lib/i18n/LocaleContext'
+import OnboardingTutorial from '@/components/OnboardingTutorial'
 
 type Habito = {
   id: string
@@ -52,11 +54,6 @@ type MetasData = {
 type Finanzas = { ingresos: number; gastos: number; ahorro: boolean }
 
 const EMOJIS = ['⭐','🎯','📚','🏃','🧠','💧','🥗','🛌','✍️','🎨','🎵','💼','🌿','🙏','📞','💊','🚴','🏋️','🧘','🍎','🔥','💪','🎧','📖','⚽','🎸','🖥️','🌅','🎭','🦁']
-const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
-
-function fmt(n: number) {
-  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n)
-}
 
 export default function TablizableClient({ habitos, regMap: initialRegMap, userId, today, racha, metas, historial }: {
   habitos: Habito[]
@@ -68,6 +65,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   historial: HistorialReg[]
 }) {
   const supabase = createClient()
+  const { t, locale } = useLocale()
+  const fmt = (n: number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n)
+
   const [regMap, setRegMap] = useState(initialRegMap)
   const [loading, setLoading] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'hoy' | 'mes' | 'habitos' | 'metas'>('hoy')
@@ -102,6 +102,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
+  const mesNombre = new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { month: 'long' }).format(new Date(year, month - 1, 1))
   const [monthRegistros, setMonthRegistros] = useState<{ habito_id: string; fecha: string; valor_bool: boolean | null; valor_numero: number | null }[]>([])
   const [monthFinanzas, setMonthFinanzas] = useState<{ fecha: string; ingresos: number; gastos: number; ahorro: boolean }[]>([])
   const [monthLoading, setMonthLoading] = useState(false)
@@ -347,7 +348,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   async function deleteHabito(id: string) {
-    if (!confirm('¿Eliminar este hábito? Sus registros históricos se mantienen.')) return
+    if (!confirm(t('tablero.habitos.eliminar_confirm'))) return
     await supabase.from('habitos').update({ activo: false }).eq('id', id)
     setLocalHabitos(prev => prev.filter(h => h.id !== id))
   }
@@ -382,22 +383,23 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     return (
       <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#6b7280' }}>
         <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📋</div>
-        <p>Tus hábitos se cargan automáticamente al registrarte.</p>
+        <p>{t('tablero.hoy.sin_habitos')}</p>
       </div>
     )
   }
 
   return (
     <>
+      <OnboardingTutorial />
       {/* Tab nav */}
       <div style={{
         display: 'flex', gap: '0.2rem', padding: '0.25rem',
         background: 'rgba(255,255,255,0.04)', borderRadius: '10px', marginBottom: '1.25rem',
       }}>
-        {navBtn('hoy', 'Hoy', '⚡')}
-        {navBtn('mes', 'Mes', '📊')}
-        {navBtn('habitos', 'Hábitos', '✏️')}
-        {navBtn('metas', 'Metas', '🎯')}
+        {navBtn('hoy', t('tablero.tabs.hoy'), '⚡')}
+        {navBtn('mes', t('tablero.tabs.mes'), '📊')}
+        {navBtn('habitos', t('tablero.tabs.habitos'), '✏️')}
+        {navBtn('metas', t('tablero.tabs.metas'), '🎯')}
       </div>
 
       {/* ── HOY ── */}
@@ -424,9 +426,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               </div>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.95rem' }}>{completados}/{localHabitos.length} hábitos</div>
+              <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.95rem' }}>{completados}/{localHabitos.length} {t('tablero.hoy.habitos')}</div>
               <div style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: '0.2rem' }}>
-                {pct === 100 ? '¡Día perfecto! 🏆' : pct >= 50 ? 'Vas bien, seguí' : 'Empezá por uno'}
+                {pct === 100 ? t('tablero.hoy.perfect') : pct >= 50 ? t('tablero.hoy.going_well') : t('tablero.hoy.start_one')}
               </div>
             </div>
             <div style={{
@@ -438,7 +440,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             }}>
               <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>{racha > 0 ? '🔥' : '💤'}</span>
               <span style={{ color: racha > 0 ? '#fb923c' : '#4b5563', fontWeight: 700, fontSize: '1.1rem', lineHeight: 1.2 }}>{racha}</span>
-              <span style={{ color: '#6b7280', fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>racha</span>
+              <span style={{ color: '#6b7280', fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tablero.hoy.racha')}</span>
             </div>
           </div>
 
@@ -499,7 +501,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                         <textarea
                           value={notaInputs[h.id] ?? ''}
                           onChange={e => setNotaInputs(prev => ({ ...prev, [h.id]: e.target.value }))}
-                          placeholder="Anotá algo sobre este hábito hoy..."
+                          placeholder={t('tablero.hoy.nota_placeholder')}
                           rows={2}
                           autoFocus
                           style={{ width: '100%', padding: '0.5rem 0.625rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(139,92,246,0.2)', color: '#e5e7eb', fontSize: '0.8rem', outline: 'none', resize: 'none', fontFamily: 'inherit', lineHeight: 1.5, boxSizing: 'border-box' }}
@@ -507,10 +509,10 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                         <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.375rem' }}>
                           <button onClick={() => saveNota(h)} disabled={notaSaving === h.id}
                             style={{ padding: '0.3rem 0.75rem', borderRadius: '6px', border: 'none', background: '#8B5CF6', color: 'white', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}>
-                            {notaSaving === h.id ? '...' : 'Guardar'}
+                            {notaSaving === h.id ? '...' : t('common.save')}
                           </button>
                           <button onClick={() => setNotaOpen(null)}
-                            style={{ padding: '0.3rem 0.5rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#6b7280', fontSize: '0.72rem', cursor: 'pointer' }}>Cancelar</button>
+                            style={{ padding: '0.3rem 0.5rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#6b7280', fontSize: '0.72rem', cursor: 'pointer' }}>{t('common.cancel')}</button>
                         </div>
                       </div>
                     ) : (
@@ -545,15 +547,15 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
           {/* Finanzas */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>💰 Movimientos del día</div>
+            <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.hoy.movimientos')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem', marginBottom: '0.875rem' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#10b981', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>📈 Ingresos</label>
+                <label style={{ fontSize: '0.75rem', color: '#10b981', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>{t('tablero.hoy.ingresos_label')}</label>
                 <input type="number" value={ingresosInput} onChange={e => setIngresosInput(e.target.value)} placeholder="0"
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#10b981', fontSize: '1rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#ef4444', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>📉 Gastos</label>
+                <label style={{ fontSize: '0.75rem', color: '#ef4444', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>{t('tablero.hoy.gastos_label')}</label>
                 <input type="number" value={gastosInput} onChange={e => setGastosInput(e.target.value)} placeholder="0"
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', fontSize: '1rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
               </div>
@@ -563,7 +565,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               <div style={{ marginBottom: '0.875rem', padding: '0.75rem 1rem', borderRadius: '10px', background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.625rem' }}>
                   <div>
-                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600 }}>💡 Regla del 10% — ahorro sugerido</div>
+                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600 }}>{t('tablero.hoy.regla10')}</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#F5C518', marginTop: '0.1rem' }}>{fmt(sugerido10)}</div>
                   </div>
                   <div style={{ fontSize: '1.5rem' }}>🐷</div>
@@ -579,7 +581,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     {finanzas.ahorro && <span style={{ fontSize: '0.65rem', color: 'white' }}>✓</span>}
                   </div>
                   <span style={{ fontSize: '0.85rem', color: finanzas.ahorro ? '#10b981' : '#9ca3af', fontWeight: finanzas.ahorro ? 700 : 400 }}>
-                    {finanzas.ahorro ? '¡Ahorré el 10%!' : '¿Ahorré el 10% hoy?'}
+                    {finanzas.ahorro ? t('tablero.hoy.ahorro_si') : t('tablero.hoy.ahorro_no')}
                   </span>
                 </button>
               </div>
@@ -587,7 +589,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
             {(ingresosHoy > 0 || gastosHoy > 0) && (
               <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', background: (ingresosHoy - gastosHoy) >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${(ingresosHoy - gastosHoy) >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
-                <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>Resultado del día</span>
+                <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{t('tablero.hoy.resultado_dia')}</span>
                 <span style={{ fontSize: '1.1rem', fontWeight: 800, color: (ingresosHoy - gastosHoy) >= 0 ? '#10b981' : '#ef4444' }}>
                   {(ingresosHoy - gastosHoy) >= 0 ? '+' : ''}{fmt(ingresosHoy - gastosHoy)}
                 </span>
@@ -600,7 +602,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               color: finanzasSaved ? '#fff' : '#a78bfa', fontSize: '0.85rem', fontWeight: 700,
               cursor: finanzasSaving ? 'default' : 'pointer', transition: 'background 0.3s',
             }}>
-              {finanzasSaving ? 'Guardando...' : finanzasSaved ? '✓ Guardado' : 'Guardar movimientos'}
+              {finanzasSaving ? t('common.saving') : finanzasSaved ? t('common.saved') : t('tablero.hoy.guardar_mov')}
             </button>
           </div>
         </div>
@@ -614,22 +616,22 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <button onClick={() => { if (month === 1) { setMonth(12); setYear(y => y - 1) } else setMonth(m => m - 1) }}
               style={{ border: 'none', background: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '1.5rem', padding: '0.25rem 0.5rem' }}>‹</button>
-            <span style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '1rem' }}>{MESES[month - 1]} {year}</span>
+            <span style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '1rem' }}>{mesNombre.charAt(0).toUpperCase() + mesNombre.slice(1)} {year}</span>
             <button onClick={() => { if (month === 12) { setMonth(1); setYear(y => y + 1) } else setMonth(m => m + 1) }}
               style={{ border: 'none', background: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '1.5rem', padding: '0.25rem 0.5rem' }}>›</button>
           </div>
 
           {monthLoading ? (
-            <div style={{ textAlign: 'center', color: '#6b7280', padding: '2rem', fontSize: '0.85rem' }}>Un momento...</div>
+            <div style={{ textAlign: 'center', color: '#6b7280', padding: '2rem', fontSize: '0.85rem' }}>{t('common.loading')}</div>
           ) : (
             <>
               {/* Stats cards */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 {[
-                  { label: 'Eficiencia', value: `${eficienciaPromedio}%`, color: '#a78bfa', sub: `${totalDias} días registrados` },
-                  { label: 'Racha actual', value: `${racha} días`, color: '#F5C518', sub: racha > 0 ? '🔥' : 'Sin racha' },
-                  { label: 'Ingresos', value: fmt(totalIngresos), color: '#10b981', sub: 'Total del mes' },
-                  { label: 'Resultado', value: fmt(profit), color: profit >= 0 ? '#10b981' : '#ef4444', sub: profit >= 0 ? 'Ganancia' : 'Pérdida' },
+                  { label: t('tablero.mes.eficiencia'), value: `${eficienciaPromedio}%`, color: '#a78bfa', sub: t('tablero.mes.dias_registrados', { n: totalDias }) },
+                  { label: t('tablero.mes.racha_actual'), value: `${racha} días`, color: '#F5C518', sub: racha > 0 ? '🔥' : t('tablero.mes.sin_racha') },
+                  { label: t('tablero.mes.ingresos'), value: fmt(totalIngresos), color: '#10b981', sub: t('tablero.mes.total_mes') },
+                  { label: t('tablero.mes.resultado'), value: fmt(profit), color: profit >= 0 ? '#10b981' : '#ef4444', sub: profit >= 0 ? t('tablero.mes.ganancia') : t('tablero.mes.perdida') },
                 ].map(s => (
                   <div key={s.label} style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '1rem 1.125rem' }}>
                     <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.3rem' }}>{s.label}</div>
@@ -643,7 +645,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               {ahorroAcumulado > 0 && (
                 <div style={{ background: 'linear-gradient(135deg,rgba(245,197,24,0.08),rgba(16,185,129,0.05))', border: '1px solid rgba(245,197,24,0.25)', borderRadius: '12px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.2rem' }}>🐷 Ahorro acumulado (10%)</div>
+                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.2rem' }}>{t('tablero.mes.ahorro_acumulado')}</div>
                     <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#F5C518' }}>{fmt(ahorroAcumulado)}</div>
                   </div>
                   <div style={{ fontSize: '2.5rem' }}>🐷</div>
@@ -652,7 +654,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
               {/* Heatmap */}
               <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-                <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.875rem' }}>Mapa de hábitos — tocá un día para editar</div>
+                <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.875rem' }}>{t('tablero.mes.mapa')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '3px', marginBottom: '3px' }}>
                   {['D','L','M','X','J','V','S'].map(d => (
                     <div key={d} style={{ textAlign: 'center', fontSize: '0.6rem', color: '#4b5563', padding: '2px 0' }}>{d}</div>
@@ -679,18 +681,18 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   })}
                 </div>
                 <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.75rem', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.62rem', color: '#4b5563' }}>Menos</span>
+                  <span style={{ fontSize: '0.62rem', color: '#4b5563' }}>{t('tablero.mes.menos')}</span>
                   {['rgba(255,255,255,0.04)','rgba(139,92,246,0.15)','rgba(139,92,246,0.3)','rgba(139,92,246,0.5)','rgba(139,92,246,0.75)','rgba(16,185,129,0.65)'].map((c, i) => (
                     <div key={i} style={{ width: '12px', height: '12px', borderRadius: '2px', background: c }} />
                   ))}
-                  <span style={{ fontSize: '0.62rem', color: '#4b5563' }}>Más</span>
+                  <span style={{ fontSize: '0.62rem', color: '#4b5563' }}>{t('tablero.mes.mas')}</span>
                 </div>
               </div>
 
               {/* Cumplimiento por hábito */}
               {totalDias > 0 && (
                 <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-                  <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>Cumplimiento por hábito</div>
+                  <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.mes.cumplimiento')}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {localHabitos.map(h => {
                       const count = monthRegistros.filter(r => r.habito_id === h.id && (r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0))).length
@@ -714,24 +716,24 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               {/* Resumen financiero */}
               {(totalIngresos > 0 || totalGastos > 0) && (
                 <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-                  <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>💰 Resumen financiero</div>
+                  <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.mes.resumen_fin')}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>📈 Ingresos</span>
+                      <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>{t('tablero.mes.ingresos')}</span>
                       <span style={{ fontWeight: 700, color: '#10b981' }}>{fmt(totalIngresos)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>📉 Gastos</span>
+                      <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>{t('tablero.mes.gastos_label')}</span>
                       <span style={{ fontWeight: 700, color: '#ef4444' }}>{fmt(totalGastos)}</span>
                     </div>
                     {ahorroAcumulado > 0 && (
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>🐷 Ahorro (10%)</span>
+                        <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>{t('tablero.mes.ahorro10')}</span>
                         <span style={{ fontWeight: 700, color: '#F5C518' }}>{fmt(ahorroAcumulado)}</span>
                       </div>
                     )}
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.625rem', display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#e5e7eb' }}>Resultado neto</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#e5e7eb' }}>{t('tablero.mes.resultado_neto')}</span>
                       <span style={{ fontSize: '1.2rem', fontWeight: 800, color: profit >= 0 ? '#10b981' : '#ef4444' }}>{profit >= 0 ? '+' : ''}{fmt(profit)}</span>
                     </div>
                   </div>
@@ -748,7 +750,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
           {/* Base */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.875rem' }}>Hábitos base</div>
+            <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.875rem' }}>{t('tablero.habitos.base')}</div>
             {localHabitos.filter(h => h.obligatorio).map(h => (
               <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: '8px', marginBottom: '0.375rem', background: 'rgba(255,255,255,0.03)' }}>
                 <span style={{ fontSize: '1rem' }}>{h.emoji}</span>
@@ -761,13 +763,13 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           {/* Custom */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
-              <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>Mis hábitos personales</div>
+              <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>{t('tablero.habitos.personales')}</div>
               <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{localHabitos.filter(h => !h.obligatorio).length} hábitos</span>
             </div>
 
             {localHabitos.filter(h => !h.obligatorio).length === 0 && !showAddHabito && (
               <div style={{ textAlign: 'center', padding: '1.5rem', color: '#4b5563', fontSize: '0.82rem' }}>
-                Todavía no agregaste hábitos personales
+                {t('tablero.habitos.sin_personales')}
               </div>
             )}
 
@@ -776,17 +778,17 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                 <div key={h.id}>
                   {editingHabito?.id === h.id ? (
                     <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '12px', padding: '1rem' }}>
-                      <div style={{ fontSize: '0.82rem', color: '#a78bfa', fontWeight: 700, marginBottom: '0.75rem' }}>Editar: {h.nombre}</div>
-                      <input value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} placeholder="Nombre..."
+                      <div style={{ fontSize: '0.82rem', color: '#a78bfa', fontWeight: 700, marginBottom: '0.75rem' }}>{t('tablero.habitos.editar', { name: h.nombre })}</div>
+                      <input value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} placeholder={t('tablero.habitos.nombre_placeholder')}
                         style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box', marginBottom: '0.75rem' }} />
-                      <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Emoji</div>
+                      <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>{t('tablero.habitos.emoji_label')}</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginBottom: '0.875rem' }}>
                         {EMOJIS.map(e => <button key={e} onClick={() => setNuevoEmoji(e)} style={{ width: '32px', height: '32px', borderRadius: '6px', border: 'none', fontSize: '1rem', background: nuevoEmoji === e ? 'rgba(139,92,246,0.35)' : 'rgba(255,255,255,0.06)', cursor: 'pointer' }}>{e}</button>)}
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button onClick={saveEditHabito} disabled={!nuevoNombre.trim() || habitoSaving}
                           style={{ flex: 1, padding: '0.6rem', borderRadius: '8px', border: 'none', background: nuevoNombre.trim() ? '#8b5cf6' : 'rgba(139,92,246,0.3)', color: 'white', fontWeight: 600, fontSize: '0.82rem', cursor: nuevoNombre.trim() ? 'pointer' : 'default' }}>
-                          {habitoSaving ? 'Guardando...' : 'Guardar'}
+                          {habitoSaving ? t('common.saving') : t('common.save')}
                         </button>
                         <button onClick={() => { setEditingHabito(null); setNuevoNombre('') }}
                           style={{ padding: '0.6rem 0.875rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#9ca3af', fontSize: '0.82rem', cursor: 'pointer' }}>✕</button>
@@ -809,35 +811,35 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
             {showAddHabito && !editingHabito && (
               <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '12px', padding: '1rem', marginBottom: '0.875rem' }}>
-                <div style={{ fontSize: '0.82rem', color: '#a78bfa', fontWeight: 700, marginBottom: '0.75rem' }}>Nuevo hábito</div>
-                <input value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} placeholder="Nombre del hábito..." autoFocus
+                <div style={{ fontSize: '0.82rem', color: '#a78bfa', fontWeight: 700, marginBottom: '0.75rem' }}>{t('tablero.habitos.nuevo')}</div>
+                <input value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} placeholder={t('tablero.habitos.nombre_placeholder')} autoFocus
                   style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box', marginBottom: '0.75rem' }} />
                 <div style={{ marginBottom: '0.75rem' }}>
-                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Tipo</div>
+                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>{t('tablero.habitos.tipo')}</div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    {(['boolean', 'numero'] as const).map(t => (
-                      <button key={t} onClick={() => setNuevoTipo(t)} style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: 'none', background: nuevoTipo === t ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.05)', color: nuevoTipo === t ? '#a78bfa' : '#6b7280', fontWeight: nuevoTipo === t ? 700 : 400, fontSize: '0.82rem', cursor: 'pointer' }}>
-                        {t === 'boolean' ? '✓ Sí/No' : '# Número'}
+                    {(['boolean', 'numero'] as const).map(tipo => (
+                      <button key={tipo} onClick={() => setNuevoTipo(tipo)} style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: 'none', background: nuevoTipo === tipo ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.05)', color: nuevoTipo === tipo ? '#a78bfa' : '#6b7280', fontWeight: nuevoTipo === tipo ? 700 : 400, fontSize: '0.82rem', cursor: 'pointer' }}>
+                        {tipo === 'boolean' ? t('tablero.habitos.si_no') : t('tablero.habitos.numero')}
                       </button>
                     ))}
                   </div>
                 </div>
                 {nuevoTipo === 'numero' && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                    <input value={nuevoUnidad} onChange={e => setNuevoUnidad(e.target.value)} placeholder="Unidad (vasos, km, min...)"
+                    <input value={nuevoUnidad} onChange={e => setNuevoUnidad(e.target.value)} placeholder={t('tablero.habitos.unidad_placeholder')}
                       style={{ padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
-                    <input type="number" min="1" value={nuevoMeta} onChange={e => setNuevoMeta(e.target.value)} placeholder="Meta diaria"
+                    <input type="number" min="1" value={nuevoMeta} onChange={e => setNuevoMeta(e.target.value)} placeholder={t('tablero.habitos.meta_placeholder')}
                       style={{ padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                 )}
-                <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Emoji</div>
+                <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>{t('tablero.habitos.emoji_label')}</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginBottom: '0.875rem' }}>
                   {EMOJIS.map(e => <button key={e} onClick={() => setNuevoEmoji(e)} style={{ width: '32px', height: '32px', borderRadius: '6px', border: 'none', fontSize: '1rem', background: nuevoEmoji === e ? 'rgba(139,92,246,0.35)' : 'rgba(255,255,255,0.06)', cursor: 'pointer' }}>{e}</button>)}
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button onClick={addHabito} disabled={!nuevoNombre.trim() || habitoSaving}
                     style={{ flex: 1, padding: '0.6rem', borderRadius: '8px', border: 'none', background: nuevoNombre.trim() ? '#8b5cf6' : 'rgba(139,92,246,0.3)', color: 'white', fontWeight: 600, fontSize: '0.82rem', cursor: nuevoNombre.trim() ? 'pointer' : 'default' }}>
-                    {habitoSaving ? 'Guardando...' : 'Agregar hábito'}
+                    {habitoSaving ? t('common.saving') : t('tablero.habitos.agregar')}
                   </button>
                   <button onClick={() => { setShowAddHabito(false); setNuevoNombre(''); setNuevoEmoji('⭐'); setNuevoTipo('boolean'); setNuevoUnidad(''); setNuevoMeta('') }}
                     style={{ padding: '0.6rem 0.875rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#9ca3af', fontSize: '0.82rem', cursor: 'pointer' }}>✕</button>
@@ -853,14 +855,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   border: '1px dashed rgba(139,92,246,0.35)', background: 'rgba(139,92,246,0.05)',
                   color: '#a78bfa', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
                 }}>
-                  + Crear hábito
+                  {t('tablero.habitos.crear')}
                 </button>
                 <button onClick={() => setShowPlantillas(true)} style={{
                   padding: '0.75rem 1rem', borderRadius: '10px',
                   border: '1px solid rgba(139,92,246,0.2)', background: 'rgba(139,92,246,0.05)',
                   color: '#6b7280', fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap',
                 }}>
-                  📋 Plantillas
+                  {t('tablero.habitos.plantillas_btn')}
                 </button>
               </div>
             )}
@@ -873,14 +875,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '14px', padding: '1.25rem', textAlign: 'center' }}>
             <p style={{ margin: 0, color: '#9ca3af', fontSize: '0.85rem', lineHeight: 1.6, fontStyle: 'italic' }}>
-              "El éxito es la realización progresiva de un ideal digno."<br />
-              <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>— Earl Nightingale</span>
+              {t('tablero.metas_tab.quote')}<br />
+              <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>{t('tablero.metas_tab.quote_author')}</span>
             </p>
           </div>
           {[
-            { key: 'meta30', label: 'Meta de 30 días', emoji: '🌱', color: '#10b981', bg: 'rgba(16,185,129,0.06)', bdr: 'rgba(16,185,129,0.2)', value: metas?.meta30 },
-            { key: 'meta90', label: 'Meta de 90 días', emoji: '🚀', color: '#a78bfa', bg: 'rgba(139,92,246,0.06)', bdr: 'rgba(139,92,246,0.2)', value: metas?.meta90 },
-            { key: 'meta180', label: 'Meta de 180 días', emoji: '🏆', color: '#F5C518', bg: 'rgba(245,197,24,0.06)', bdr: 'rgba(245,197,24,0.2)', value: metas?.meta180 },
+            { key: 'meta30', label: t('metas.meta30_titulo'), emoji: '🌱', color: '#10b981', bg: 'rgba(16,185,129,0.06)', bdr: 'rgba(16,185,129,0.2)', value: metas?.meta30 },
+            { key: 'meta90', label: t('metas.meta90_titulo'), emoji: '🚀', color: '#a78bfa', bg: 'rgba(139,92,246,0.06)', bdr: 'rgba(139,92,246,0.2)', value: metas?.meta90 },
+            { key: 'meta180', label: t('metas.meta180_titulo'), emoji: '🏆', color: '#F5C518', bg: 'rgba(245,197,24,0.06)', bdr: 'rgba(245,197,24,0.2)', value: metas?.meta180 },
           ].map(m => (
             <div key={m.key} style={{ background: m.bg, border: `1px solid ${m.bdr}`, borderRadius: '14px', padding: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
@@ -889,7 +891,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               </div>
               {m.value
                 ? <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem', lineHeight: 1.6 }}>{m.value}</p>
-                : <p style={{ margin: 0, color: '#4b5563', fontSize: '0.85rem', fontStyle: 'italic' }}>Todavía sin escribir</p>
+                : <p style={{ margin: 0, color: '#4b5563', fontSize: '0.85rem', fontStyle: 'italic' }}>{t('tablero.metas_tab.sin_meta')}</p>
               }
             </div>
           ))}
@@ -897,7 +899,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             display: 'block', textAlign: 'center', padding: '0.875rem', borderRadius: '12px',
             border: '1px solid rgba(139,92,246,0.3)', background: 'rgba(139,92,246,0.08)',
             color: '#a78bfa', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none',
-          }}>✏️ Editar mis metas</Link>
+          }}>{t('tablero.metas_tab.editar')}</Link>
         </div>
       )}
 
@@ -910,11 +912,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             background: '#0f0a2e', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '16px 16px 12px 12px', padding: '1.25rem',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#e5e7eb' }}>📋 Plantillas de hábitos</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#e5e7eb' }}>{t('tablero.habitos.plantillas_titulo')}</div>
               <button onClick={() => setShowPlantillas(false)} style={{ border: 'none', background: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
             </div>
             <p style={{ fontSize: '0.75rem', color: '#4b5563', marginBottom: '1rem', margin: '0 0 1rem' }}>
-              Tocá uno para agregarlo a tu lista. Los que ya tenés no se duplican.
+              {t('tablero.habitos.plantillas_desc')}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {PLANTILLAS.map(p => {
@@ -931,13 +933,13 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     }}>
                     <span style={{ fontSize: '1.4rem' }}>{p.emoji}</span>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: yaExiste ? '#4b5563' : '#e5e7eb' }}>{p.nombre}</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: yaExiste ? '#4b5563' : '#e5e7eb' }}>{t(`tablero.habitos.plantillas_nombres.${p.nombre}`)}</div>
                       <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.1rem' }}>
-                        {p.tipo === 'numero' ? `Numérico · ${p.meta_numero} ${p.unidad} diarios` : 'Sí/No diario'}
+                        {p.tipo === 'numero' ? t('tablero.habitos.numerico', { n: p.meta_numero ?? 0, u: p.unidad ?? '' }) : t('tablero.habitos.si_no_diario')}
                       </div>
                     </div>
                     {yaExiste
-                      ? <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>ya tenés</span>
+                      ? <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('tablero.habitos.ya_tenes')}</span>
                       : <span style={{ fontSize: '0.8rem', color: '#a78bfa' }}>+</span>
                     }
                   </button>
@@ -958,14 +960,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#e5e7eb' }}>✏️ Editar día</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#e5e7eb' }}>{t('tablero.edit_day.titulo')}</div>
                 <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.15rem' }}>{editingDay}</div>
               </div>
               <button onClick={() => setEditingDay(null)} style={{ border: 'none', background: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.625rem' }}>Hábitos</div>
+              <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.625rem' }}>{t('tablero.edit_day.habitos')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                 {localHabitos.map(h => {
                   const reg = editDayRegMap[h.id]
@@ -1000,15 +1002,15 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.625rem' }}>💰 Movimientos</div>
+              <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.625rem' }}>{t('tablero.edit_day.movimientos')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: parseFloat(editIngresosInput) > 0 ? '0.75rem' : 0 }}>
                 <div>
-                  <label style={{ fontSize: '0.72rem', color: '#10b981', display: 'block', marginBottom: '0.3rem' }}>📈 Ingresos</label>
+                  <label style={{ fontSize: '0.72rem', color: '#10b981', display: 'block', marginBottom: '0.3rem' }}>{t('tablero.edit_day.ingresos_label')}</label>
                   <input type="number" value={editIngresosInput} onChange={e => setEditIngresosInput(e.target.value)} placeholder="0"
                     style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#10b981', fontSize: '0.9rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.72rem', color: '#ef4444', display: 'block', marginBottom: '0.3rem' }}>📉 Gastos</label>
+                  <label style={{ fontSize: '0.72rem', color: '#ef4444', display: 'block', marginBottom: '0.3rem' }}>{t('tablero.edit_day.gastos_label')}</label>
                   <input type="number" value={editGastosInput} onChange={e => setEditGastosInput(e.target.value)} placeholder="0"
                     style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', fontSize: '0.9rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
@@ -1020,7 +1022,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     {editDayFin.ahorro && <span style={{ fontSize: '0.6rem', color: 'white' }}>✓</span>}
                   </div>
                   <span style={{ fontSize: '0.82rem', color: editDayFin.ahorro ? '#10b981' : '#9ca3af', fontWeight: editDayFin.ahorro ? 700 : 400 }}>
-                    🐷 {editDayFin.ahorro ? `Ahorré ${fmt(Math.round(parseFloat(editIngresosInput) * 0.1))}` : `¿Ahorré el 10%? (${fmt(Math.round(parseFloat(editIngresosInput) * 0.1))})`}
+                    🐷 {editDayFin.ahorro ? t('tablero.edit_day.ahorro_si', { amount: fmt(Math.round(parseFloat(editIngresosInput) * 0.1)) }) : t('tablero.edit_day.ahorro_no', { amount: fmt(Math.round(parseFloat(editIngresosInput) * 0.1)) })}
                   </span>
                 </button>
               )}
@@ -1031,7 +1033,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               background: editSaved ? '#10b981' : 'linear-gradient(135deg,#8B5CF6,#EC4899)',
               color: 'white', fontSize: '0.9rem', fontWeight: 700, cursor: editSaving ? 'default' : 'pointer',
             }}>
-              {editSaving ? 'Guardando...' : editSaved ? '✓ ¡Guardado!' : 'Guardar cambios'}
+              {editSaving ? t('common.saving') : editSaved ? t('tablero.edit_day.guardado') : t('tablero.edit_day.guardar')}
             </button>
           </div>
         </div>

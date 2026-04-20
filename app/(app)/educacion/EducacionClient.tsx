@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
+import { useLocale } from '@/lib/i18n/LocaleContext'
 
 interface Etapa {
   id: string
@@ -13,108 +14,12 @@ interface Etapa {
   orden: number
 }
 
-type PasoData = {
-  paso: number
-  mensajeIntro: string
-  preguntaTransicion: string
-  teaserProximo: string | null
-  mensajeProximo: string | null
-}
-
-const PASOS: PasoData[] = [
-  {
-    paso: 1,
-    mensajeIntro: 'Earl Nightingale grabó este audio hace más de 60 años. Sigue siendo el más directo sobre el tema. 30 minutos que te van a sacudir la cabeza.',
-    preguntaTransicion: '¿Qué entendiste por "el secreto más raro del mundo"? ¿Cómo se aplica a tu vida hoy?',
-    teaserProximo: 'La Vaca — Camilo Cruz',
-    mensajeProximo: 'La Vaca es una historia corta sobre la excusa que te tiene atado. Todos tenemos una. La pregunta es si estás dispuesto a verla.',
-  },
-  {
-    paso: 2,
-    mensajeIntro: 'Una historia corta sobre la excusa que te tiene atado. Todos tenemos una vaca. La pregunta es si estás dispuesto a verla y matarla.',
-    preguntaTransicion: '¿Cuál era tu vaca? ¿Qué decidiste hacer con ella después de leerlo?',
-    teaserProximo: 'Tráguese ese Sapo — Brian Tracy',
-    mensajeProximo: 'Si La Vaca te mostró la excusa, este libro te da el método. El "sapo" es esa tarea que venís postergando. Tragárselo primero cambia todo el día.',
-  },
-  {
-    paso: 3,
-    mensajeIntro: 'Si La Vaca te mostró la excusa, Tráguese ese Sapo te da el método. El sapo es esa tarea que venís postergando. Hacer eso primero cambia todo.',
-    preguntaTransicion: '¿Cuál fue el sapo que te tragaste? ¿Qué pasó después de hacerlo?',
-    teaserProximo: 'Detox Financiero — Fernando Palacio',
-    mensajeProximo: 'El dinero no es el problema. La relación con el dinero es el problema. Detox Financiero ayuda a identificar las creencias que te frenan económicamente.',
-  },
-  {
-    paso: 4,
-    mensajeIntro: 'El dinero no es el problema — la relación con el dinero es el problema. Este libro te ayuda a limpiar las creencias que te frenan económicamente, muchas desde la infancia.',
-    preguntaTransicion: '¿Qué creencia sobre el dinero identificaste? ¿Cómo pensás trabajarla?',
-    teaserProximo: 'Deja de Ser Tú — Joe Dispenza',
-    mensajeProximo: 'Dispenza va más profundo. Explica cómo el cerebro construye la realidad y por qué ciertos patrones se repiten sin importar cuánto intentés cambiarlos.',
-  },
-  {
-    paso: 5,
-    mensajeIntro: 'Dispenza va más profundo que cualquier otro autor de este camino. Explica cómo el cerebro construye la realidad y por qué ciertos patrones se repiten sin importar cuánto intentés cambiarlos. Preparate.',
-    preguntaTransicion: '¿Qué patrón identificaste en vos? ¿Qué ejercicio del libro te resultó más poderoso?',
-    teaserProximo: 'La Liberación del Alma — Michael Singer',
-    mensajeProximo: 'Singer no habla de hacer más. Habla de soltar lo que te pesa. Pocos libros te mueven como este.',
-  },
-  {
-    paso: 6,
-    mensajeIntro: 'Singer no habla de hacer más. Habla de soltar lo que te pesa. Pocos libros te mueven como este.',
-    preguntaTransicion: '¿Hay algo que estabas aferrando que decidiste soltar? ¿Qué cambió cuando lo hiciste?',
-    teaserProximo: 'Su Deseo es Su Mandato — Kevin Trudeau',
-    mensajeProximo: 'Trudeau explica por qué lo que deseás con más claridad es lo que terminás creando, y por qué la mayoría no lo logra.',
-  },
-  {
-    paso: 7,
-    mensajeIntro: 'Trudeau explica por qué lo que deseás con más claridad es lo que terminás atrayendo — y por qué la mayoría no lo logra. Escuchalo cuando podás concentrarte.',
-    preguntaTransicion: '¿Cuál fue el concepto que más te impactó? ¿Qué vas a hacer diferente con lo que aprendiste?',
-    teaserProximo: 'REWIRED — Dr. Joe Dispenza',
-    mensajeProximo: 'Dispenza en video es otra experiencia. REWIRED explica cómo reconectar el cerebro para que tus nuevas decisiones se vuelvan automáticas en lugar de una lucha constante.',
-  },
-  {
-    paso: 8,
-    mensajeIntro: 'Dispenza en video es otra experiencia. REWIRED explica cómo reconectar el cerebro para que tus nuevas decisiones se vuelvan automáticas, en lugar de una lucha constante.',
-    preguntaTransicion: '¿Qué práctica del video vas a incorporar? ¿Cuándo empezás?',
-    teaserProximo: 'Biblioteca — Desarrollo de Consciencia',
-    mensajeProximo: 'Llegaste a la biblioteca. El material que profundiza todo lo que venís trabajando.',
-  },
-  {
-    paso: 9,
-    mensajeIntro: 'Llegaste a la biblioteca. Acá encontrás el material que profundiza todo lo que venís trabajando.',
-    preguntaTransicion: '¿En qué área de tu vida sentís que más creciste desde que arrancaste este camino? ¿Qué todavía querés seguir trabajando?',
-    teaserProximo: 'Fénix — Brian Tracy',
-    mensajeProximo: 'Tracy en video — el proceso de renacer como persona y como profesional. El Fénix no vuelve siendo el mismo.',
-  },
-  {
-    paso: 10,
-    mensajeIntro: 'Tracy en video — el proceso de renacer como persona y como profesional. El Fénix no vuelve siendo el mismo. Este video te ayuda a entender qué hay que dejar ir para que eso pase.',
-    preguntaTransicion: '¿En qué aspecto de tu vida sentís que renaciste? ¿Qué dejaste ir para que eso pase?',
-    teaserProximo: 'Método José Silva',
-    mensajeProximo: 'El último del camino: el Método Silva. Más de 50 años de práctica, resultados concretos. Con esto cerrás el círculo.',
-  },
-  {
-    paso: 11,
-    mensajeIntro: 'El Método Silva tiene más de 50 años. Sigue siendo una de las técnicas más concretas para usar la mente con un propósito. Con esto cerrás el círculo.',
-    preguntaTransicion: '¿Cómo vas a integrar todo lo que aprendiste a tu vida cotidiana?',
-    teaserProximo: null,
-    mensajeProximo: null,
-  },
-]
-
 const TIPO_EMOJI: Record<string, string> = {
   'Audio diario': '🎵',
   'Audiolibro': '🎙️',
   'Video': '🎬',
   'Libro PDF': '📄',
   'Biblioteca': '📚',
-}
-
-const TIPO_CTA: Record<string, string> = {
-  'Audio diario': 'Escucharlo',
-  'Audiolibro': 'Escuchar el audiolibro',
-  'Video': 'Verlo',
-  'Libro PDF': 'Leerlo',
-  'Biblioteca': 'Acceder a la biblioteca',
 }
 
 const TIPO_COLOR: Record<string, { bg: string; border: string; text: string }> = {
@@ -136,6 +41,7 @@ export default function EducacionClient({
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
+  const { t } = useLocale()
 
   const [loading, setLoading] = useState(true)
   const [paso, setPaso] = useState(0)
@@ -198,17 +104,18 @@ export default function EducacionClient({
     setPaso(siguientePaso)
     setReflexionActual('')
     setShowTransicion(false)
-    setToast(`Paso ${siguientePaso} listo. Vamos.`)
+    setToast(t('educacion.paso_listo', { n: siguientePaso }))
     setTimeout(() => setToast(''), 3000)
   }
 
   const etapaActual = etapasPorOrden[paso]
-  const pasoData = PASOS.find(p => p.paso === paso)
   const proximaEtapa = etapasPorOrden[paso + 1]
+  const pasoIdx = paso - 1
+  const hasTeaserProximo = paso >= 1 && paso < totalPasos
 
   if (loading) return (
     <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: '#a78bfa', fontSize: '0.9rem' }}>Un momento...</div>
+      <div style={{ color: '#a78bfa', fontSize: '0.9rem' }}>{t('common.loading')}</div>
     </div>
   )
 
@@ -217,9 +124,9 @@ export default function EducacionClient({
       <div style={{ maxWidth: '680px', margin: '0 auto' }}>
 
         <div style={{ marginBottom: '1.75rem' }}>
-          <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>📚 Educación</h1>
+          <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{t('educacion.titulo')}</h1>
           <p style={{ margin: '0.2rem 0 0', fontSize: '0.78rem', color: '#6b7280' }}>
-            {paso === 0 ? 'Arrancamos.' : `Paso ${paso} de ${totalPasos}`}
+            {paso === 0 ? t('educacion.hola', { name: '' }).trim().replace(/,\s*$/, '') : t('educacion.paso_progreso', { paso, total: totalPasos, name: '' }).trim()}
           </p>
         </div>
 
@@ -228,19 +135,19 @@ export default function EducacionClient({
           <div style={cardStyle}>
             <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: '1rem' }}>🌱</div>
             <h2 style={{ margin: '0 0 0.75rem', fontSize: '1.1rem', fontWeight: 700, color: '#e5e7eb', textAlign: 'center' }}>
-              Arrancamos desde donde estás hoy
+              {t('educacion.paso0_titulo')}
             </h2>
             <p style={{ margin: '0 0 1.25rem', fontSize: '0.85rem', color: '#9ca3af', lineHeight: 1.6, textAlign: 'center' }}>
-              Una sola pregunta antes de empezar. Respondela sin filtro. Nadie más la lee.
+              {t('educacion.paso0_sub')}
             </p>
             <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '10px', padding: '1.25rem', marginBottom: '1.25rem' }}>
               <p style={{ margin: '0 0 0.875rem', fontSize: '0.88rem', fontWeight: 600, color: '#c4b5fd', lineHeight: 1.5 }}>
-                ✍️ ¿En qué parte de tu vida querés ver cambios este año? ¿Qué te viene frenando?
+                {t('educacion.paso0_pregunta')}
               </p>
               <textarea
                 value={reflexionInicial}
                 onChange={e => setReflexionInicial(e.target.value)}
-                placeholder="Escribí lo que pensás..."
+                placeholder={t('educacion.paso0_placeholder')}
                 rows={5}
                 style={textareaStyle}
               />
@@ -250,7 +157,7 @@ export default function EducacionClient({
               disabled={saving || !reflexionInicial.trim()}
               style={btnPrimary(saving || !reflexionInicial.trim())}
             >
-              {saving ? 'Un segundo...' : 'Este es mi punto de partida →'}
+              {saving ? t('educacion.paso0_saving') : t('educacion.paso0_btn')}
             </button>
           </div>
         )}
@@ -268,15 +175,15 @@ export default function EducacionClient({
                 }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: '#6b7280' }}>
-                <span>{paso >= totalPasos ? '¡Completado!' : `${Math.round((paso / totalPasos) * 100)}% del camino`}</span>
-                <span>{paso}/{totalPasos} materiales</span>
+                <span>{paso >= totalPasos ? t('educacion.completado') : t('educacion.del_camino', { pct: Math.round((paso / totalPasos) * 100) })}</span>
+                <span>{t('educacion.pasos_counter', { paso, total: totalPasos })}</span>
               </div>
             </div>
 
             {reflexionInicial && (
               <details style={{ marginBottom: '1rem' }}>
                 <summary style={{ fontSize: '0.75rem', color: '#6b7280', cursor: 'pointer', userSelect: 'none', marginBottom: '0.5rem' }}>
-                  ✍️ Tu reflexión inicial
+                  {t('educacion.reflexion_inicial')}
                 </summary>
                 <div style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '10px', padding: '0.875rem 1rem', marginTop: '0.5rem' }}>
                   <p style={{ margin: 0, fontSize: '0.82rem', color: '#c4b5fd', lineHeight: 1.6, fontStyle: 'italic' }}>"{reflexionInicial}"</p>
@@ -284,8 +191,13 @@ export default function EducacionClient({
               </details>
             )}
 
-            {etapaActual && pasoData && (
-              <ContentCard etapa={etapaActual} mensajeIntro={pasoData.mensajeIntro} paso={paso} />
+            {etapaActual && (
+              <ContentCard
+                etapa={etapaActual}
+                mensajeIntro={paso >= 1 ? t(`educacion.pasos.${pasoIdx}.mensajeIntro`) : ''}
+                paso={paso}
+                t={t}
+              />
             )}
 
             {paso < totalPasos && etapaActual && (
@@ -293,7 +205,11 @@ export default function EducacionClient({
                 {!showTransicion ? (
                   <div style={{ textAlign: 'center' }}>
                     <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: '#9ca3af', lineHeight: 1.5 }}>
-                      ¿Ya {etapaActual.tipo === 'Libro PDF' ? 'lo leíste' : etapaActual.tipo === 'Video' ? 'lo viste' : 'lo escuchaste'}?
+                      {etapaActual.tipo === 'Libro PDF'
+                        ? t('educacion.pregunta_libro')
+                        : etapaActual.tipo === 'Video'
+                          ? t('educacion.pregunta_video')
+                          : t('educacion.pregunta_audio')}
                     </p>
                     <button
                       onClick={() => setShowTransicion(true)}
@@ -303,37 +219,41 @@ export default function EducacionClient({
                         color: '#F5C518', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
                       }}
                     >
-                      {etapaActual.tipo === 'Libro PDF' ? 'Ya lo leí' : etapaActual.tipo === 'Video' ? 'Ya lo vi' : 'Ya lo escuché'} →
+                      {etapaActual.tipo === 'Libro PDF'
+                        ? t('educacion.listo_libro')
+                        : etapaActual.tipo === 'Video'
+                          ? t('educacion.listo_video')
+                          : t('educacion.listo_audio')} →
                     </button>
                   </div>
                 ) : (
                   <div>
                     <div style={{ marginBottom: '1.25rem' }}>
                       <div style={{ fontSize: '0.68rem', color: '#F5C518', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>
-                        Antes de seguir — {etapaActual.titulo.split('—')[0].trim()}
+                        {etapaActual.titulo.split('—')[0].trim()}
                       </div>
                       <p style={{ margin: '0 0 0.75rem', fontSize: '0.88rem', color: '#e5e7eb', fontWeight: 600, lineHeight: 1.5 }}>
-                        {pasoData?.preguntaTransicion}
+                        {t(`educacion.pasos.${pasoIdx}.preguntaTransicion`)}
                       </p>
                       <textarea
                         value={reflexionActual}
                         onChange={e => setReflexionActual(e.target.value)}
-                        placeholder="Escribí tu reflexión..."
+                        placeholder={t('educacion.reflexion_placeholder')}
                         rows={4}
                         style={textareaStyle}
                       />
                     </div>
 
-                    {pasoData?.teaserProximo && pasoData.mensajeProximo && proximaEtapa && (
+                    {hasTeaserProximo && proximaEtapa && (
                       <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '1rem', marginBottom: '1.25rem' }}>
                         <div style={{ fontSize: '0.65rem', color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.4rem' }}>
-                          Lo que viene
+                          {t('educacion.lo_que_viene')}
                         </div>
                         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e5e7eb', marginBottom: '0.4rem' }}>
-                          {TIPO_EMOJI[proximaEtapa.tipo] || '📄'} {pasoData.teaserProximo}
+                          {TIPO_EMOJI[proximaEtapa.tipo] || '📄'} {t(`educacion.pasos.${pasoIdx}.teaserProximo`)}
                         </div>
                         <p style={{ margin: 0, fontSize: '0.8rem', color: '#9ca3af', lineHeight: 1.5 }}>
-                          {pasoData.mensajeProximo}
+                          {t(`educacion.pasos.${pasoIdx}.mensajeProximo`)}
                         </p>
                       </div>
                     )}
@@ -347,14 +267,14 @@ export default function EducacionClient({
                           color: '#6b7280', fontSize: '0.82rem', cursor: 'pointer',
                         }}
                       >
-                        Cancelar
+                        {t('educacion.volver')}
                       </button>
                       <button
                         onClick={avanzarPaso}
                         disabled={saving || !reflexionActual.trim()}
                         style={{ ...btnPrimary(saving || !reflexionActual.trim()), flex: 1 }}
                       >
-                        {saving ? 'Un segundo...' : `Arrancar con ${pasoData?.teaserProximo || 'lo siguiente'} →`}
+                        {saving ? t('educacion.paso0_saving') : t('educacion.arrancar_con', { titulo: t(`educacion.pasos.${pasoIdx}.teaserProximo`) })}
                       </button>
                     </div>
                   </div>
@@ -366,10 +286,10 @@ export default function EducacionClient({
               <div style={{ ...cardStyle, textAlign: 'center', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)' }}>
                 <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🏆</div>
                 <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem', fontWeight: 700, color: '#6ee7b7' }}>
-                  Completaste el camino
+                  {t('educacion.llegaste')}
                 </h3>
                 <p style={{ margin: 0, fontSize: '0.85rem', color: '#9ca3af', lineHeight: 1.6 }}>
-                  Once materiales. Once reflexiones. Eso no lo hace cualquiera.
+                  {t('educacion.once_materiales')}
                 </p>
               </div>
             )}
@@ -377,7 +297,7 @@ export default function EducacionClient({
             {paso > 1 && (
               <details style={{ marginTop: '1.5rem' }}>
                 <summary style={{ fontSize: '0.78rem', color: '#6b7280', cursor: 'pointer', userSelect: 'none', fontWeight: 600 }}>
-                  📂 Materiales anteriores ({paso - 1})
+                  {t('educacion.lo_que_recorriste', { n: paso - 1 })}
                 </summary>
                 <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                   {Array.from({ length: paso - 1 }, (_, i) => i + 1).reverse().map(p => {
@@ -425,14 +345,26 @@ export default function EducacionClient({
   )
 }
 
-function ContentCard({ etapa, mensajeIntro, paso }: {
+function ContentCard({ etapa, mensajeIntro, paso, t }: {
   etapa: Etapa
   mensajeIntro: string
   paso: number
+  t: (key: string, vars?: Record<string, string | number>) => string
 }) {
   const col = TIPO_COLOR[etapa.tipo] || TIPO_COLOR['Libro PDF']
   const emoji = TIPO_EMOJI[etapa.tipo] || '📄'
-  const cta = TIPO_CTA[etapa.tipo] || 'Abrir material'
+
+  const ctaKey = etapa.tipo === 'Audio diario'
+    ? 'educacion.cta_audio'
+    : etapa.tipo === 'Audiolibro'
+      ? 'educacion.cta_audiolibro'
+      : etapa.tipo === 'Video'
+        ? 'educacion.cta_video'
+        : etapa.tipo === 'Biblioteca'
+          ? 'educacion.cta_biblioteca'
+          : 'educacion.cta_libro'
+
+  const cta = t(ctaKey)
 
   return (
     <div style={{ background: col.bg, border: `1px solid ${col.border}`, borderRadius: '14px', padding: '1.5rem', marginBottom: '1rem' }}>

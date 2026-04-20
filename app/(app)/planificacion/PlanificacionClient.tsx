@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
+import { useLocale } from '@/lib/i18n/LocaleContext'
 
 type Tab = 'ideas' | 'tareas' | 'calendario'
 
@@ -46,12 +47,12 @@ function formatFecha(f: string) {
   return `${d}/${m}/${y}`
 }
 
-function diasRestantes(fecha: string, today: string) {
+function diasRestantes(fecha: string, today: string, t: (key: string, vars?: Record<string, string | number>) => string) {
   const diff = Math.round((new Date(fecha + 'T12:00:00').getTime() - new Date(today + 'T12:00:00').getTime()) / 86400000)
-  if (diff < 0) return `${Math.abs(diff)}d vencida`
-  if (diff === 0) return 'Hoy'
-  if (diff === 1) return 'Mañana'
-  return `en ${diff}d`
+  if (diff < 0) return t('planificacion.tarea_vencida_n', { n: Math.abs(diff) })
+  if (diff === 0) return t('planificacion.tarea_hoy')
+  if (diff === 1) return t('planificacion.tarea_manana')
+  return t('planificacion.tarea_en_n', { n: diff })
 }
 
 export default function PlanificacionClient({ userId, today, nombre }: { userId: string; today: string; nombre: string }) {
@@ -59,6 +60,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
+  const { t } = useLocale()
 
   const [tab, setTab] = useState<Tab>('ideas')
 
@@ -141,7 +143,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
   }
 
   async function deleteIdea(id: string) {
-    if (!confirm('¿Eliminar esta idea?')) return
+    if (!confirm(t('planificacion.ideas_eliminar'))) return
     await supabase.from('ideas').delete().eq('id', id)
     loadIdeas()
   }
@@ -187,7 +189,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
   }
 
   async function deleteEvento(id: string) {
-    if (!confirm('¿Eliminar este evento?')) return
+    if (!confirm(t('planificacion.evento_eliminar'))) return
     await supabase.from('eventos').delete().eq('id', id)
     loadEventos()
   }
@@ -198,19 +200,19 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
   const proximas = tareas.filter(t => (!t.fecha_limite || t.fecha_limite > today) && t.estado !== 'completada')
   const completadas = tareas.filter(t => t.estado === 'completada')
 
-  const navTab = (t: Tab, emoji: string, label: string) => (
-    <button onClick={() => setTab(t)} style={{
+  const navTab = (tabKey: Tab, emoji: string, label: string) => (
+    <button onClick={() => setTab(tabKey)} style={{
       flex: 1, padding: '0.5rem 0.25rem', borderRadius: '8px', border: 'none',
-      background: tab === t ? 'rgba(139,92,246,0.25)' : 'transparent',
-      color: tab === t ? '#a78bfa' : '#6b7280',
-      fontWeight: tab === t ? 700 : 400,
+      background: tab === tabKey ? 'rgba(139,92,246,0.25)' : 'transparent',
+      color: tab === tabKey ? '#a78bfa' : '#6b7280',
+      fontWeight: tab === tabKey ? 700 : 400,
       fontSize: '0.75rem', cursor: 'pointer', transition: 'all 0.15s',
     }}>{emoji} {label}</button>
   )
 
   const AddBtn = ({ onClick }: { onClick: () => void }) => (
     <button onClick={onClick} style={{ ...BTN_BASE, background: 'rgba(139,92,246,0.08)', color: '#a78bfa', border: '1px dashed rgba(139,92,246,0.35)', width: '100%', padding: '0.75rem' }}>
-      + Agregar
+      {t('common.add')}
     </button>
   )
 
@@ -218,21 +220,21 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
     <div>
       <div style={{ marginBottom: '1.5rem' }}>
         <p style={{ color: '#7c3aed', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
-          Tu espacio personal
+          {t('planificacion.espacio')}
         </p>
         <h1 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
-          {nombre ? `Planificación de ${nombre}` : 'Planificación'}
+          {nombre ? t('planificacion.titulo', { nombre }) : t('planificacion.titulo_default')}
         </h1>
         <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: '0.35rem 0 0' }}>
-          Ideas, tareas y agenda en un solo lugar.
+          {t('planificacion.subtitulo')}
         </p>
       </div>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '0.2rem', padding: '0.25rem', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', marginBottom: '1.5rem' }}>
-        {navTab('ideas', '💡', 'Ideas')}
-        {navTab('tareas', '✅', 'Tareas')}
-        {navTab('calendario', '📅', 'Calendario')}
+        {navTab('ideas', '💡', t('planificacion.tab_ideas'))}
+        {navTab('tareas', '✅', t('planificacion.tab_tareas'))}
+        {navTab('calendario', '📅', t('planificacion.tab_calendario'))}
       </div>
 
       {/* ══ IDEAS ══ */}
@@ -243,7 +245,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
               <textarea
                 value={ideaTexto}
                 onChange={e => setIdeaTexto(e.target.value)}
-                placeholder="Escribí tu idea..."
+                placeholder={t('planificacion.ideas_placeholder')}
                 autoFocus
                 rows={3}
                 style={{ ...INPUT_STYLE, resize: 'vertical', marginBottom: '0.75rem' }}
@@ -251,7 +253,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button onClick={addIdea} disabled={!ideaTexto.trim() || ideaAdding}
                   style={{ ...BTN_BASE, flex: 1, background: ideaTexto.trim() ? '#8b5cf6' : 'rgba(139,92,246,0.3)', color: 'white' }}>
-                  {ideaAdding ? 'Guardando...' : 'Guardar idea'}
+                  {ideaAdding ? t('planificacion.guardando') : t('planificacion.ideas_guardar')}
                 </button>
                 <button onClick={() => { setIdeaShowForm(false); setIdeaTexto('') }}
                   style={{ ...BTN_BASE, background: 'transparent', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '0.55rem 0.75rem' }}>✕</button>
@@ -261,12 +263,12 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
             <AddBtn onClick={() => { setIdeaShowForm(true); setIdeaEditing(null) }} />
           )}
 
-          {ideasLoading && <div style={{ textAlign: 'center', color: '#4b5563', padding: '2rem', fontSize: '0.82rem' }}>Cargando...</div>}
+          {ideasLoading && <div style={{ textAlign: 'center', color: '#4b5563', padding: '2rem', fontSize: '0.82rem' }}>{t('planificacion.cargando')}</div>}
 
           {!ideasLoading && ideas.length === 0 && !ideaShowForm && (
             <div style={{ textAlign: 'center', color: '#4b5563', padding: '2.5rem 1rem', fontSize: '0.85rem' }}>
-              No tenés ideas guardadas 💡<br />
-              <span style={{ fontSize: '0.75rem' }}>Anotá cualquier cosa que se te ocurra.</span>
+              {t('planificacion.ideas_empty')}<br />
+              <span style={{ fontSize: '0.75rem' }}>{t('planificacion.ideas_empty_sub')}</span>
             </div>
           )}
 
@@ -278,7 +280,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                     style={{ ...INPUT_STYLE, resize: 'vertical', marginBottom: '0.75rem' }} />
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button onClick={saveEditIdea} disabled={!ideaEditTexto.trim()}
-                      style={{ ...BTN_BASE, flex: 1, background: '#8b5cf6', color: 'white' }}>Guardar</button>
+                      style={{ ...BTN_BASE, flex: 1, background: '#8b5cf6', color: 'white' }}>{t('planificacion.guardar')}</button>
                     <button onClick={() => setIdeaEditing(null)}
                       style={{ ...BTN_BASE, background: 'transparent', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '0.55rem 0.75rem' }}>✕</button>
                   </div>
@@ -322,7 +324,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
               value={tareaTexto}
               onChange={e => setTareaTexto(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addTarea()}
-              placeholder="Nueva tarea..."
+              placeholder={t('planificacion.tarea_placeholder')}
               style={{ width: '100%', background: 'transparent', border: 'none', color: '#fff', fontSize: '0.9rem', outline: 'none', marginBottom: '0.75rem' }}
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -330,33 +332,33 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                 style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: '#9ca3af', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark' }} />
               <button onClick={addTarea} disabled={!tareaTexto.trim() || tareaAdding}
                 style={{ marginLeft: 'auto', padding: '0.45rem 1.1rem', borderRadius: '8px', background: tareaTexto.trim() ? '#8B5CF6' : 'rgba(139,92,246,0.2)', border: 'none', color: '#fff', fontSize: '0.82rem', fontWeight: 600, cursor: tareaTexto.trim() ? 'pointer' : 'default' }}>
-                {tareaAdding ? '...' : 'Agregar'}
+                {tareaAdding ? '...' : t('planificacion.tarea_agregar')}
               </button>
             </div>
           </div>
 
-          {tareasLoading && <div style={{ textAlign: 'center', color: '#4b5563', padding: '2rem', fontSize: '0.82rem' }}>Cargando...</div>}
+          {tareasLoading && <div style={{ textAlign: 'center', color: '#4b5563', padding: '2rem', fontSize: '0.82rem' }}>{t('planificacion.cargando')}</div>}
 
           {!tareasLoading && (
             <>
-              {vencidas.length > 0 && <TareaSection label="Vencidas" color="#ef4444" items={vencidas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} />}
-              {hoy.length > 0 && <TareaSection label="Hoy" color="#f59e0b" items={hoy} today={today} onToggle={toggleTarea} onDelete={deleteTarea} />}
-              {proximas.length > 0 && <TareaSection label="Próximas" color="#9ca3af" items={proximas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} />}
+              {vencidas.length > 0 && <TareaSection label={t('planificacion.tarea_vencidas')} color="#ef4444" items={vencidas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} t={t} />}
+              {hoy.length > 0 && <TareaSection label={t('planificacion.tarea_hoy')} color="#f59e0b" items={hoy} today={today} onToggle={toggleTarea} onDelete={deleteTarea} t={t} />}
+              {proximas.length > 0 && <TareaSection label={t('planificacion.tarea_proximas')} color="#9ca3af" items={proximas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} t={t} />}
 
               {completadas.length > 0 && (
                 <div>
                   <button onClick={() => setShowCompleted(v => !v)}
                     style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                    {showCompleted ? '▾' : '▸'} Completadas ({completadas.length})
+                    {showCompleted ? '▾' : '▸'} {t('planificacion.tarea_completadas')} ({completadas.length})
                   </button>
-                  {showCompleted && <TareaSection label="Completadas" color="#10b981" items={completadas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} />}
+                  {showCompleted && <TareaSection label={t('planificacion.tarea_completadas')} color="#10b981" items={completadas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} t={t} />}
                 </div>
               )}
 
               {vencidas.length === 0 && hoy.length === 0 && proximas.length === 0 && completadas.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#6b7280' }}>
                   <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✅</div>
-                  <p>Todo listo. Agregá una tarea arriba cuando quieras.</p>
+                  <p>{t('planificacion.tarea_empty')}</p>
                 </div>
               )}
             </>
@@ -369,26 +371,26 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {evShowForm ? (
             <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: '12px', padding: '1rem' }}>
-              <input value={evTitulo} onChange={e => setEvTitulo(e.target.value)} placeholder="Título del evento..." autoFocus
+              <input value={evTitulo} onChange={e => setEvTitulo(e.target.value)} placeholder={t('planificacion.evento_titulo_placeholder')} autoFocus
                 style={{ ...INPUT_STYLE, marginBottom: '0.625rem' }} />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem', marginBottom: '0.625rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>Fecha *</label>
+                  <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>{t('planificacion.evento_fecha')}</label>
                   <input type="date" value={evFecha} onChange={e => setEvFecha(e.target.value)}
                     style={{ ...INPUT_STYLE, colorScheme: 'dark' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>Hora</label>
+                  <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>{t('planificacion.evento_hora')}</label>
                   <input type="time" value={evHora} onChange={e => setEvHora(e.target.value)}
                     style={{ ...INPUT_STYLE, colorScheme: 'dark' }} />
                 </div>
               </div>
-              <textarea value={evNotas} onChange={e => setEvNotas(e.target.value)} placeholder="Notas (opcional)..." rows={2}
+              <textarea value={evNotas} onChange={e => setEvNotas(e.target.value)} placeholder={t('planificacion.evento_notas')} rows={2}
                 style={{ ...INPUT_STYLE, resize: 'vertical', marginBottom: '0.75rem' }} />
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button onClick={addEvento} disabled={!evTitulo.trim() || !evFecha || evAdding}
                   style={{ ...BTN_BASE, flex: 1, background: (evTitulo.trim() && evFecha) ? '#8b5cf6' : 'rgba(139,92,246,0.3)', color: 'white' }}>
-                  {evAdding ? 'Guardando...' : 'Guardar evento'}
+                  {evAdding ? t('planificacion.guardando') : t('planificacion.evento_guardar')}
                 </button>
                 <button onClick={() => { setEvShowForm(false); setEvTitulo(''); setEvFecha(''); setEvHora(''); setEvNotas('') }}
                   style={{ ...BTN_BASE, background: 'transparent', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '0.55rem 0.75rem' }}>✕</button>
@@ -398,12 +400,12 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
             <AddBtn onClick={() => { setEvShowForm(true); setEvEditing(null) }} />
           )}
 
-          {eventosLoading && <div style={{ textAlign: 'center', color: '#4b5563', padding: '2rem', fontSize: '0.82rem' }}>Cargando...</div>}
+          {eventosLoading && <div style={{ textAlign: 'center', color: '#4b5563', padding: '2rem', fontSize: '0.82rem' }}>{t('planificacion.cargando')}</div>}
 
           {!eventosLoading && eventos.length === 0 && !evShowForm && (
             <div style={{ textAlign: 'center', color: '#4b5563', padding: '2.5rem 1rem', fontSize: '0.85rem' }}>
-              No hay eventos agendados 📅<br />
-              <span style={{ fontSize: '0.75rem' }}>Anotá tus compromisos y fechas importantes.</span>
+              {t('planificacion.evento_empty')}<br />
+              <span style={{ fontSize: '0.75rem' }}>{t('planificacion.evento_empty_sub')}</span>
             </div>
           )}
 
@@ -411,25 +413,25 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
             <div key={ev.id}>
               {evEditing?.id === ev.id ? (
                 <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '12px', padding: '1rem' }}>
-                  <input value={evEditTitulo} onChange={e => setEvEditTitulo(e.target.value)} placeholder="Título..." autoFocus
+                  <input value={evEditTitulo} onChange={e => setEvEditTitulo(e.target.value)} placeholder={t('planificacion.evento_titulo_edit')} autoFocus
                     style={{ ...INPUT_STYLE, marginBottom: '0.625rem' }} />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem', marginBottom: '0.625rem' }}>
                     <div>
-                      <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>Fecha</label>
+                      <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>{t('planificacion.evento_fecha_label')}</label>
                       <input type="date" value={evEditFecha} onChange={e => setEvEditFecha(e.target.value)}
                         style={{ ...INPUT_STYLE, colorScheme: 'dark' }} />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>Hora</label>
+                      <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>{t('planificacion.evento_hora_label')}</label>
                       <input type="time" value={evEditHora} onChange={e => setEvEditHora(e.target.value)}
                         style={{ ...INPUT_STYLE, colorScheme: 'dark' }} />
                     </div>
                   </div>
-                  <textarea value={evEditNotas} onChange={e => setEvEditNotas(e.target.value)} placeholder="Notas..." rows={2}
+                  <textarea value={evEditNotas} onChange={e => setEvEditNotas(e.target.value)} placeholder={t('planificacion.evento_notas_edit')} rows={2}
                     style={{ ...INPUT_STYLE, resize: 'vertical', marginBottom: '0.75rem' }} />
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button onClick={saveEditEvento} disabled={!evEditTitulo.trim() || !evEditFecha}
-                      style={{ ...BTN_BASE, flex: 1, background: '#8b5cf6', color: 'white' }}>Guardar</button>
+                      style={{ ...BTN_BASE, flex: 1, background: '#8b5cf6', color: 'white' }}>{t('planificacion.guardar')}</button>
                     <button onClick={() => setEvEditing(null)}
                       style={{ ...BTN_BASE, background: 'transparent', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '0.55rem 0.75rem' }}>✕</button>
                   </div>
@@ -448,12 +450,12 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
                         {ev.fecha && <span style={{ fontSize: '0.72rem', color: '#a78bfa' }}>📅 {formatFecha(ev.fecha)}</span>}
                         {ev.hora && <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>⏰ {ev.hora}</span>}
-                        {ev.realizado && <span style={{ fontSize: '0.68rem', color: '#10b981', fontWeight: 600 }}>✓ Realizado</span>}
+                        {ev.realizado && <span style={{ fontSize: '0.68rem', color: '#10b981', fontWeight: 600 }}>{t('planificacion.evento_realizado')}</span>}
                       </div>
                       {ev.notas && <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem', color: '#9ca3af', lineHeight: 1.5 }}>{ev.notas}</p>}
                     </div>
                     <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
-                      <button onClick={() => toggleEvento(ev)} title={ev.realizado ? 'Desmarcar' : 'Marcar realizado'}
+                      <button onClick={() => toggleEvento(ev)}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: ev.realizado ? '#10b981' : '#6b7280', fontSize: '0.85rem', padding: '2px 4px' }}>
                         {ev.realizado ? '↩' : '✓'}
                       </button>
@@ -473,39 +475,40 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
   )
 }
 
-function TareaSection({ label, color, items, today, onToggle, onDelete }: {
+function TareaSection({ label, color, items, today, onToggle, onDelete, t }: {
   label: string; color: string; items: Tarea[]; today: string
   onToggle: (t: Tarea) => void; onDelete: (id: string) => void
+  t: (key: string, vars?: Record<string, string | number>) => string
 }) {
   return (
     <div style={{ marginBottom: '0.75rem' }}>
       <p style={{ color, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>{label}</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {items.map(t => {
-          const done = t.estado === 'completada'
-          const vencida = t.fecha_limite && t.fecha_limite < today && !done
+        {items.map(tarea => {
+          const done = tarea.estado === 'completada'
+          const vencida = tarea.fecha_limite && tarea.fecha_limite < today && !done
           return (
-            <div key={t.id} style={{
+            <div key={tarea.id} style={{
               display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
               padding: '0.875rem 1rem', borderRadius: '12px', background: '#1a1730',
               border: `1px solid ${vencida ? 'rgba(239,68,68,0.25)' : done ? 'rgba(16,185,129,0.15)' : 'rgba(139,92,246,0.1)'}`,
               opacity: done ? 0.6 : 1,
             }}>
-              <button onClick={() => onToggle(t)} style={{
+              <button onClick={() => onToggle(tarea)} style={{
                 marginTop: '2px', width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
                 background: done ? '#10b981' : 'transparent',
                 border: `2px solid ${done ? '#10b981' : vencida ? '#ef4444' : 'rgba(139,92,246,0.4)'}`,
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#fff',
               }}>{done ? '✓' : ''}</button>
               <div style={{ flex: 1 }}>
-                <p style={{ color: done ? '#6b7280' : '#e5e7eb', fontSize: '0.875rem', textDecoration: done ? 'line-through' : 'none', lineHeight: 1.4, margin: 0 }}>{t.texto}</p>
-                {t.fecha_limite && (
-                  <span style={{ marginTop: '0.3rem', display: 'inline-block', fontSize: '0.7rem', fontWeight: 600, color: vencida ? '#ef4444' : t.fecha_limite === today ? '#f59e0b' : '#6b7280' }}>
-                    {diasRestantes(t.fecha_limite, today)}
+                <p style={{ color: done ? '#6b7280' : '#e5e7eb', fontSize: '0.875rem', textDecoration: done ? 'line-through' : 'none', lineHeight: 1.4, margin: 0 }}>{tarea.texto}</p>
+                {tarea.fecha_limite && (
+                  <span style={{ marginTop: '0.3rem', display: 'inline-block', fontSize: '0.7rem', fontWeight: 600, color: vencida ? '#ef4444' : tarea.fecha_limite === today ? '#f59e0b' : '#6b7280' }}>
+                    {diasRestantes(tarea.fecha_limite, today, t)}
                   </span>
                 )}
               </div>
-              <button onClick={() => onDelete(t.id)} style={{ background: 'transparent', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '1rem', padding: '0 0.25rem', flexShrink: 0 }}>×</button>
+              <button onClick={() => onDelete(tarea.id)} style={{ background: 'transparent', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '1rem', padding: '0 0.25rem', flexShrink: 0 }}>×</button>
             </div>
           )
         })}
