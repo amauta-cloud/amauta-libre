@@ -116,6 +116,21 @@ export default function NavBar({ nombre, avatar }: { nombre?: string; avatar?: s
             </Link>
           )
         })}
+        {/* Sign out — mobile only */}
+        <button onClick={handleLogout} style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
+          padding: '0.5rem 0', background: 'none', border: 'none',
+          color: '#6b7280', fontSize: '0.65rem', cursor: 'pointer',
+        }}>
+          {avatar ? (
+            <img src={avatar} alt="" style={{ width: '22px', height: '22px', borderRadius: '50%', opacity: 0.8 }} />
+          ) : (
+            <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(139,92,246,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a78bfa', fontSize: '0.65rem', fontWeight: 700 }}>
+              {nombre?.[0]?.toUpperCase() || 'U'}
+            </div>
+          )}
+          Salir
+        </button>
       </nav>
 
       <style>{`

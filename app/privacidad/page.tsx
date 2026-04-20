@@ -4,7 +4,7 @@ export default function PrivacidadPage() {
       <h1 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>
         Política de Privacidad
       </h1>
-      <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '2rem' }}>Última actualización: abril 2025</p>
+      <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '2rem' }}>Última actualización: abril 2026</p>
 
       {[
         {
