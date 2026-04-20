@@ -19,6 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <NavBar
         nombre={perfil?.nombre || user.user_metadata?.full_name}
         avatar={perfil?.avatar_url || user.user_metadata?.avatar_url}
+        userId={user.id}
       />
       <main style={{
         flex: 1,

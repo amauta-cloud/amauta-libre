@@ -71,6 +71,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [regMap, setRegMap] = useState(initialRegMap)
   const [loading, setLoading] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'hoy' | 'mes' | 'habitos' | 'metas'>('hoy')
+  const [habitoFeedback, setHabitoFeedback] = useState<string | null>(null)
 
   // Numeric habit stepper values (controlled)
   const [numValues, setNumValues] = useState<Record<string, number>>(
@@ -176,6 +177,10 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     const current = regMap[habito.id]?.valor_bool ?? false
     const newVal = !current
     setRegMap(prev => ({ ...prev, [habito.id]: { habito_id: habito.id, valor_bool: newVal, valor_numero: null, nota: prev[habito.id]?.nota ?? null } }))
+    if (newVal) {
+      setHabitoFeedback(habito.id)
+      setTimeout(() => setHabitoFeedback(null), 1200)
+    }
     setLoading(habito.id)
     await supabase.from('habito_registros').upsert({
       usuario_id: userId, habito_id: habito.id, fecha: today, valor_bool: newVal,
@@ -381,9 +386,17 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   if (localHabitos.length === 0 && activeTab === 'hoy') {
     return (
-      <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#6b7280' }}>
-        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📋</div>
-        <p>{t('tablero.hoy.sin_habitos')}</p>
+      <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✨</div>
+        <p style={{ color: '#9ca3af', fontSize: '0.95rem', marginBottom: '0.5rem', fontWeight: 600 }}>{t('tablero.hoy.sin_habitos')}</p>
+        <p style={{ color: '#6b7280', fontSize: '0.82rem', marginBottom: '1.5rem' }}>{t('tablero.hoy.sin_habitos_sub')}</p>
+        <button onClick={() => setActiveTab('habitos')} style={{
+          padding: '0.7rem 1.5rem', borderRadius: '10px', border: 'none',
+          background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+          color: 'white', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
+        }}>
+          {t('tablero.hoy.sin_habitos_cta')}
+        </button>
       </div>
     )
   }
@@ -530,8 +543,10 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                         background: done ? '#8B5CF6' : 'rgba(139,92,246,0.1)',
                         border: `2px solid ${done ? '#8B5CF6' : 'rgba(139,92,246,0.3)'}`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', transition: 'all 0.2s', fontSize: '1rem',
+                        cursor: 'pointer', fontSize: '1rem',
                         opacity: loading === h.id ? 0.6 : 1,
+                        transform: habitoFeedback === h.id ? 'scale(1.25)' : 'scale(1)',
+                        transition: 'all 0.2s',
                       }}>{done ? '✓' : ''}</button>
                     )}
                     <button onClick={() => setNotaOpen(notaOpen === h.id ? null : h.id)}
@@ -588,11 +603,18 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             )}
 
             {(ingresosHoy > 0 || gastosHoy > 0) && (
-              <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', background: (ingresosHoy - gastosHoy) >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${(ingresosHoy - gastosHoy) >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
-                <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{t('tablero.hoy.resultado_dia')}</span>
-                <span style={{ fontSize: '1.1rem', fontWeight: 800, color: (ingresosHoy - gastosHoy) >= 0 ? '#10b981' : '#ef4444' }}>
-                  {(ingresosHoy - gastosHoy) >= 0 ? '+' : ''}{fmt(ingresosHoy - gastosHoy)}
-                </span>
+              <div style={{ marginBottom: '0.875rem' }}>
+                <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', background: (ingresosHoy - gastosHoy) >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${(ingresosHoy - gastosHoy) >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{t('tablero.hoy.resultado_dia')}</span>
+                  <span style={{ fontSize: '1.1rem', fontWeight: 800, color: (ingresosHoy - gastosHoy) >= 0 ? '#10b981' : '#ef4444' }}>
+                    {(ingresosHoy - gastosHoy) >= 0 ? '+' : ''}{fmt(ingresosHoy - gastosHoy)}
+                  </span>
+                </div>
+                {(ingresosHoy - gastosHoy) < 0 && (
+                  <div style={{ marginTop: '0.4rem', fontSize: '0.72rem', color: '#6b7280', fontStyle: 'italic', textAlign: 'center' }}>
+                    {t('tablero.hoy.dia_rojo')}
+                  </div>
+                )}
               </div>
             )}
 
@@ -654,7 +676,10 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
               {/* Heatmap */}
               <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-                <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.875rem' }}>{t('tablero.mes.mapa')}</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
+                  <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>{t('tablero.mes.mapa')}</div>
+                  <div style={{ fontSize: '0.65rem', color: '#4b5563', fontStyle: 'italic' }}>{t('tablero.mes.mapa_hint')}</div>
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '3px', marginBottom: '3px' }}>
                   {['D','L','M','X','J','V','S'].map(d => (
                     <div key={d} style={{ textAlign: 'center', fontSize: '0.6rem', color: '#4b5563', padding: '2px 0' }}>{d}</div>

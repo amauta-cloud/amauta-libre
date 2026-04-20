@@ -7,12 +7,15 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useLocale, LOCALES, type Locale } from '@/lib/i18n/LocaleContext'
 
-export default function NavBar({ nombre, avatar }: { nombre?: string; avatar?: string }) {
+export default function NavBar({ nombre: initialNombre, avatar, userId }: { nombre?: string; avatar?: string; userId?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const { t, locale, setLocale } = useLocale()
-  const [langOpen, setLangOpen] = useState(false)
+  const [configOpen, setConfigOpen] = useState(false)
+  const [editingNombre, setEditingNombre] = useState(false)
+  const [nombreInput, setNombreInput] = useState(initialNombre || '')
+  const [nombreSaving, setNombreSaving] = useState(false)
 
   const NAV = [
     { href: '/tablero',       label: t('nav.tablero'),       icon: '⚡' },
@@ -25,12 +28,127 @@ export default function NavBar({ nombre, avatar }: { nombre?: string; avatar?: s
     router.push('/login')
   }
 
+  async function saveNombre() {
+    if (!nombreInput.trim() || !userId) return
+    setNombreSaving(true)
+    await supabase.from('usuarios').update({ nombre: nombreInput.trim() }).eq('id', userId)
+    setNombreSaving(false)
+    setEditingNombre(false)
+  }
+
   function handleLang(code: Locale) {
     setLocale(code)
-    setLangOpen(false)
   }
 
   const currentLocale = LOCALES.find(l => l.code === locale)
+
+  const ConfigPanel = () => (
+    <div
+      onClick={() => setConfigOpen(false)}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(0,0,0,0.6)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: '500px',
+          background: '#1a1730',
+          border: '1px solid rgba(139,92,246,0.25)',
+          borderRadius: '20px 20px 0 0',
+          padding: '1.5rem',
+          display: 'flex', flexDirection: 'column', gap: '1.25rem',
+        }}
+      >
+        {/* Handle */}
+        <div style={{ width: '36px', height: '4px', borderRadius: '99px', background: 'rgba(255,255,255,0.15)', margin: '0 auto -0.5rem' }} />
+
+        {/* Perfil */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          {avatar ? (
+            <img src={avatar} alt="" style={{ width: '44px', height: '44px', borderRadius: '50%' }} />
+          ) : (
+            <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.1rem', fontWeight: 700, flexShrink: 0 }}>
+              {nombreInput?.[0]?.toUpperCase() || 'U'}
+            </div>
+          )}
+          <div style={{ flex: 1 }}>
+            {editingNombre ? (
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input
+                  value={nombreInput}
+                  onChange={e => setNombreInput(e.target.value)}
+                  autoFocus
+                  onKeyDown={e => { if (e.key === 'Enter') saveNombre(); if (e.key === 'Escape') setEditingNombre(false) }}
+                  style={{ flex: 1, padding: '0.4rem 0.625rem', borderRadius: '8px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(139,92,246,0.3)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none' }}
+                />
+                <button onClick={saveNombre} disabled={nombreSaving} style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: 'none', background: '#8B5CF6', color: '#fff', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+                  {nombreSaving ? '...' : '✓'}
+                </button>
+                <button onClick={() => { setEditingNombre(false); setNombreInput(initialNombre || '') }} style={{ padding: '0.4rem 0.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#6b7280', fontSize: '0.75rem', cursor: 'pointer' }}>✕</button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#f3f0ff', fontWeight: 600, fontSize: '0.95rem' }}>{nombreInput || 'Usuario'}</span>
+                <button onClick={() => setEditingNombre(true)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.75rem', padding: '0.1rem 0.3rem' }}>✏️</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Idioma */}
+        <div>
+          <div style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.625rem' }}>{t('nav.language')}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+            {LOCALES.map(l => (
+              <button key={l.code} onClick={() => handleLang(l.code)} style={{
+                padding: '0.4rem 0.75rem', borderRadius: '8px', border: 'none',
+                background: l.code === locale ? 'rgba(139,92,246,0.25)' : 'rgba(255,255,255,0.05)',
+                color: l.code === locale ? '#a78bfa' : '#9ca3af',
+                fontWeight: l.code === locale ? 700 : 400,
+                fontSize: '0.78rem', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '0.3rem',
+              }}>
+                <span>{l.flag}</span> {l.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Cerrar sesión */}
+        <button onClick={handleLogout} style={{
+          width: '100%', padding: '0.75rem', borderRadius: '10px',
+          border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.06)',
+          color: '#ef4444', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer',
+        }}>
+          {t('nav.salir')}
+        </button>
+      </div>
+    </div>
+  )
+
+  const AvatarBtn = ({ size = 32, mobile = false }: { size?: number; mobile?: boolean }) => (
+    <button
+      onClick={() => setConfigOpen(o => !o)}
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+        display: 'flex', flexDirection: mobile ? 'column' : 'row',
+        alignItems: 'center', gap: mobile ? '0.2rem' : '0.6rem',
+        ...(mobile ? { flex: 1, justifyContent: 'center', paddingTop: '0.5rem', paddingBottom: '0.5rem' } : {}),
+      }}
+    >
+      {avatar ? (
+        <img src={avatar} alt="" style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', opacity: configOpen ? 1 : 0.85 }} />
+      ) : (
+        <div style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: mobile ? '0.65rem' : '0.85rem', flexShrink: 0 }}>
+          {nombreInput?.[0]?.toUpperCase() || 'U'}
+        </div>
+      )}
+      {mobile && <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('nav.config')}</span>}
+    </button>
+  )
 
   return (
     <>
@@ -81,63 +199,27 @@ export default function NavBar({ nombre, avatar }: { nombre?: string; avatar?: s
           })}
         </nav>
 
-        {/* Language selector */}
-        <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
-          <button
-            onClick={() => setLangOpen(o => !o)}
-            style={{
-              width: '100%', padding: '0.5rem 0.75rem', borderRadius: '8px',
-              background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
-              color: '#9ca3af', fontSize: '0.78rem', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              transition: 'all 0.15s',
-            }}
-          >
-            <span>{currentLocale?.flag}</span>
-            <span style={{ flex: 1, textAlign: 'left' }}>{currentLocale?.label}</span>
-            <span style={{ fontSize: '0.65rem' }}>▾</span>
-          </button>
-          {langOpen && (
-            <div style={{
-              position: 'absolute', bottom: '110%', left: 0, right: 0,
-              background: '#1a1730', border: '1px solid rgba(139,92,246,0.2)',
-              borderRadius: '10px', overflow: 'hidden', zIndex: 100,
-              maxHeight: '220px', overflowY: 'auto',
-            }}>
-              {LOCALES.map(l => (
-                <button key={l.code} onClick={() => handleLang(l.code)} style={{
-                  width: '100%', padding: '0.5rem 0.75rem',
-                  background: l.code === locale ? 'rgba(139,92,246,0.15)' : 'transparent',
-                  border: 'none', color: l.code === locale ? '#a78bfa' : '#9ca3af',
-                  fontSize: '0.78rem', cursor: 'pointer', textAlign: 'left',
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
-                }}>
-                  <span>{l.flag}</span> {l.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* User */}
+        {/* Config button — desktop */}
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
+          <button onClick={() => setConfigOpen(o => !o)} style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: '0.625rem',
+            padding: '0.5rem 0.75rem', borderRadius: '10px',
+            background: configOpen ? 'rgba(139,92,246,0.12)' : 'transparent',
+            border: '1px solid rgba(255,255,255,0.07)',
+            cursor: 'pointer', transition: 'all 0.15s',
+          }}>
             {avatar ? (
-              <img src={avatar} alt={nombre} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+              <img src={avatar} alt="" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
             ) : (
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(139,92,246,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a78bfa', fontSize: '0.85rem', fontWeight: 700 }}>
-                {nombre?.[0]?.toUpperCase() || 'U'}
+              <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.8rem', fontWeight: 700 }}>
+                {nombreInput?.[0]?.toUpperCase() || 'U'}
               </div>
             )}
-            <span style={{ color: '#d1d5db', fontSize: '0.8rem', fontWeight: 500 }}>{nombre?.split(' ')[0] || 'Usuario'}</span>
-          </div>
-          <button onClick={handleLogout} style={{
-            width: '100%', padding: '0.5rem', borderRadius: '8px',
-            background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
-            color: '#6b7280', fontSize: '0.78rem', cursor: 'pointer',
-            transition: 'all 0.15s',
-          }}>
-            {t('nav.salir')}
+            <div style={{ flex: 1, textAlign: 'left' }}>
+              <div style={{ color: '#d1d5db', fontSize: '0.78rem', fontWeight: 500 }}>{nombreInput?.split(' ')[0] || 'Usuario'}</div>
+              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('nav.config')}</div>
+            </div>
+            <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>⚙️</span>
           </button>
         </div>
       </aside>
@@ -165,52 +247,11 @@ export default function NavBar({ nombre, avatar }: { nombre?: string; avatar?: s
             </Link>
           )
         })}
-        {/* Language + Sign out — mobile */}
-        <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <button onClick={() => setLangOpen(o => !o)} style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
-            padding: '0.5rem 0', background: 'none', border: 'none',
-            color: '#6b7280', fontSize: '0.65rem', cursor: 'pointer', width: '100%',
-          }}>
-            <span style={{ fontSize: '1.1rem' }}>{currentLocale?.flag}</span>
-            {t('nav.language')}
-          </button>
-          {langOpen && (
-            <div style={{
-              position: 'absolute', bottom: '110%', right: 0,
-              background: '#1a1730', border: '1px solid rgba(139,92,246,0.2)',
-              borderRadius: '10px', overflow: 'hidden', zIndex: 100,
-              width: '140px', maxHeight: '220px', overflowY: 'auto',
-            }}>
-              {LOCALES.map(l => (
-                <button key={l.code} onClick={() => handleLang(l.code)} style={{
-                  width: '100%', padding: '0.5rem 0.75rem',
-                  background: l.code === locale ? 'rgba(139,92,246,0.15)' : 'transparent',
-                  border: 'none', color: l.code === locale ? '#a78bfa' : '#9ca3af',
-                  fontSize: '0.78rem', cursor: 'pointer', textAlign: 'left',
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
-                }}>
-                  <span>{l.flag}</span> {l.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        <button onClick={handleLogout} style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
-          padding: '0.5rem 0', background: 'none', border: 'none',
-          color: '#6b7280', fontSize: '0.65rem', cursor: 'pointer',
-        }}>
-          {avatar ? (
-            <img src={avatar} alt="" style={{ width: '22px', height: '22px', borderRadius: '50%', opacity: 0.8 }} />
-          ) : (
-            <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(139,92,246,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a78bfa', fontSize: '0.65rem', fontWeight: 700 }}>
-              {nombre?.[0]?.toUpperCase() || 'U'}
-            </div>
-          )}
-          {t('nav.salir')}
-        </button>
+        <AvatarBtn size={24} mobile />
       </nav>
+
+      {/* Config panel */}
+      {configOpen && <ConfigPanel />}
 
       <style>{`
         @media (min-width: 768px) {

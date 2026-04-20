@@ -19,6 +19,7 @@ export const ru: typeof es = {
     educacion: 'Образование',
     salir: 'Выйти',
     language: 'Язык',
+    config: 'Настройки',
   },
   common: {
     loading: 'Минуту...',
@@ -46,6 +47,9 @@ export const ru: typeof es = {
       guardar_mov: 'Сохранить операции',
       nota_placeholder: 'Запиши что-нибудь об этой привычке сегодня...',
       sin_habitos: 'Твои привычки загружаются автоматически при регистрации.',
+      sin_habitos_sub: 'Add your first habits and start building your day.',
+      sin_habitos_cta: 'Go to my habits →',
+      dia_rojo: 'Red day. Green week. Keep going.',
     },
     mes: {
       eficiencia: 'Эффективность',

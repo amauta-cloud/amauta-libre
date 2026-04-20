@@ -19,6 +19,7 @@ export const ja: typeof es = {
     educacion: '教育',
     salir: 'ログアウト',
     language: '言語',
+    config: '設定',
   },
   common: {
     loading: '少々お待ちください...',
@@ -46,6 +47,9 @@ export const ja: typeof es = {
       guardar_mov: '取引を保存',
       nota_placeholder: '今日この習慣について何か書いてください...',
       sin_habitos: '登録すると習慣が自動的に読み込まれます。',
+      sin_habitos_sub: 'Add your first habits and start building your day.',
+      sin_habitos_cta: 'Go to my habits →',
+      dia_rojo: 'Red day. Green week. Keep going.',
     },
     mes: {
       eficiencia: '達成率',

@@ -19,6 +19,7 @@ export const zh: typeof es = {
     educacion: '教育',
     salir: '退出',
     language: '语言',
+    config: '设置',
   },
   common: {
     loading: '请稍候...',
@@ -46,6 +47,9 @@ export const zh: typeof es = {
       guardar_mov: '保存收支',
       nota_placeholder: '记录今天关于这个习惯的感想...',
       sin_habitos: '注册后您的习惯将自动加载。',
+      sin_habitos_sub: 'Add your first habits and start building your day.',
+      sin_habitos_cta: 'Go to my habits →',
+      dia_rojo: 'Red day. Green week. Keep going.',
     },
     mes: {
       eficiencia: '完成率',

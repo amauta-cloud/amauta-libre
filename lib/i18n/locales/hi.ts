@@ -19,6 +19,7 @@ export const hi: typeof es = {
     educacion: 'शिक्षा',
     salir: 'साइन आउट',
     language: 'भाषा',
+    config: 'सेटिंग्स',
   },
   common: {
     loading: 'एक पल...',
@@ -46,6 +47,9 @@ export const hi: typeof es = {
       guardar_mov: 'लेन-देन सहेजें',
       nota_placeholder: 'आज इस आदत के बारे में कुछ लिखें...',
       sin_habitos: 'रजिस्टर होने पर आपकी आदतें अपने आप लोड हो जाएंगी।',
+      sin_habitos_sub: 'Add your first habits and start building your day.',
+      sin_habitos_cta: 'Go to my habits →',
+      dia_rojo: 'Red day. Green week. Keep going.',
     },
     mes: {
       eficiencia: 'दक्षता',

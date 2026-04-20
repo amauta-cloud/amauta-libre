@@ -19,6 +19,7 @@ export const id: typeof es = {
     educacion: 'Pendidikan',
     salir: 'Keluar',
     language: 'Bahasa',
+    config: 'Pengaturan',
   },
   common: {
     loading: 'Sebentar...',
@@ -46,6 +47,9 @@ export const id: typeof es = {
       guardar_mov: 'Simpan transaksi',
       nota_placeholder: 'Tulis catatan tentang kebiasaan ini hari ini...',
       sin_habitos: 'Kebiasaanmu akan dimuat otomatis saat mendaftar.',
+      sin_habitos_sub: 'Add your first habits and start building your day.',
+      sin_habitos_cta: 'Go to my habits →',
+      dia_rojo: 'Red day. Green week. Keep going.',
     },
     mes: {
       eficiencia: 'Efisiensi',

@@ -19,6 +19,7 @@ export const pt: typeof es = {
     educacion: 'Educação',
     salir: 'Sair',
     language: 'Idioma',
+    config: 'Configuração',
   },
   common: {
     loading: 'Um momento...',
@@ -46,6 +47,9 @@ export const pt: typeof es = {
       guardar_mov: 'Salvar movimentos',
       nota_placeholder: 'Anote algo sobre esse hábito hoje...',
       sin_habitos: 'Seus hábitos carregam automaticamente ao se cadastrar.',
+      sin_habitos_sub: 'Add your first habits and start building your day.',
+      sin_habitos_cta: 'Go to my habits →',
+      dia_rojo: 'Red day. Green week. Keep going.',
     },
     mes: {
       eficiencia: 'Eficiência',

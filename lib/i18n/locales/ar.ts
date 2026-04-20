@@ -19,6 +19,7 @@ export const ar: typeof es = {
     educacion: 'التعليم',
     salir: 'تسجيل الخروج',
     language: 'اللغة',
+    config: 'الإعدادات',
   },
   common: {
     loading: 'لحظة...',
@@ -46,6 +47,9 @@ export const ar: typeof es = {
       guardar_mov: 'حفظ المعاملات',
       nota_placeholder: 'اكتب ملاحظة عن هذه العادة اليوم...',
       sin_habitos: 'ستُحمَّل عاداتك تلقائياً عند التسجيل.',
+      sin_habitos_sub: 'Add your first habits and start building your day.',
+      sin_habitos_cta: 'Go to my habits →',
+      dia_rojo: 'Red day. Green week. Keep going.',
     },
     mes: {
       eficiencia: 'الكفاءة',
