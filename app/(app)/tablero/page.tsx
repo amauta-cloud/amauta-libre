@@ -18,7 +18,7 @@ type Registro = {
   habito_id: string
   valor_bool: boolean | null
   valor_numero: number | null
-  nota: string | null
+  nota?: string | null
 }
 
 type RegistroHistorial = {
@@ -81,9 +81,9 @@ export default async function TablizablePage() {
     supabase.from('habito_registros').select('habito_id,valor_bool,valor_numero,nota').eq('usuario_id', user!.id).eq('fecha', today),
     supabase.from('habito_registros').select('habito_id,fecha,valor_bool,valor_numero').eq('usuario_id', user!.id).gte('fecha', hace60dias),
     supabase.from('tareas').select('estado,fecha_limite').eq('usuario_id', user!.id).neq('estado', 'completada'),
-    supabase.from('educacion_estado').select('etapa_actual').eq('usuario_id', user!.id).maybeSingle().then(r => r).catch(() => ({ data: null })),
+    supabase.from('educacion_estado').select('etapa_actual').eq('usuario_id', user!.id).maybeSingle().then(r => r.error ? { data: null } : r),
     supabase.from('usuarios').select('nombre').eq('id', user!.id).maybeSingle(),
-    supabase.from('metas').select('meta30,meta90,meta180').eq('usuario_id', user!.id).maybeSingle().then(r => r).catch(() => ({ data: null })),
+    supabase.from('metas').select('meta30,meta90,meta180').eq('usuario_id', user!.id).maybeSingle().then(r => r.error ? { data: null } : r),
   ])
 
   const habitos: Habito[] = habitosRes.data || []
@@ -98,7 +98,7 @@ export default async function TablizablePage() {
   if (!tieneMetas) redirect('/metas')
   const meta30 = metasData?.meta30 ?? null
 
-  const regMap = Object.fromEntries(registros.map(r => [r.habito_id, r]))
+  const regMap = Object.fromEntries(registros.map(r => [r.habito_id, { ...r, nota: r.nota ?? null }]))
   const racha = calcularRacha(historial, habitos, today)
 
   // Task summary

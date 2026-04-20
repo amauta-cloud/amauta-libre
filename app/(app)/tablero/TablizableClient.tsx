@@ -27,6 +27,7 @@ type HistorialReg = {
   fecha: string
   valor_bool: boolean | null
   valor_numero: number | null
+  nota?: string | null
 }
 
 const PLANTILLAS: Omit<Habito, 'id' | 'obligatorio' | 'orden'>[] = [
@@ -173,7 +174,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   async function toggleBool(habito: Habito) {
     const current = regMap[habito.id]?.valor_bool ?? false
     const newVal = !current
-    setRegMap(prev => ({ ...prev, [habito.id]: { habito_id: habito.id, valor_bool: newVal, valor_numero: null } }))
+    setRegMap(prev => ({ ...prev, [habito.id]: { habito_id: habito.id, valor_bool: newVal, valor_numero: null, nota: prev[habito.id]?.nota ?? null } }))
     setLoading(habito.id)
     await supabase.from('habito_registros').upsert({
       usuario_id: userId, habito_id: habito.id, fecha: today, valor_bool: newVal,
@@ -185,7 +186,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     const current = numValues[habito.id] ?? 0
     const newVal = Math.max(0, current + delta)
     setNumValues(prev => ({ ...prev, [habito.id]: newVal }))
-    setRegMap(prev => ({ ...prev, [habito.id]: { habito_id: habito.id, valor_bool: null, valor_numero: newVal } }))
+    setRegMap(prev => ({ ...prev, [habito.id]: { habito_id: habito.id, valor_bool: null, valor_numero: newVal, nota: prev[habito.id]?.nota ?? null } }))
     await supabase.from('habito_registros').upsert({
       usuario_id: userId, habito_id: habito.id, fecha: today, valor_numero: newVal,
     }, { onConflict: 'habito_id,fecha' })
@@ -194,7 +195,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   async function setNumero(habito: Habito, val: string) {
     const newVal = Math.max(0, parseFloat(val) || 0)
     setNumValues(prev => ({ ...prev, [habito.id]: newVal }))
-    setRegMap(prev => ({ ...prev, [habito.id]: { habito_id: habito.id, valor_bool: null, valor_numero: newVal } }))
+    setRegMap(prev => ({ ...prev, [habito.id]: { habito_id: habito.id, valor_bool: null, valor_numero: newVal, nota: prev[habito.id]?.nota ?? null } }))
   }
 
   async function saveNumero(habito: Habito) {
@@ -282,7 +283,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       supabase.from('finanzas_diarias').select('ingresos,gastos,ahorro').eq('usuario_id', userId).eq('fecha', dateStr).maybeSingle(),
     ])
     const rm: Record<string, Registro> = {}
-    for (const r of (regs || [])) rm[r.habito_id] = r
+    for (const r of (regs || [])) rm[r.habito_id] = { ...r, nota: null }
     setEditDayRegMap(rm)
     const f = fin || { ingresos: 0, gastos: 0, ahorro: false }
     setEditDayFin(f)
@@ -972,7 +973,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   return (
                     <div key={h.id}>
                       {h.tipo === 'boolean' ? (
-                        <button onClick={() => setEditDayRegMap(prev => ({ ...prev, [h.id]: { habito_id: h.id, valor_bool: !done, valor_numero: null } }))}
+                        <button onClick={() => setEditDayRegMap(prev => ({ ...prev, [h.id]: { habito_id: h.id, valor_bool: !done, valor_numero: null, nota: null } }))}
                           style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.875rem', borderRadius: '8px', border: 'none', background: done ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.04)', cursor: 'pointer', textAlign: 'left', width: '100%', borderLeft: `3px solid ${done ? '#8B5CF6' : 'transparent'}` }}>
                           <div style={{ width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0, border: done ? 'none' : '2px solid rgba(255,255,255,0.15)', background: done ? '#8B5CF6' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {done && <span style={{ fontSize: '0.6rem', color: 'white' }}>✓</span>}
@@ -984,10 +985,10 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.875rem', borderRadius: '8px', background: 'rgba(255,255,255,0.04)' }}>
                           <span style={{ fontSize: '0.85rem' }}>{h.emoji}</span>
                           <span style={{ fontSize: '0.82rem', color: '#9ca3af', flex: 1 }}>{h.nombre}</span>
-                          <button onClick={() => setEditDayRegMap(prev => ({ ...prev, [h.id]: { habito_id: h.id, valor_bool: null, valor_numero: Math.max(0, (prev[h.id]?.valor_numero ?? 0) - 1) } }))}
+                          <button onClick={() => setEditDayRegMap(prev => ({ ...prev, [h.id]: { habito_id: h.id, valor_bool: null, valor_numero: Math.max(0, (prev[h.id]?.valor_numero ?? 0) - 1), nota: null } }))}
                             style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid rgba(139,92,246,0.2)', background: 'rgba(0,0,0,0.3)', color: '#9ca3af', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
                           <span style={{ minWidth: '2rem', textAlign: 'center', color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>{editDayRegMap[h.id]?.valor_numero ?? 0}</span>
-                          <button onClick={() => setEditDayRegMap(prev => ({ ...prev, [h.id]: { habito_id: h.id, valor_bool: null, valor_numero: (prev[h.id]?.valor_numero ?? 0) + 1 } }))}
+                          <button onClick={() => setEditDayRegMap(prev => ({ ...prev, [h.id]: { habito_id: h.id, valor_bool: null, valor_numero: (prev[h.id]?.valor_numero ?? 0) + 1, nota: null } }))}
                             style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid rgba(139,92,246,0.2)', background: 'rgba(139,92,246,0.12)', color: '#a78bfa', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                           {h.unidad && <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{h.unidad}</span>}
                         </div>
