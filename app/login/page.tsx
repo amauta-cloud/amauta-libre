@@ -2,10 +2,15 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useLocale, LOCALES, type Locale } from '@/lib/i18n/LocaleContext'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
   const supabase = createClient()
+  const { t, locale, setLocale } = useLocale()
+
+  const currentLocale = LOCALES.find(l => l.code === locale)
 
   async function handleGoogle() {
     setLoading(true)
@@ -15,6 +20,11 @@ export default function LoginPage() {
         redirectTo: `${location.origin}/auth/callback`,
       },
     })
+  }
+
+  function handleLang(code: Locale) {
+    setLocale(code)
+    setLangOpen(false)
   }
 
   return (
@@ -27,6 +37,43 @@ export default function LoginPage() {
       padding: '1rem',
       fontFamily: 'Inter, sans-serif',
     }}>
+      {/* Language selector top-right */}
+      <div style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 50 }}>
+        <button
+          onClick={() => setLangOpen(o => !o)}
+          style={{
+            padding: '0.4rem 0.75rem', borderRadius: '8px',
+            background: 'rgba(26,23,48,0.9)', border: '1px solid rgba(139,92,246,0.2)',
+            color: '#9ca3af', fontSize: '0.8rem', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '0.4rem',
+          }}
+        >
+          <span>{currentLocale?.flag}</span>
+          <span>{currentLocale?.label}</span>
+          <span style={{ fontSize: '0.6rem' }}>▾</span>
+        </button>
+        {langOpen && (
+          <div style={{
+            position: 'absolute', top: '110%', right: 0,
+            background: '#1a1730', border: '1px solid rgba(139,92,246,0.2)',
+            borderRadius: '10px', overflow: 'hidden', zIndex: 100,
+            width: '150px', maxHeight: '260px', overflowY: 'auto',
+          }}>
+            {LOCALES.map(l => (
+              <button key={l.code} onClick={() => handleLang(l.code)} style={{
+                width: '100%', padding: '0.5rem 0.75rem',
+                background: l.code === locale ? 'rgba(139,92,246,0.15)' : 'transparent',
+                border: 'none', color: l.code === locale ? '#a78bfa' : '#9ca3af',
+                fontSize: '0.8rem', cursor: 'pointer', textAlign: 'left',
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+              }}>
+                <span>{l.flag}</span> {l.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div style={{
         background: '#1a1730',
         border: '1px solid rgba(139,92,246,0.2)',
@@ -51,10 +98,10 @@ export default function LoginPage() {
           Amauta Libre
         </h1>
         <p style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-          Tus hábitos, tus tareas, tu crecimiento.
+          {t('login.subtitle')}
         </p>
         <p style={{ color: '#6b7280', fontSize: '0.78rem', marginBottom: '2rem', lineHeight: 1.6 }}>
-          Gratis para siempre. Sin tarjetas. Sin trampa.
+          {t('login.tagline')}
         </p>
 
         <button
@@ -78,21 +125,21 @@ export default function LoginPage() {
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
-          {loading ? 'Redirigiendo...' : 'Entrar con Google'}
+          {loading ? t('login.button_loading') : t('login.button')}
         </button>
 
         <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.12)' }}>
-          <p style={{ color: '#7c3aed', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.4rem' }}>¿Qué incluye?</p>
+          <p style={{ color: '#7c3aed', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.4rem' }}>{t('login.features_title')}</p>
           <p style={{ color: '#6b7280', fontSize: '0.72rem', lineHeight: 1.7 }}>
-            📋 Tablero de hábitos diarios<br/>
-            ✅ Planificación de tareas<br/>
-            📚 Contenido y desafíos de crecimiento
+            {t('login.feature_1')}<br/>
+            {t('login.feature_2')}<br/>
+            {t('login.feature_3')}
           </p>
         </div>
 
         <p style={{ color: '#4b5563', fontSize: '0.7rem', marginTop: '1.5rem' }}>
-          Al ingresar aceptás nuestra{' '}
-          <a href="/privacidad" style={{ color: '#7c3aed', textDecoration: 'none' }}>política de privacidad</a>.
+          {t('login.privacy')}{' '}
+          <a href="/privacidad" style={{ color: '#7c3aed', textDecoration: 'none' }}>{t('login.privacy_link')}</a>.
         </p>
       </div>
     </div>

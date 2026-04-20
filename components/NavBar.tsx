@@ -2,24 +2,35 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-
-const NAV = [
-  { href: '/tablero',       label: 'Tablero',       icon: '⚡' },
-  { href: '/planificacion', label: 'Planificación',  icon: '✅' },
-  { href: '/educacion',     label: 'Educación',      icon: '📚' },
-]
+import { useLocale, LOCALES, type Locale } from '@/lib/i18n/LocaleContext'
 
 export default function NavBar({ nombre, avatar }: { nombre?: string; avatar?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const { t, locale, setLocale } = useLocale()
+  const [langOpen, setLangOpen] = useState(false)
+
+  const NAV = [
+    { href: '/tablero',       label: t('nav.tablero'),       icon: '⚡' },
+    { href: '/planificacion', label: t('nav.planificacion'),  icon: '✅' },
+    { href: '/educacion',     label: t('nav.educacion'),      icon: '📚' },
+  ]
 
   async function handleLogout() {
     await supabase.auth.signOut()
     router.push('/login')
   }
+
+  function handleLang(code: Locale) {
+    setLocale(code)
+    setLangOpen(false)
+  }
+
+  const currentLocale = LOCALES.find(l => l.code === locale)
 
   return (
     <>
@@ -70,6 +81,44 @@ export default function NavBar({ nombre, avatar }: { nombre?: string; avatar?: s
           })}
         </nav>
 
+        {/* Language selector */}
+        <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
+          <button
+            onClick={() => setLangOpen(o => !o)}
+            style={{
+              width: '100%', padding: '0.5rem 0.75rem', borderRadius: '8px',
+              background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
+              color: '#9ca3af', fontSize: '0.78rem', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              transition: 'all 0.15s',
+            }}
+          >
+            <span>{currentLocale?.flag}</span>
+            <span style={{ flex: 1, textAlign: 'left' }}>{currentLocale?.label}</span>
+            <span style={{ fontSize: '0.65rem' }}>▾</span>
+          </button>
+          {langOpen && (
+            <div style={{
+              position: 'absolute', bottom: '110%', left: 0, right: 0,
+              background: '#1a1730', border: '1px solid rgba(139,92,246,0.2)',
+              borderRadius: '10px', overflow: 'hidden', zIndex: 100,
+              maxHeight: '220px', overflowY: 'auto',
+            }}>
+              {LOCALES.map(l => (
+                <button key={l.code} onClick={() => handleLang(l.code)} style={{
+                  width: '100%', padding: '0.5rem 0.75rem',
+                  background: l.code === locale ? 'rgba(139,92,246,0.15)' : 'transparent',
+                  border: 'none', color: l.code === locale ? '#a78bfa' : '#9ca3af',
+                  fontSize: '0.78rem', cursor: 'pointer', textAlign: 'left',
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                }}>
+                  <span>{l.flag}</span> {l.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* User */}
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
@@ -88,7 +137,7 @@ export default function NavBar({ nombre, avatar }: { nombre?: string; avatar?: s
             color: '#6b7280', fontSize: '0.78rem', cursor: 'pointer',
             transition: 'all 0.15s',
           }}>
-            Salir
+            {t('nav.salir')}
           </button>
         </div>
       </aside>
@@ -116,7 +165,37 @@ export default function NavBar({ nombre, avatar }: { nombre?: string; avatar?: s
             </Link>
           )
         })}
-        {/* Sign out — mobile only */}
+        {/* Language + Sign out — mobile */}
+        <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <button onClick={() => setLangOpen(o => !o)} style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
+            padding: '0.5rem 0', background: 'none', border: 'none',
+            color: '#6b7280', fontSize: '0.65rem', cursor: 'pointer', width: '100%',
+          }}>
+            <span style={{ fontSize: '1.1rem' }}>{currentLocale?.flag}</span>
+            {t('nav.language')}
+          </button>
+          {langOpen && (
+            <div style={{
+              position: 'absolute', bottom: '110%', right: 0,
+              background: '#1a1730', border: '1px solid rgba(139,92,246,0.2)',
+              borderRadius: '10px', overflow: 'hidden', zIndex: 100,
+              width: '140px', maxHeight: '220px', overflowY: 'auto',
+            }}>
+              {LOCALES.map(l => (
+                <button key={l.code} onClick={() => handleLang(l.code)} style={{
+                  width: '100%', padding: '0.5rem 0.75rem',
+                  background: l.code === locale ? 'rgba(139,92,246,0.15)' : 'transparent',
+                  border: 'none', color: l.code === locale ? '#a78bfa' : '#9ca3af',
+                  fontSize: '0.78rem', cursor: 'pointer', textAlign: 'left',
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                }}>
+                  <span>{l.flag}</span> {l.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button onClick={handleLogout} style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
           padding: '0.5rem 0', background: 'none', border: 'none',
@@ -129,7 +208,7 @@ export default function NavBar({ nombre, avatar }: { nombre?: string; avatar?: s
               {nombre?.[0]?.toUpperCase() || 'U'}
             </div>
           )}
-          Salir
+          {t('nav.salir')}
         </button>
       </nav>
 
