@@ -332,7 +332,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                 style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: '#9ca3af', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark' }} />
               <button onClick={addTarea} disabled={!tareaTexto.trim() || tareaAdding}
                 style={{ marginLeft: 'auto', padding: '0.45rem 1.1rem', borderRadius: '8px', background: tareaTexto.trim() ? '#8B5CF6' : 'rgba(139,92,246,0.2)', border: 'none', color: '#fff', fontSize: '0.82rem', fontWeight: 600, cursor: tareaTexto.trim() ? 'pointer' : 'default' }}>
-                {tareaAdding ? '...' : t('planificacion.tarea_agregar')}
+                {tareaAdding ? t('planificacion.guardando') : t('planificacion.tarea_agregar')}
               </button>
             </div>
           </div>
