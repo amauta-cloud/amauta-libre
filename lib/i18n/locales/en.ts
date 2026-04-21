@@ -63,6 +63,7 @@ export const en: typeof es = {
       perdida: 'Loss',
       ahorro_acumulado: '🐷 Accumulated savings (10%)',
       mapa: 'Habit map — tap a day to edit',
+      mapa_hint: 'tap a day to edit',
       menos: 'Less',
       mas: 'More',
       cumplimiento: 'Habit completion',

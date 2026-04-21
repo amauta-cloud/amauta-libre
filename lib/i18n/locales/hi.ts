@@ -63,6 +63,7 @@ export const hi: typeof es = {
       perdida: 'नुकसान',
       ahorro_acumulado: '🐷 जमा हुई बचत (10%)',
       mapa: 'आदत मानचित्र — संपादित करने के लिए किसी दिन को छुएं',
+      mapa_hint: 'संपादित करने के लिए किसी दिन पर टैप करें',
       menos: 'कम',
       mas: 'अधिक',
       cumplimiento: 'आदत के अनुसार पूर्णता',

@@ -63,6 +63,7 @@ export const zh: typeof es = {
       perdida: '亏损',
       ahorro_acumulado: '🐷 累计储蓄 (10%)',
       mapa: '习惯地图 — 点击某天编辑',
+      mapa_hint: '点击某天进行编辑',
       menos: '少',
       mas: '多',
       cumplimiento: '各习惯完成情况',

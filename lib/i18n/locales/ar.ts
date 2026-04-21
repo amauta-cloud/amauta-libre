@@ -63,6 +63,7 @@ export const ar: typeof es = {
       perdida: 'الخسارة',
       ahorro_acumulado: '🐷 الادخار المتراكم (10%)',
       mapa: 'خريطة العادات — اضغط على يوم للتعديل',
+      mapa_hint: 'اضغط على يوم لتعديله',
       menos: 'أقل',
       mas: 'أكثر',
       cumplimiento: 'الالتزام بكل عادة',

@@ -63,6 +63,7 @@ export const fr: typeof es = {
       perdida: 'Perte',
       ahorro_acumulado: '🐷 Épargne accumulée (10 %)',
       mapa: "Carte des habitudes — touchez un jour pour modifier",
+      mapa_hint: 'touchez un jour pour modifier',
       menos: 'Moins',
       mas: 'Plus',
       cumplimiento: 'Taux par habitude',

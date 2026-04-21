@@ -63,6 +63,7 @@ export const id: typeof es = {
       perdida: 'Kerugian',
       ahorro_acumulado: '🐷 Tabungan terkumpul (10%)',
       mapa: 'Peta kebiasaan — ketuk hari untuk mengedit',
+      mapa_hint: 'ketuk hari untuk mengedit',
       menos: 'Lebih sedikit',
       mas: 'Lebih banyak',
       cumplimiento: 'Penyelesaian per kebiasaan',

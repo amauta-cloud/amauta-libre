@@ -63,6 +63,7 @@ export const ja: typeof es = {
       perdida: '損失',
       ahorro_acumulado: '🐷 累計貯蓄 (10%)',
       mapa: '習慣マップ — 日付をタップして編集',
+      mapa_hint: '日付をタップして編集',
       menos: '少ない',
       mas: '多い',
       cumplimiento: '習慣ごとの達成状況',
