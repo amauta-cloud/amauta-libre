@@ -13,6 +13,7 @@ type Habito = {
   orden: number
   meta_numero: number | null
   categoria?: string | null
+  dias_semana?: number[] | null
 }
 
 type Registro = {
@@ -61,17 +62,22 @@ function getSaludoPrefix(nombre: string): string {
 
 function calcularRacha(historial: RegistroHistorial[], habitos: Habito[], today: string): number {
   if (habitos.length === 0) return 0
-  const threshold = Math.max(1, Math.ceil(habitos.length * 0.5))
   const completadosPorFecha: Record<string, number> = {}
   for (const r of historial) {
     const completado = r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)
     if (completado) completadosPorFecha[r.fecha] = (completadosPorFecha[r.fecha] || 0) + 1
   }
-  const esDiaBueno = (fecha: string) => (completadosPorFecha[fecha] || 0) >= threshold
+  const esDiaBueno = (fecha: string) => {
+    const dow = new Date(fecha + 'T12:00:00').getDay()
+    const scheduled = habitos.filter(h => !h.dias_semana || h.dias_semana.length === 0 || h.dias_semana.includes(dow))
+    if (scheduled.length === 0) return true
+    const threshold = Math.max(1, Math.ceil(scheduled.length * 0.5))
+    return (completadosPorFecha[fecha] || 0) >= threshold
+  }
   let racha = 0
   if (esDiaBueno(today)) racha = 1
   for (let i = 1; i <= 60; i++) {
-    const fecha = dateStrOffset(today, racha === 1 ? i : i)
+    const fecha = dateStrOffset(today, i)
     if (esDiaBueno(fecha)) racha++
     else break
   }

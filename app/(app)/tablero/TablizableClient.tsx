@@ -16,6 +16,7 @@ type Habito = {
   orden: number
   meta_numero: number | null
   categoria?: string | null
+  dias_semana?: number[] | null
 }
 
 type Registro = {
@@ -67,6 +68,19 @@ const CATEGORIAS = [
 
 function catColor(cat?: string | null): string {
   return CATEGORIAS.find(c => c.id === (cat ?? null))?.color ?? '#6b7280'
+}
+
+const DIAS_CORTOS = ['D','L','M','M','J','V','S']
+const DIAS_LABELS = ['Do','Lu','Ma','Mi','Ju','Vi','Sá']
+
+function isHoy(h: { dias_semana?: number[] | null }, dow: number): boolean {
+  if (!h.dias_semana || h.dias_semana.length === 0) return true
+  return h.dias_semana.includes(dow)
+}
+
+function frecuenciaLabel(dias?: number[] | null): string {
+  if (!dias || dias.length === 0) return ''
+  return [...dias].sort((a, b) => a - b).map(d => DIAS_LABELS[d]).join(' ')
 }
 
 export default function TablizableClient({ habitos, regMap: initialRegMap, userId, today, racha, metas, historial }: {
@@ -141,20 +155,23 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [nuevoUnidad, setNuevoUnidad] = useState('')
   const [nuevoMeta, setNuevoMeta] = useState('')
   const [nuevoCategoria, setNuevoCategoria] = useState<string | null>(null)
+  const [nuevoDiasSemana, setNuevoDiasSemana] = useState<number[] | null>(null)
   const [habitoSaving, setHabitoSaving] = useState(false)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const [historialOpen, setHistorialOpen] = useState<string | null>(null)
 
   // Live stats
-  const completados = localHabitos.filter(h => {
+  const todayDow = new Date(today + 'T12:00:00').getDay()
+  const habitosHoy = localHabitos.filter(h => isHoy(h, todayDow))
+  const completados = habitosHoy.filter(h => {
     const r = regMap[h.id]
     if (!r) return false
     if (h.tipo === 'boolean') return r.valor_bool === true
     if (h.tipo === 'numero') return r.valor_numero !== null && r.valor_numero > 0
     return false
   }).length
-  const pct = localHabitos.length > 0 ? Math.round((completados / localHabitos.length) * 100) : 0
+  const pct = habitosHoy.length > 0 ? Math.round((completados / habitosHoy.length) * 100) : 0
 
   // Load today's finanzas
   useEffect(() => {
@@ -241,16 +258,20 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   function rachaHabito(habitoId: string): number {
+    const h = localHabitos.find(x => x.id === habitoId)
+    if (!h) return 0
+    if (!isHoy(h, todayDow)) return 0
     const doneToday = (() => {
-      const r = historial.find(h => h.habito_id === habitoId && h.fecha === today)
+      const r = historial.find(x => x.habito_id === habitoId && x.fecha === today)
       return r?.valor_bool === true || (r?.valor_numero != null && r.valor_numero > 0)
     })()
     let streak = doneToday ? 1 : 0
     for (let i = 1; i <= 60; i++) {
       const d = new Date(today + 'T12:00:00')
       d.setDate(d.getDate() - i)
+      if (!isHoy(h, d.getDay())) continue
       const f = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-      const r = historial.find(h => h.habito_id === habitoId && h.fecha === f)
+      const r = historial.find(x => x.habito_id === habitoId && x.fecha === f)
       const done = r?.valor_bool === true || (r?.valor_numero != null && r.valor_numero > 0)
       if (done) streak++
       else break
@@ -351,7 +372,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       usuario_id: userId, nombre: nuevoNombre.trim(), emoji: nuevoEmoji,
       tipo: nuevoTipo, unidad: nuevoTipo === 'numero' && nuevoUnidad.trim() ? nuevoUnidad.trim() : null,
       meta_numero: metaNum, obligatorio: false, orden: maxOrden + 1, activo: true,
-      categoria: nuevoCategoria,
+      categoria: nuevoCategoria, dias_semana: nuevoDiasSemana,
     }).select().single()
     if (data) {
       setLocalHabitos(prev => [...prev, data as Habito])
@@ -359,16 +380,16 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     }
     setHabitoSaving(false)
     setShowAddHabito(false)
-    setNuevoNombre(''); setNuevoEmoji('⭐'); setNuevoTipo('boolean'); setNuevoUnidad(''); setNuevoMeta(''); setNuevoCategoria(null)
+    setNuevoNombre(''); setNuevoEmoji('⭐'); setNuevoTipo('boolean'); setNuevoUnidad(''); setNuevoMeta(''); setNuevoCategoria(null); setNuevoDiasSemana(null)
   }
 
   async function saveEditHabito() {
     if (!editingHabito || !nuevoNombre.trim()) return
     setHabitoSaving(true)
-    await supabase.from('habitos').update({ nombre: nuevoNombre.trim(), emoji: nuevoEmoji, categoria: nuevoCategoria }).eq('id', editingHabito.id)
-    setLocalHabitos(prev => prev.map(h => h.id === editingHabito.id ? { ...h, nombre: nuevoNombre.trim(), emoji: nuevoEmoji, categoria: nuevoCategoria } : h))
+    await supabase.from('habitos').update({ nombre: nuevoNombre.trim(), emoji: nuevoEmoji, categoria: nuevoCategoria, dias_semana: nuevoDiasSemana }).eq('id', editingHabito.id)
+    setLocalHabitos(prev => prev.map(h => h.id === editingHabito.id ? { ...h, nombre: nuevoNombre.trim(), emoji: nuevoEmoji, categoria: nuevoCategoria, dias_semana: nuevoDiasSemana } : h))
     setHabitoSaving(false)
-    setEditingHabito(null); setNuevoNombre(''); setNuevoCategoria(null)
+    setEditingHabito(null); setNuevoNombre(''); setNuevoCategoria(null); setNuevoDiasSemana(null)
   }
 
   async function deleteHabito(id: string) {
@@ -507,7 +528,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
           {/* Habit list */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-            {localHabitos.map(h => {
+            {habitosHoy.map(h => {
               const reg = regMap[h.id]
               const done = h.tipo === 'boolean' ? reg?.valor_bool === true : (reg?.valor_numero ?? 0) > 0
               return (
@@ -911,6 +932,20 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       <input value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} placeholder={t('tablero.habitos.nombre_placeholder')}
                         style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box', marginBottom: '0.75rem' }} />
                       <div style={{ marginBottom: '0.75rem' }}>
+                        <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Frecuencia</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                          <button onClick={() => setNuevoDiasSemana(null)} style={{ padding: '0.3rem 0.625rem', borderRadius: '6px', border: 'none', fontSize: '0.75rem', background: nuevoDiasSemana === null ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.05)', color: nuevoDiasSemana === null ? '#a78bfa' : '#6b7280', fontWeight: nuevoDiasSemana === null ? 700 : 400, cursor: 'pointer' }}>Todos los días</button>
+                          {DIAS_CORTOS.map((d, i) => {
+                            const sel = nuevoDiasSemana?.includes(i) ?? false
+                            return <button key={i} onClick={() => {
+                              if (nuevoDiasSemana === null) { setNuevoDiasSemana([i]) }
+                              else if (sel) { const next = nuevoDiasSemana.filter(x => x !== i); setNuevoDiasSemana(next.length === 0 ? null : next) }
+                              else { setNuevoDiasSemana([...nuevoDiasSemana, i]) }
+                            }} style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', fontSize: '0.78rem', background: sel ? 'rgba(139,92,246,0.25)' : 'rgba(255,255,255,0.05)', color: sel ? '#a78bfa' : '#6b7280', fontWeight: sel ? 700 : 400, cursor: 'pointer' }}>{d}</button>
+                          })}
+                        </div>
+                      </div>
+                      <div style={{ marginBottom: '0.75rem' }}>
                         <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Categoría</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
                           {CATEGORIAS.map(c => (
@@ -954,8 +989,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       <span style={{ fontSize: '1.1rem' }}>{h.emoji}</span>
                       <span style={{ fontSize: '0.875rem', color: '#e5e7eb', flex: 1 }}>{h.nombre}</span>
                       {h.categoria && <span style={{ fontSize: '0.62rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: `${catColor(h.categoria)}22`, color: catColor(h.categoria), fontWeight: 600, flexShrink: 0 }}>{CATEGORIAS.find(c => c.id === h.categoria)?.label}</span>}
+                      {frecuenciaLabel(h.dias_semana) && <span style={{ fontSize: '0.6rem', color: '#6b7280', flexShrink: 0 }}>📅 {frecuenciaLabel(h.dias_semana)}</span>}
                       {h.tipo === 'numero' && h.unidad && <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{h.unidad}</span>}
-                      <button onClick={() => { setEditingHabito(h); setNuevoNombre(h.nombre); setNuevoEmoji(h.emoji); setNuevoTipo(h.tipo as 'boolean' | 'numero'); setNuevoCategoria(h.categoria ?? null) }}
+                      <button onClick={() => { setEditingHabito(h); setNuevoNombre(h.nombre); setNuevoEmoji(h.emoji); setNuevoTipo(h.tipo as 'boolean' | 'numero'); setNuevoCategoria(h.categoria ?? null); setNuevoDiasSemana(h.dias_semana ?? null) }}
                         style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#6b7280', padding: '2px', fontSize: '0.9rem' }}>✏️</button>
                       <button onClick={() => deleteHabito(h.id)}
                         style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.7)', padding: '2px', fontSize: '0.9rem' }}>🗑️</button>
@@ -988,6 +1024,20 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       style={{ padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                 )}
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Frecuencia</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                    <button onClick={() => setNuevoDiasSemana(null)} style={{ padding: '0.3rem 0.625rem', borderRadius: '6px', border: 'none', fontSize: '0.75rem', background: nuevoDiasSemana === null ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.05)', color: nuevoDiasSemana === null ? '#a78bfa' : '#6b7280', fontWeight: nuevoDiasSemana === null ? 700 : 400, cursor: 'pointer' }}>Todos los días</button>
+                    {DIAS_CORTOS.map((d, i) => {
+                      const sel = nuevoDiasSemana?.includes(i) ?? false
+                      return <button key={i} onClick={() => {
+                        if (nuevoDiasSemana === null) { setNuevoDiasSemana([i]) }
+                        else if (sel) { const next = nuevoDiasSemana.filter(x => x !== i); setNuevoDiasSemana(next.length === 0 ? null : next) }
+                        else { setNuevoDiasSemana([...nuevoDiasSemana, i]) }
+                      }} style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', fontSize: '0.78rem', background: sel ? 'rgba(139,92,246,0.25)' : 'rgba(255,255,255,0.05)', color: sel ? '#a78bfa' : '#6b7280', fontWeight: sel ? 700 : 400, cursor: 'pointer' }}>{d}</button>
+                    })}
+                  </div>
+                </div>
                 <div style={{ marginBottom: '0.75rem' }}>
                   <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Categoría</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
