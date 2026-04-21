@@ -23,6 +23,10 @@ export const pt: typeof es = {
     salir: 'Sair',
     language: 'Idioma',
     config: 'Configuração',
+    eliminar_cuenta: 'Excluir minha conta',
+    eliminar_desc: 'Esta ação é permanente. Todos os seus dados serão excluídos.',
+    eliminar_confirmar: 'Sim, excluir tudo',
+    eliminando: 'Excluindo...',
   },
   common: {
     loading: 'Um momento...',

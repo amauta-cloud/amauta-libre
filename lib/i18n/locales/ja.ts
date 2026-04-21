@@ -23,6 +23,10 @@ export const ja: typeof es = {
     salir: 'ログアウト',
     language: '言語',
     config: '設定',
+    eliminar_cuenta: 'アカウントを削除',
+    eliminar_desc: 'この操作は永久的です。すべてのデータが削除されます。',
+    eliminar_confirmar: 'はい、すべて削除',
+    eliminando: '削除中...',
   },
   common: {
     loading: '少々お待ちください...',

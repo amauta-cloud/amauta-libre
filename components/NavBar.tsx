@@ -16,6 +16,8 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
   const [editingNombre, setEditingNombre] = useState(false)
   const [nombreInput, setNombreInput] = useState(initialNombre || '')
   const [nombreSaving, setNombreSaving] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const NAV = [
     { href: '/tablero',       label: t('nav.tablero'),       icon: '⚡' },
@@ -26,6 +28,19 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
   async function handleLogout() {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/delete-account', { method: 'DELETE' })
+      if (res.ok) {
+        await supabase.auth.signOut()
+        router.push('/login')
+      }
+    } finally {
+      setDeleting(false)
+    }
   }
 
   async function saveNombre() {
@@ -125,6 +140,46 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
         }}>
           {t('nav.salir')}
         </button>
+
+        {/* Eliminar cuenta */}
+        {!deleteConfirm ? (
+          <button onClick={() => setDeleteConfirm(true)} style={{
+            width: '100%', padding: '0.5rem', borderRadius: '8px',
+            border: 'none', background: 'transparent',
+            color: '#4b5563', fontSize: '0.72rem', cursor: 'pointer', textAlign: 'center',
+          }}>
+            {t('nav.eliminar_cuenta')}
+          </button>
+        ) : (
+          <div style={{ padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)' }}>
+            <p style={{ color: '#fca5a5', fontSize: '0.78rem', marginBottom: '0.75rem', textAlign: 'center' }}>
+              {t('nav.eliminar_desc')}
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button onClick={() => setDeleteConfirm(false)} style={{
+                flex: 1, padding: '0.5rem', borderRadius: '8px',
+                border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
+                color: '#9ca3af', fontSize: '0.78rem', cursor: 'pointer',
+              }}>
+                Cancelar
+              </button>
+              <button onClick={handleDeleteAccount} disabled={deleting} style={{
+                flex: 1, padding: '0.5rem', borderRadius: '8px',
+                border: 'none', background: '#ef4444',
+                color: '#fff', fontSize: '0.78rem', fontWeight: 600, cursor: deleting ? 'default' : 'pointer',
+                opacity: deleting ? 0.7 : 1,
+              }}>
+                {deleting ? t('nav.eliminando') : t('nav.eliminar_confirmar')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Legal links */}
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', paddingTop: '0.25rem' }}>
+          <a href="/privacidad" style={{ color: '#374151', fontSize: '0.65rem', textDecoration: 'none' }}>Privacidad</a>
+          <a href="/terminos" style={{ color: '#374151', fontSize: '0.65rem', textDecoration: 'none' }}>Términos</a>
+        </div>
       </div>
     </div>
   )

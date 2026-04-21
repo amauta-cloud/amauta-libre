@@ -23,6 +23,10 @@ export const ru: typeof es = {
     salir: 'Выйти',
     language: 'Язык',
     config: 'Настройки',
+    eliminar_cuenta: 'Удалить мой аккаунт',
+    eliminar_desc: 'Это действие необратимо. Все твои данные будут удалены.',
+    eliminar_confirmar: 'Да, удалить всё',
+    eliminando: 'Удаление...',
   },
   common: {
     loading: 'Минуту...',

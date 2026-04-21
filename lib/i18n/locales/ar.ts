@@ -23,6 +23,10 @@ export const ar: typeof es = {
     salir: 'تسجيل الخروج',
     language: 'اللغة',
     config: 'الإعدادات',
+    eliminar_cuenta: 'حذف حسابي',
+    eliminar_desc: 'هذا الإجراء نهائي. سيتم حذف جميع بياناتك.',
+    eliminar_confirmar: 'نعم، احذف كل شيء',
+    eliminando: 'جارٍ الحذف...',
   },
   common: {
     loading: 'لحظة...',

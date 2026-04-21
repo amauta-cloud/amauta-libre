@@ -23,6 +23,10 @@ export const id: typeof es = {
     salir: 'Keluar',
     language: 'Bahasa',
     config: 'Pengaturan',
+    eliminar_cuenta: 'Hapus akun saya',
+    eliminar_desc: 'Tindakan ini permanen. Semua datamu akan dihapus.',
+    eliminar_confirmar: 'Ya, hapus semuanya',
+    eliminando: 'Menghapus...',
   },
   common: {
     loading: 'Sebentar...',

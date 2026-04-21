@@ -23,6 +23,10 @@ export const zh: typeof es = {
     salir: '退出',
     language: '语言',
     config: '设置',
+    eliminar_cuenta: '删除我的账户',
+    eliminar_desc: '此操作不可撤销。您的所有数据将被删除。',
+    eliminar_confirmar: '是的，删除一切',
+    eliminando: '删除中...',
   },
   common: {
     loading: '请稍候...',

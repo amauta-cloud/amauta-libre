@@ -23,6 +23,10 @@ export const en: typeof es = {
     salir: 'Sign out',
     language: 'Language',
     config: 'Settings',
+    eliminar_cuenta: 'Delete my account',
+    eliminar_desc: 'This is permanent. All your data will be deleted.',
+    eliminar_confirmar: 'Yes, delete everything',
+    eliminando: 'Deleting...',
   },
   common: {
     loading: 'One moment...',

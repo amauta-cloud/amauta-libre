@@ -23,6 +23,10 @@ export const hi: typeof es = {
     salir: 'साइन आउट',
     language: 'भाषा',
     config: 'सेटिंग्स',
+    eliminar_cuenta: 'मेरा खाता हटाएं',
+    eliminar_desc: 'यह क्रिया स्थायी है। आपका सारा डेटा हटा दिया जाएगा।',
+    eliminar_confirmar: 'हां, सब कुछ हटाएं',
+    eliminando: 'हटाया जा रहा है...',
   },
   common: {
     loading: 'एक पल...',

@@ -21,6 +21,10 @@ export const es = {
     salir: 'Salir',
     language: 'Idioma',
     config: 'Configuración',
+    eliminar_cuenta: 'Eliminar mi cuenta',
+    eliminar_desc: 'Esta acción es permanente. Se borran todos tus datos.',
+    eliminar_confirmar: 'Sí, eliminar todo',
+    eliminando: 'Eliminando...',
   },
   common: {
     loading: 'Un momento...',
