@@ -403,7 +403,7 @@ function ContentCard({ etapa, mensajeIntro, paso, t }: {
         </a>
       ) : (
         <div style={{ fontSize: '0.78rem', color: '#4b5563', fontStyle: 'italic' }}>
-          Link próximamente disponible
+          El material llega pronto.
         </div>
       )}
     </div>
