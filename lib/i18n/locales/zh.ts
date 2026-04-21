@@ -50,9 +50,9 @@ export const zh: typeof es = {
       guardar_mov: '保存收支',
       nota_placeholder: '记录今天关于这个习惯的感想...',
       sin_habitos: '注册后您的习惯将自动加载。',
-      sin_habitos_sub: 'Add your first habits and start building your day.',
-      sin_habitos_cta: 'Go to my habits →',
-      dia_rojo: 'Red day. Green week. Keep going.',
+      sin_habitos_sub: '添加你的第一个习惯，开始构建你的一天。',
+      sin_habitos_cta: '去我的习惯 →',
+      dia_rojo: '红色的一天。绿色的一周。继续加油。',
     },
     mes: {
       eficiencia: '完成率',

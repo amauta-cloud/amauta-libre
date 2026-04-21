@@ -50,9 +50,9 @@ export const id: typeof es = {
       guardar_mov: 'Simpan transaksi',
       nota_placeholder: 'Tulis catatan tentang kebiasaan ini hari ini...',
       sin_habitos: 'Kebiasaanmu akan dimuat otomatis saat mendaftar.',
-      sin_habitos_sub: 'Add your first habits and start building your day.',
-      sin_habitos_cta: 'Go to my habits →',
-      dia_rojo: 'Red day. Green week. Keep going.',
+      sin_habitos_sub: 'Tambahkan kebiasaan pertamamu dan mulai membangun harimu.',
+      sin_habitos_cta: 'Ke kebiasaan saya →',
+      dia_rojo: 'Hari merah. Minggu hijau. Terus maju.',
     },
     mes: {
       eficiencia: 'Efisiensi',

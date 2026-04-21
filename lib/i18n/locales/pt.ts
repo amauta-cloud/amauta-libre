@@ -50,9 +50,9 @@ export const pt: typeof es = {
       guardar_mov: 'Salvar movimentos',
       nota_placeholder: 'Anote algo sobre esse hábito hoje...',
       sin_habitos: 'Seus hábitos carregam automaticamente ao se cadastrar.',
-      sin_habitos_sub: 'Add your first habits and start building your day.',
-      sin_habitos_cta: 'Go to my habits →',
-      dia_rojo: 'Red day. Green week. Keep going.',
+      sin_habitos_sub: 'Adicione seus primeiros hábitos e comece a construir o seu dia.',
+      sin_habitos_cta: 'Ir para meus hábitos →',
+      dia_rojo: 'Dia vermelho. Semana verde. Continue.',
     },
     mes: {
       eficiencia: 'Eficiência',

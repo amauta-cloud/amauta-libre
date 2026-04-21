@@ -50,9 +50,9 @@ export const ja: typeof es = {
       guardar_mov: '取引を保存',
       nota_placeholder: '今日この習慣について何か書いてください...',
       sin_habitos: '登録すると習慣が自動的に読み込まれます。',
-      sin_habitos_sub: 'Add your first habits and start building your day.',
-      sin_habitos_cta: 'Go to my habits →',
-      dia_rojo: 'Red day. Green week. Keep going.',
+      sin_habitos_sub: '最初の習慣を追加して、自分の一日を作り始めよう。',
+      sin_habitos_cta: '習慣へ →',
+      dia_rojo: '赤い日。緑の週。続けよう。',
     },
     mes: {
       eficiencia: '達成率',

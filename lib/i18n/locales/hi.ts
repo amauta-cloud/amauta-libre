@@ -50,9 +50,9 @@ export const hi: typeof es = {
       guardar_mov: 'लेन-देन सहेजें',
       nota_placeholder: 'आज इस आदत के बारे में कुछ लिखें...',
       sin_habitos: 'रजिस्टर होने पर आपकी आदतें अपने आप लोड हो जाएंगी।',
-      sin_habitos_sub: 'Add your first habits and start building your day.',
-      sin_habitos_cta: 'Go to my habits →',
-      dia_rojo: 'Red day. Green week. Keep going.',
+      sin_habitos_sub: 'अपनी पहली आदतें जोड़ें और अपना दिन बनाना शुरू करें।',
+      sin_habitos_cta: 'मेरी आदतों पर जाएं →',
+      dia_rojo: 'लाल दिन। हरा सप्ताह। जारी रखें।',
     },
     mes: {
       eficiencia: 'दक्षता',

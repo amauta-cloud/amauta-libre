@@ -50,9 +50,9 @@ export const fr: typeof es = {
       guardar_mov: 'Enregistrer les mouvements',
       nota_placeholder: "Notez quelque chose sur cette habitude aujourd'hui...",
       sin_habitos: 'Vos habitudes se chargent automatiquement lors de votre inscription.',
-      sin_habitos_sub: 'Add your first habits and start building your day.',
-      sin_habitos_cta: 'Go to my habits →',
-      dia_rojo: 'Red day. Green week. Keep going.',
+      sin_habitos_sub: 'Ajoute tes premières habitudes et commence à construire ta journée.',
+      sin_habitos_cta: 'Aller à mes habitudes →',
+      dia_rojo: 'Jour rouge. Semaine verte. Continue.',
     },
     mes: {
       eficiencia: 'Efficacité',
