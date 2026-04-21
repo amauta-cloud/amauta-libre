@@ -65,7 +65,7 @@ export const en: typeof es = {
       ganancia: 'Profit',
       perdida: 'Loss',
       ahorro_acumulado: '🐷 Accumulated savings (10%)',
-      mapa: 'Habit map — tap a day to edit',
+      mapa: 'Habit map: tap a day to edit',
       mapa_hint: 'tap a day to edit',
       menos: 'Less',
       mas: 'More',
@@ -231,7 +231,7 @@ export const en: typeof es = {
       {
         mensajeIntro: 'A short story about the excuse that is holding you back. Everyone has a cow. The question is whether you are willing to see it and let it go.',
         preguntaTransicion: 'What was your cow? What did you decide to do with it after reading?',
-        teaserProximo: 'Eat That Frog! — Brian Tracy',
+        teaserProximo: 'Eat That Frog! · Brian Tracy',
         mensajeProximo: 'If The Cow showed you the excuse, this book gives you the method. The "frog" is the task you keep putting off. Doing it first changes the whole day.',
       },
       {
@@ -241,7 +241,7 @@ export const en: typeof es = {
         mensajeProximo: "Money is not the problem. Your relationship with money is. Financial Detox helps identify the beliefs that are holding you back financially.",
       },
       {
-        mensajeIntro: "Money is not the problem — your relationship with money is. This book helps you clear the beliefs holding you back financially, many from childhood.",
+        mensajeIntro: "Money is not the problem, your relationship with money is. This book helps you clear the beliefs holding you back financially, many from childhood.",
         preguntaTransicion: 'What money belief did you identify? How do you plan to work on it?',
         teaserProximo: 'Breaking the Habit of Being Yourself — Joe Dispenza',
         mensajeProximo: 'Dispenza goes deeper. He explains how the brain constructs reality and why certain patterns repeat no matter how hard you try to change them.',
@@ -259,7 +259,7 @@ export const en: typeof es = {
         mensajeProximo: 'Trudeau explains why what you desire with the most clarity is what you end up creating, and why most people never achieve it.',
       },
       {
-        mensajeIntro: 'Trudeau explains why what you desire with the most clarity is what you end up attracting — and why most people never achieve it. Listen when you can truly focus.',
+        mensajeIntro: 'Trudeau explains why what you desire with the most clarity is what you end up attracting, and why most people never achieve it. Listen when you can truly focus.',
         preguntaTransicion: 'What concept impacted you most? What will you do differently with what you learned?',
         teaserProximo: 'REWIRED — Dr. Joe Dispenza',
         mensajeProximo: 'Dispenza on video is a different experience. REWIRED explains how to rewire the brain so your new decisions become automatic instead of a constant struggle.',
