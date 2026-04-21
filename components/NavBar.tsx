@@ -219,12 +219,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
       }} className="md-sidebar">
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '2rem', paddingLeft: '0.5rem' }}>
-          <div style={{
-            width: '36px', height: '36px', borderRadius: '10px',
-            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 800, fontSize: '1rem', color: '#fff',
-          }}>A</div>
+          <img src="/logo-transparent.png" alt="Amauta Libre" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
           <div>
             <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>Amauta</div>
             <div style={{ color: '#7c3aed', fontSize: '0.7rem', fontWeight: 600 }}>Libre</div>

@@ -91,14 +91,8 @@ export default function LoginPage() {
         textAlign: 'center',
       }}>
         {/* Logo */}
-        <div style={{
-          width: '64px', height: '64px', borderRadius: '16px', margin: '0 auto 1.25rem',
-          background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '1.6rem', fontWeight: 800, color: 'white',
-          boxShadow: '0 8px 32px rgba(139,92,246,0.3)',
-        }}>
-          A
+        <div style={{ margin: '0 auto 1.25rem', width: '72px', height: '72px' }}>
+          <img src="/logo-transparent.png" alt="Amauta Libre" style={{ width: '72px', height: '72px', objectFit: 'contain' }} />
         </div>
 
         <h1 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.4rem' }}>
