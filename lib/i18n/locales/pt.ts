@@ -243,37 +243,37 @@ export const pt: typeof es = {
       {
         mensajeIntro: 'O dinheiro não é o problema, sua relação com o dinheiro é o problema. Este livro te ajuda a limpar as crenças que te freiam financeiramente, muitas delas desde a infância.',
         preguntaTransicion: 'Que crença sobre dinheiro você identificou? Como planeja trabalhar nisso?',
-        teaserProximo: 'Quebrando o Hábito de Ser Você Mesmo — Joe Dispenza',
+        teaserProximo: 'Quebrando o Hábito de Ser Você Mesmo · Joe Dispenza',
         mensajeProximo: 'Dispenza vai mais fundo. Ele explica como o cérebro constrói a realidade e por que certos padrões se repetem não importa o quanto você tente mudar.',
       },
       {
         mensajeIntro: 'Dispenza vai mais fundo do que qualquer outro autor nessa jornada. Ele explica como o cérebro constrói a realidade e por que certos padrões se repetem não importa o quanto você tente mudar. Prepare-se.',
         preguntaTransicion: 'Que padrão você identificou em si mesmo? Qual exercício do livro foi mais poderoso para você?',
-        teaserProximo: 'A Libertação da Alma — Michael Singer',
+        teaserProximo: 'A Libertação da Alma · Michael Singer',
         mensajeProximo: 'Singer não fala em fazer mais. Ele fala em soltar o que te pesa. Poucos livros te movem como este.',
       },
       {
         mensajeIntro: 'Singer não fala em fazer mais. Ele fala em soltar o que te pesa. Poucos livros te movem como este.',
         preguntaTransicion: 'Tem algo que você estava agarrando e decidiu soltar? O que mudou quando fez isso?',
-        teaserProximo: 'Seu Desejo é Sua Ordem — Kevin Trudeau',
+        teaserProximo: 'Seu Desejo é Sua Ordem · Kevin Trudeau',
         mensajeProximo: 'Trudeau explica por que o que você deseja com mais clareza é o que acaba criando, e por que a maioria das pessoas nunca consegue.',
       },
       {
         mensajeIntro: 'Trudeau explica por que o que você deseja com mais clareza é o que acaba atraindo, e por que a maioria nunca consegue. Ouça quando puder se concentrar de verdade.',
         preguntaTransicion: 'Qual foi o conceito que mais te impactou? O que você vai fazer diferente com o que aprendeu?',
-        teaserProximo: 'REWIRED — Dr. Joe Dispenza',
+        teaserProximo: 'REWIRED · Dr. Joe Dispenza',
         mensajeProximo: 'Dispenza em vídeo é outra experiência. REWIRED explica como reconectar o cérebro para que suas novas decisões se tornem automáticas em vez de uma luta constante.',
       },
       {
         mensajeIntro: 'Dispenza em vídeo é outra experiência. REWIRED explica como reconectar o cérebro para que suas novas decisões se tornem automáticas, em vez de uma luta constante.',
         preguntaTransicion: 'Que prática do vídeo você vai adotar? Quando começa?',
-        teaserProximo: 'Biblioteca — Desenvolvimento de Consciência',
+        teaserProximo: 'Biblioteca · Desenvolvimento de Consciência',
         mensajeProximo: 'Você chegou à biblioteca. O material que aprofunda tudo que você vem trabalhando.',
       },
       {
         mensajeIntro: 'Você chegou à biblioteca. Aqui você encontra o material que aprofunda tudo que vem trabalhando.',
         preguntaTransicion: 'Em que área da sua vida você sente que mais cresceu desde que começou essa jornada? O que ainda quer continuar trabalhando?',
-        teaserProximo: 'Fênix — Brian Tracy',
+        teaserProximo: 'Fênix · Brian Tracy',
         mensajeProximo: 'Tracy em vídeo, o processo de renascer como pessoa e como profissional. A Fênix não volta sendo a mesma.',
       },
       {
