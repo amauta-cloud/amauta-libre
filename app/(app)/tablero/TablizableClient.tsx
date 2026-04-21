@@ -361,20 +361,33 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     setLocalHabitos(prev => prev.filter(h => h.id !== id))
   }
 
-  function handleDragDrop(targetId: string) {
-    if (!draggingId || draggingId === targetId) return
+  function reorderPersonal(fromIdx: number, toIdx: number) {
     const personal = localHabitos.filter(h => !h.obligatorio)
     const fixed = localHabitos.filter(h => h.obligatorio)
-    const fromIdx = personal.findIndex(h => h.id === draggingId)
-    const toIdx = personal.findIndex(h => h.id === targetId)
     const reordered = [...personal]
     const [moved] = reordered.splice(fromIdx, 1)
     reordered.splice(toIdx, 0, moved)
     const updated = reordered.map((h, i) => ({ ...h, orden: i + 1 }))
     setLocalHabitos([...fixed, ...updated])
+    Promise.all(updated.map((h, i) => supabase.from('habitos').update({ orden: i + 1 }).eq('id', h.id)))
+  }
+
+  function handleDragDrop(targetId: string) {
+    if (!draggingId || draggingId === targetId) return
+    const personal = localHabitos.filter(h => !h.obligatorio)
+    const fromIdx = personal.findIndex(h => h.id === draggingId)
+    const toIdx = personal.findIndex(h => h.id === targetId)
     setDraggingId(null)
     setDragOverId(null)
-    Promise.all(updated.map((h, i) => supabase.from('habitos').update({ orden: i + 1 }).eq('id', h.id)))
+    reorderPersonal(fromIdx, toIdx)
+  }
+
+  function moveHabito(id: string, dir: 'up' | 'down') {
+    const personal = localHabitos.filter(h => !h.obligatorio)
+    const idx = personal.findIndex(h => h.id === id)
+    const newIdx = dir === 'up' ? idx - 1 : idx + 1
+    if (newIdx < 0 || newIdx >= personal.length) return
+    reorderPersonal(idx, newIdx)
   }
 
   // Month stats
@@ -860,7 +873,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       border: dragOverId === h.id ? '1px dashed rgba(139,92,246,0.4)' : '1px solid transparent',
                       cursor: 'grab', transition: 'background 0.1s, border 0.1s',
                     }}>
-                      <span style={{ fontSize: '0.85rem', color: '#374151', cursor: 'grab', userSelect: 'none', flexShrink: 0 }}>⠿</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', flexShrink: 0 }}>
+                        <button onClick={() => moveHabito(h.id, 'up')}
+                          style={{ width: '20px', height: '18px', border: 'none', background: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.65rem', lineHeight: 1, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▲</button>
+                        <button onClick={() => moveHabito(h.id, 'down')}
+                          style={{ width: '20px', height: '18px', border: 'none', background: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.65rem', lineHeight: 1, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▼</button>
+                      </div>
                       <span style={{ fontSize: '1.1rem' }}>{h.emoji}</span>
                       <span style={{ fontSize: '0.875rem', color: '#e5e7eb', flex: 1 }}>{h.nombre}</span>
                       {h.tipo === 'numero' && h.unidad && <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{h.unidad}</span>}
