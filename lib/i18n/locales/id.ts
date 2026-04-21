@@ -2,14 +2,17 @@ import type { es } from './es'
 
 export const id: typeof es = {
   login: {
-    subtitle: 'Kebiasaanmu, tugasmu, pertumbuhanmu.',
-    tagline: 'Gratis selamanya. Tanpa kartu. Tanpa tipu muslihat.',
+    subtitle: 'Bangun dirimu yang ingin kamu jadi, hari demi hari.',
+    tagline: 'Gratis selamanya · Tanpa kartu · Tanpa tipu daya',
+    free_badge: '✦ Gratis selamanya',
     button: 'Masuk dengan Google',
     button_loading: 'Mengalihkan...',
-    features_title: 'Apa saja yang termasuk?',
-    feature_1: '📋 Pelacak kebiasaan harian',
-    feature_2: '✅ Perencanaan tugas',
-    feature_3: '📚 Konten pertumbuhan dan tantangan',
+    features_title: 'Yang kamu dapatkan',
+    feature_1: '📋 Kebiasaan harian & pencatat keuangan',
+    feature_2: '🎯 Tujuan 30, 90 dan 180 hari',
+    feature_3: '✅ Tugas, ide dan kalender',
+    feature_4: '📚 11 materi pengembangan diri',
+    trust: 'Tanpa kata sandi. Cukup akun Google-mu.',
     privacy: 'Dengan masuk, kamu menyetujui',
     privacy_link: 'kebijakan privasi',
   },

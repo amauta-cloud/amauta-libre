@@ -2,14 +2,17 @@ import type { es } from './es'
 
 export const fr: typeof es = {
   login: {
-    subtitle: 'Tes habitudes, tes tâches, ta croissance.',
-    tagline: 'Gratuit pour toujours. Sans carte. Sans piège.',
+    subtitle: 'Construis qui tu veux devenir, jour après jour.',
+    tagline: 'Gratuit pour toujours · Sans carte · Sans piège',
+    free_badge: '✦ Gratuit pour toujours',
     button: 'Se connecter avec Google',
     button_loading: 'Redirection...',
-    features_title: "Qu'est-ce qui est inclus ?",
-    feature_1: '📋 Suivi des habitudes quotidiennes',
-    feature_2: '✅ Planification des tâches',
-    feature_3: '📚 Contenu et défis de croissance',
+    features_title: "Ce que tu obtiens",
+    feature_1: '📋 Suivi des habitudes et finances',
+    feature_2: '🎯 Objectifs à 30, 90 et 180 jours',
+    feature_3: '✅ Tâches, idées et agenda',
+    feature_4: '📚 11 ressources de développement personnel',
+    trust: 'Pas de mot de passe. Juste ton compte Google.',
     privacy: 'En vous connectant, vous acceptez notre',
     privacy_link: 'politique de confidentialité',
   },

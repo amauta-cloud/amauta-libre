@@ -2,14 +2,17 @@ import type { es } from './es'
 
 export const en: typeof es = {
   login: {
-    subtitle: 'Your habits, your tasks, your growth.',
-    tagline: 'Free forever. No cards. No catch.',
+    subtitle: 'Build who you want to become, one day at a time.',
+    tagline: 'Free forever · No card · No catch',
+    free_badge: '✦ Free forever',
     button: 'Sign in with Google',
     button_loading: 'Redirecting...',
-    features_title: "What's included?",
-    feature_1: '📋 Daily habit tracker',
-    feature_2: '✅ Task planning',
-    feature_3: '📚 Growth content & challenges',
+    features_title: "What you get",
+    feature_1: '📋 Daily habits & finance tracker',
+    feature_2: '🎯 Goals at 30, 90 and 180 days',
+    feature_3: '✅ Tasks, ideas and calendar',
+    feature_4: '📚 11 personal growth materials',
+    trust: 'No passwords. Just your Google account.',
     privacy: 'By signing in you agree to our',
     privacy_link: 'privacy policy',
   },

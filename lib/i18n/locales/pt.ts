@@ -2,14 +2,17 @@ import type { es } from './es'
 
 export const pt: typeof es = {
   login: {
-    subtitle: 'Seus hábitos, suas tarefas, seu crescimento.',
-    tagline: 'Grátis para sempre. Sem cartão. Sem pegadinha.',
+    subtitle: 'Construa quem você quer ser, dia a dia.',
+    tagline: 'Grátis para sempre · Sem cartão · Sem pegadinha',
+    free_badge: '✦ Grátis para sempre',
     button: 'Entrar com o Google',
     button_loading: 'Redirecionando...',
-    features_title: 'O que está incluído?',
-    feature_1: '📋 Rastreador de hábitos diários',
-    feature_2: '✅ Planejamento de tarefas',
-    feature_3: '📚 Conteúdo e desafios de crescimento',
+    features_title: 'O que você recebe',
+    feature_1: '📋 Hábitos e finanças diárias',
+    feature_2: '🎯 Metas para 30, 90 e 180 dias',
+    feature_3: '✅ Tarefas, ideias e agenda',
+    feature_4: '📚 11 materiais de desenvolvimento pessoal',
+    trust: 'Sem senhas. Só sua conta do Google.',
     privacy: 'Ao entrar você concorda com nossa',
     privacy_link: 'política de privacidade',
   },

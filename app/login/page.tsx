@@ -27,6 +27,13 @@ export default function LoginPage() {
     setLangOpen(false)
   }
 
+  const features = [
+    t('login.feature_1'),
+    t('login.feature_2'),
+    t('login.feature_3'),
+    t('login.feature_4'),
+  ]
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -85,7 +92,7 @@ export default function LoginPage() {
       }}>
         {/* Logo */}
         <div style={{
-          width: '64px', height: '64px', borderRadius: '16px', margin: '0 auto 1.5rem',
+          width: '64px', height: '64px', borderRadius: '16px', margin: '0 auto 1.25rem',
           background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '1.6rem', fontWeight: 800, color: 'white',
@@ -97,13 +104,53 @@ export default function LoginPage() {
         <h1 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.4rem' }}>
           Amauta Libre
         </h1>
-        <p style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+        <p style={{ color: '#c4b5fd', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.5 }}>
           {t('login.subtitle')}
         </p>
-        <p style={{ color: '#6b7280', fontSize: '0.78rem', marginBottom: '2rem', lineHeight: 1.6 }}>
-          {t('login.tagline')}
-        </p>
 
+        {/* Free badge */}
+        <div style={{ marginBottom: '1.75rem' }}>
+          <span style={{
+            display: 'inline-block',
+            padding: '0.25rem 0.75rem',
+            borderRadius: '99px',
+            background: 'rgba(16,185,129,0.12)',
+            color: '#10b981',
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            border: '1px solid rgba(16,185,129,0.25)',
+            letterSpacing: '0.02em',
+          }}>
+            {t('login.free_badge')}
+          </span>
+        </div>
+
+        {/* Features — above button */}
+        <div style={{
+          marginBottom: '1.5rem',
+          padding: '1rem 1.1rem',
+          background: 'rgba(139,92,246,0.06)',
+          borderRadius: '12px',
+          border: '1px solid rgba(139,92,246,0.12)',
+          textAlign: 'left',
+        }}>
+          <p style={{
+            color: '#a78bfa', fontSize: '0.65rem', fontWeight: 700,
+            marginBottom: '0.75rem', letterSpacing: '0.08em', textTransform: 'uppercase',
+          }}>
+            {t('login.features_title')}
+          </p>
+          {features.map((f, i) => (
+            <div key={i} style={{
+              fontSize: '0.84rem', color: '#d1d5db', padding: '0.35rem 0',
+              borderBottom: i < features.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+            }}>
+              {f}
+            </div>
+          ))}
+        </div>
+
+        {/* Google button */}
         <button
           onClick={handleGoogle}
           disabled={loading}
@@ -111,13 +158,15 @@ export default function LoginPage() {
             width: '100%',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
             padding: '0.9rem 1.25rem', borderRadius: '12px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            background: loading ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            background: loading ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)',
             color: '#fff', fontSize: '0.95rem', fontWeight: 600,
             cursor: loading ? 'default' : 'pointer',
             opacity: loading ? 0.7 : 1,
             transition: 'all 0.15s',
           }}
+          onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'rgba(255,255,255,0.15)' }}
+          onMouseLeave={e => { if (!loading) e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -128,14 +177,10 @@ export default function LoginPage() {
           {loading ? t('login.button_loading') : t('login.button')}
         </button>
 
-        <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(139,92,246,0.06)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.12)' }}>
-          <p style={{ color: '#7c3aed', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.4rem' }}>{t('login.features_title')}</p>
-          <p style={{ color: '#6b7280', fontSize: '0.72rem', lineHeight: 1.7 }}>
-            {t('login.feature_1')}<br/>
-            {t('login.feature_2')}<br/>
-            {t('login.feature_3')}
-          </p>
-        </div>
+        {/* Trust signal */}
+        <p style={{ color: '#6b7280', fontSize: '0.72rem', marginTop: '0.75rem', marginBottom: '0' }}>
+          {t('login.trust')}
+        </p>
 
         <p style={{ color: '#4b5563', fontSize: '0.7rem', marginTop: '1.5rem' }}>
           {t('login.privacy')}{' '}

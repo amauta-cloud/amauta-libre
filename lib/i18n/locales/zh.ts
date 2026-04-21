@@ -2,14 +2,17 @@ import type { es } from './es'
 
 export const zh: typeof es = {
   login: {
-    subtitle: '你的习惯，你的任务，你的成长。',
-    tagline: '永久免费。无需信用卡。没有套路。',
+    subtitle: '一天一步，成为你想成为的人。',
+    tagline: '永久免费 · 无需信用卡 · 没有套路',
+    free_badge: '✦ 永久免费',
     button: '使用 Google 登录',
     button_loading: '跳转中...',
-    features_title: '包含哪些功能？',
-    feature_1: '📋 每日习惯追踪',
-    feature_2: '✅ 任务规划',
-    feature_3: '📚 成长内容与挑战',
+    features_title: '你能获得什么',
+    feature_1: '📋 每日习惯与财务记录',
+    feature_2: '🎯 30、90 和 180 天目标',
+    feature_3: '✅ 任务、想法与日历',
+    feature_4: '📚 11 份个人成长材料',
+    trust: '无需密码，只需你的 Google 账号。',
     privacy: '登录即表示您同意我们的',
     privacy_link: '隐私政策',
   },

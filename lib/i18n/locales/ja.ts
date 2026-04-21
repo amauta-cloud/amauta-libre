@@ -2,14 +2,17 @@ import type { es } from './es'
 
 export const ja: typeof es = {
   login: {
-    subtitle: 'あなたの習慣、タスク、成長。',
-    tagline: '永久無料。カード不要。カラクリなし。',
+    subtitle: 'なりたい自分を、一日ずつ築いていく。',
+    tagline: '永久無料 · カード不要 · カラクリなし',
+    free_badge: '✦ 永久無料',
     button: 'Googleでログイン',
     button_loading: 'リダイレクト中...',
-    features_title: '何が含まれていますか？',
-    feature_1: '📋 毎日の習慣トラッカー',
-    feature_2: '✅ タスク計画',
-    feature_3: '📚 成長コンテンツとチャレンジ',
+    features_title: '手に入るもの',
+    feature_1: '📋 毎日の習慣と家計トラッカー',
+    feature_2: '🎯 30・90・180日の目標管理',
+    feature_3: '✅ タスク、アイデア、カレンダー',
+    feature_4: '📚 11の自己成長コンテンツ',
+    trust: 'パスワード不要。Googleアカウントだけで入れます。',
     privacy: 'ログインすることで同意したことになります',
     privacy_link: 'プライバシーポリシー',
   },
