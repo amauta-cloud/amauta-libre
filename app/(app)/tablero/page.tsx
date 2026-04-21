@@ -12,6 +12,7 @@ type Habito = {
   obligatorio: boolean
   orden: number
   meta_numero: number | null
+  categoria?: string | null
 }
 
 type Registro = {

@@ -15,6 +15,7 @@ type Habito = {
   obligatorio: boolean
   orden: number
   meta_numero: number | null
+  categoria?: string | null
 }
 
 type Registro = {
@@ -54,6 +55,19 @@ type MetasData = {
 type Finanzas = { ingresos: number; gastos: number; ahorro: boolean }
 
 const EMOJIS = ['⭐','🎯','📚','🏃','🧠','💧','🥗','🛌','✍️','🎨','🎵','💼','🌿','🙏','📞','💊','🚴','🏋️','🧘','🍎','🔥','💪','🎧','📖','⚽','🎸','🖥️','🌅','🎭','🦁']
+
+const CATEGORIAS = [
+  { id: null as string | null, label: 'General', color: '#6b7280' },
+  { id: 'salud',    label: '💪 Salud',    color: '#10b981' },
+  { id: 'mente',    label: '🧠 Mente',    color: '#8B5CF6' },
+  { id: 'dinero',   label: '💰 Dinero',   color: '#F5C518' },
+  { id: 'aprender', label: '📚 Aprender', color: '#3B82F6' },
+  { id: 'social',   label: '👥 Social',   color: '#EC4899' },
+]
+
+function catColor(cat?: string | null): string {
+  return CATEGORIAS.find(c => c.id === (cat ?? null))?.color ?? '#6b7280'
+}
 
 export default function TablizableClient({ habitos, regMap: initialRegMap, userId, today, racha, metas, historial }: {
   habitos: Habito[]
@@ -126,6 +140,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [nuevoTipo, setNuevoTipo] = useState<'boolean' | 'numero'>('boolean')
   const [nuevoUnidad, setNuevoUnidad] = useState('')
   const [nuevoMeta, setNuevoMeta] = useState('')
+  const [nuevoCategoria, setNuevoCategoria] = useState<string | null>(null)
   const [habitoSaving, setHabitoSaving] = useState(false)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
@@ -336,6 +351,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       usuario_id: userId, nombre: nuevoNombre.trim(), emoji: nuevoEmoji,
       tipo: nuevoTipo, unidad: nuevoTipo === 'numero' && nuevoUnidad.trim() ? nuevoUnidad.trim() : null,
       meta_numero: metaNum, obligatorio: false, orden: maxOrden + 1, activo: true,
+      categoria: nuevoCategoria,
     }).select().single()
     if (data) {
       setLocalHabitos(prev => [...prev, data as Habito])
@@ -343,16 +359,16 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     }
     setHabitoSaving(false)
     setShowAddHabito(false)
-    setNuevoNombre(''); setNuevoEmoji('⭐'); setNuevoTipo('boolean'); setNuevoUnidad(''); setNuevoMeta('')
+    setNuevoNombre(''); setNuevoEmoji('⭐'); setNuevoTipo('boolean'); setNuevoUnidad(''); setNuevoMeta(''); setNuevoCategoria(null)
   }
 
   async function saveEditHabito() {
     if (!editingHabito || !nuevoNombre.trim()) return
     setHabitoSaving(true)
-    await supabase.from('habitos').update({ nombre: nuevoNombre.trim(), emoji: nuevoEmoji }).eq('id', editingHabito.id)
-    setLocalHabitos(prev => prev.map(h => h.id === editingHabito.id ? { ...h, nombre: nuevoNombre.trim(), emoji: nuevoEmoji } : h))
+    await supabase.from('habitos').update({ nombre: nuevoNombre.trim(), emoji: nuevoEmoji, categoria: nuevoCategoria }).eq('id', editingHabito.id)
+    setLocalHabitos(prev => prev.map(h => h.id === editingHabito.id ? { ...h, nombre: nuevoNombre.trim(), emoji: nuevoEmoji, categoria: nuevoCategoria } : h))
     setHabitoSaving(false)
-    setEditingHabito(null); setNuevoNombre('')
+    setEditingHabito(null); setNuevoNombre(''); setNuevoCategoria(null)
   }
 
   async function deleteHabito(id: string) {
@@ -500,6 +516,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   border: `1px solid ${done ? 'rgba(139,92,246,0.35)' : 'rgba(139,92,246,0.1)'}`,
                   borderRadius: '14px', padding: '1rem 1.125rem',
                   display: 'flex', alignItems: 'center', gap: '0.875rem', transition: 'border-color 0.2s',
+                  borderLeft: `3px solid ${catColor(h.categoria)}`,
                 }}>
                   <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>{h.emoji}</span>
                   <div style={{ flex: 1 }}>
@@ -596,6 +613,47 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               )
             })}
           </div>
+
+          {/* Semana en revisión */}
+          {(() => {
+            const semana: { fecha: string; label: string; pct: number }[] = []
+            const diasCortos = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
+            for (let i = 6; i >= 0; i--) {
+              const d = new Date(today + 'T12:00:00')
+              d.setDate(d.getDate() - i)
+              const fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+              const regsDelDia = historial.filter(r => r.fecha === fecha)
+              const hechos = regsDelDia.filter(r => r.valor_bool === true || (r.valor_numero != null && r.valor_numero > 0)).length
+              const total = localHabitos.length
+              const pct = total > 0 && regsDelDia.length > 0 ? Math.round((hechos / total) * 100) : (fecha === today ? Math.round((completados / total) * 100) : 0)
+              semana.push({ fecha, label: i === 0 ? 'Hoy' : diasCortos[d.getDay()], pct })
+            }
+            const semPct = Math.round(semana.reduce((a, d) => a + d.pct, 0) / 7)
+            const mejorDia = semana.reduce((best, d) => d.pct > best.pct ? d : best, semana[0])
+            return (
+              <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '1rem 1.125rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
+                  <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>Semana en revisión</span>
+                  <span style={{ fontSize: '0.75rem', color: semPct >= 70 ? '#10b981' : semPct >= 40 ? '#a78bfa' : '#6b7280', fontWeight: 700 }}>{semPct}% promedio</span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'flex-end', height: '48px', marginBottom: '0.625rem' }}>
+                  {semana.map(({ fecha, label, pct }) => {
+                    const isToday = fecha === today
+                    const barH = Math.max(4, Math.round((pct / 100) * 40))
+                    const barColor = pct >= 80 ? '#10b981' : pct >= 50 ? '#8B5CF6' : pct > 0 ? '#6b7280' : 'rgba(255,255,255,0.06)'
+                    return (
+                      <div key={fecha} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+                        <div style={{ fontSize: '0.6rem', color: isToday ? '#a78bfa' : '#4b5563', fontWeight: isToday ? 700 : 400 }}>{pct > 0 ? `${pct}%` : ''}</div>
+                        <div style={{ width: '100%', height: `${barH}px`, borderRadius: '3px', background: barColor, transition: 'height 0.3s', outline: isToday ? '1px solid rgba(139,92,246,0.5)' : 'none' }} />
+                        <div style={{ fontSize: '0.62rem', color: isToday ? '#a78bfa' : '#6b7280', fontWeight: isToday ? 700 : 400 }}>{label}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+                {mejorDia.pct > 0 && <div style={{ fontSize: '0.72rem', color: '#6b7280' }}>Mejor día: <span style={{ color: '#a78bfa', fontWeight: 600 }}>{mejorDia.label}</span> con {mejorDia.pct}%</div>}
+              </div>
+            )
+          })()}
 
           {/* Finanzas */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
@@ -852,6 +910,20 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       <div style={{ fontSize: '0.82rem', color: '#a78bfa', fontWeight: 700, marginBottom: '0.75rem' }}>{t('tablero.habitos.editar', { name: h.nombre })}</div>
                       <input value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} placeholder={t('tablero.habitos.nombre_placeholder')}
                         style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box', marginBottom: '0.75rem' }} />
+                      <div style={{ marginBottom: '0.75rem' }}>
+                        <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Categoría</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                          {CATEGORIAS.map(c => (
+                            <button key={String(c.id)} onClick={() => setNuevoCategoria(c.id)} style={{
+                              padding: '0.3rem 0.625rem', borderRadius: '6px', border: 'none', fontSize: '0.75rem',
+                              background: nuevoCategoria === c.id ? `${c.color}22` : 'rgba(255,255,255,0.05)',
+                              color: nuevoCategoria === c.id ? c.color : '#6b7280',
+                              fontWeight: nuevoCategoria === c.id ? 700 : 400, cursor: 'pointer',
+                              outline: nuevoCategoria === c.id ? `1px solid ${c.color}66` : 'none',
+                            }}>{c.label}</button>
+                          ))}
+                        </div>
+                      </div>
                       <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>{t('tablero.habitos.emoji_label')}</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginBottom: '0.875rem' }}>
                         {EMOJIS.map(e => <button key={e} onClick={() => setNuevoEmoji(e)} style={{ width: '32px', height: '32px', borderRadius: '6px', border: 'none', fontSize: '1rem', background: nuevoEmoji === e ? 'rgba(139,92,246,0.35)' : 'rgba(255,255,255,0.06)', cursor: 'pointer' }}>{e}</button>)}
@@ -881,8 +953,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       </div>
                       <span style={{ fontSize: '1.1rem' }}>{h.emoji}</span>
                       <span style={{ fontSize: '0.875rem', color: '#e5e7eb', flex: 1 }}>{h.nombre}</span>
+                      {h.categoria && <span style={{ fontSize: '0.62rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: `${catColor(h.categoria)}22`, color: catColor(h.categoria), fontWeight: 600, flexShrink: 0 }}>{CATEGORIAS.find(c => c.id === h.categoria)?.label}</span>}
                       {h.tipo === 'numero' && h.unidad && <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{h.unidad}</span>}
-                      <button onClick={() => { setEditingHabito(h); setNuevoNombre(h.nombre); setNuevoEmoji(h.emoji); setNuevoTipo(h.tipo as 'boolean' | 'numero') }}
+                      <button onClick={() => { setEditingHabito(h); setNuevoNombre(h.nombre); setNuevoEmoji(h.emoji); setNuevoTipo(h.tipo as 'boolean' | 'numero'); setNuevoCategoria(h.categoria ?? null) }}
                         style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#6b7280', padding: '2px', fontSize: '0.9rem' }}>✏️</button>
                       <button onClick={() => deleteHabito(h.id)}
                         style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.7)', padding: '2px', fontSize: '0.9rem' }}>🗑️</button>
@@ -915,6 +988,20 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       style={{ padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                 )}
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Categoría</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                    {CATEGORIAS.map(c => (
+                      <button key={String(c.id)} onClick={() => setNuevoCategoria(c.id)} style={{
+                        padding: '0.3rem 0.625rem', borderRadius: '6px', border: 'none', fontSize: '0.75rem',
+                        background: nuevoCategoria === c.id ? `${c.color}22` : 'rgba(255,255,255,0.05)',
+                        color: nuevoCategoria === c.id ? c.color : '#6b7280',
+                        fontWeight: nuevoCategoria === c.id ? 700 : 400, cursor: 'pointer',
+                        outline: nuevoCategoria === c.id ? `1px solid ${c.color}66` : 'none',
+                      }}>{c.label}</button>
+                    ))}
+                  </div>
+                </div>
                 <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>{t('tablero.habitos.emoji_label')}</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginBottom: '0.875rem' }}>
                   {EMOJIS.map(e => <button key={e} onClick={() => setNuevoEmoji(e)} style={{ width: '32px', height: '32px', borderRadius: '6px', border: 'none', fontSize: '1rem', background: nuevoEmoji === e ? 'rgba(139,92,246,0.35)' : 'rgba(255,255,255,0.06)', cursor: 'pointer' }}>{e}</button>)}
