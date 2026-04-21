@@ -43,7 +43,7 @@ export const id: typeof es = {
       movimientos: '💰 Transaksi hari ini',
       ingresos_label: '📈 Pendapatan',
       gastos_label: '📉 Pengeluaran',
-      regla10: '💡 Aturan 10% — tabungan yang disarankan',
+      regla10: '💡 Aturan 10% · tabungan yang disarankan',
       ahorro_si: 'Saya menabung 10% hari ini!',
       ahorro_no: 'Apakah saya menabung 10% hari ini?',
       resultado_dia: 'Hasil hari ini',
@@ -164,7 +164,7 @@ export const id: typeof es = {
   metas: {
     loading: 'Sebentar...',
     titulo: 'Apakah kamu tahu ke mana kamu pergi?',
-    intro_p1: 'Kapal tanpa tujuan tidak berlayar — ia terombang-ambing. Ia bisa memiliki mesin terbaik, awak terbaik, angin terbaik. Tanpa tujuan, lautan membawanya ke mana saja.',
+    intro_p1: 'Kapal tanpa tujuan tidak berlayar, ia terombang-ambing. Ia bisa memiliki mesin terbaik, awak terbaik, angin terbaik. Tanpa tujuan, lautan membawanya ke mana saja.',
     intro_p2: 'Kesuksesan bukan kebetulan. Ini adalah',
     intro_p2_bold: 'realisasi progresif dari cita-cita yang kamu pilih dengan jelas',
     intro_p2_end: '. Tujuan yang kamu tetapkan sebelum berlayar.',

@@ -43,7 +43,7 @@ export const pt: typeof es = {
       movimientos: '💰 Movimentos do dia',
       ingresos_label: '📈 Receitas',
       gastos_label: '📉 Despesas',
-      regla10: '💡 Regra dos 10% — economia sugerida',
+      regla10: '💡 Regra dos 10% · economia sugerida',
       ahorro_si: 'Economizei 10% hoje!',
       ahorro_no: 'Economizei 10% hoje?',
       resultado_dia: 'Resultado do dia',
@@ -164,7 +164,7 @@ export const pt: typeof es = {
   metas: {
     loading: 'Um momento...',
     titulo: 'Você sabe para onde vai?',
-    intro_p1: 'Um barco sem destino não navega — deriva. Pode ter o melhor motor, a melhor tripulação, os melhores ventos. Sem um destino, o oceano leva onde quiser.',
+    intro_p1: 'Um barco sem destino não navega, deriva. Pode ter o melhor motor, a melhor tripulação, os melhores ventos. Sem um destino, o oceano leva onde quiser.',
     intro_p2: 'O sucesso não é um acidente. É a',
     intro_p2_bold: 'realização progressiva de um ideal que você escolheu com clareza',
     intro_p2_end: '. Um destino que você traçou antes de zarpar.',

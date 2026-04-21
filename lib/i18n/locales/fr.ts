@@ -43,7 +43,7 @@ export const fr: typeof es = {
       movimientos: '💰 Mouvements du jour',
       ingresos_label: '📈 Revenus',
       gastos_label: '📉 Dépenses',
-      regla10: '💡 Règle des 10 % — épargne suggérée',
+      regla10: '💡 Règle des 10 % · épargne suggérée',
       ahorro_si: "J'ai économisé 10 % aujourd'hui !",
       ahorro_no: "Ai-je économisé 10 % aujourd'hui ?",
       resultado_dia: 'Résultat du jour',
@@ -164,7 +164,7 @@ export const fr: typeof es = {
   metas: {
     loading: 'Un instant...',
     titulo: 'Sais-tu où tu vas ?',
-    intro_p1: "Un bateau sans destination ne navigue pas — il dérive. Il peut avoir le meilleur moteur, le meilleur équipage, les meilleurs vents. Sans destination, l'océan l'emmène où il veut.",
+    intro_p1: "Un bateau sans destination ne navigue pas, il dérive. Il peut avoir le meilleur moteur, le meilleur équipage, les meilleurs vents. Sans destination, l'océan l'emmène où il veut.",
     intro_p2: "Le succès n'est pas un accident. C'est la",
     intro_p2_bold: "réalisation progressive d'un idéal que tu as choisi avec clarté",
     intro_p2_end: '. Une destination tracée avant de prendre la mer.',

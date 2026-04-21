@@ -43,7 +43,7 @@ export const zh: typeof es = {
       movimientos: '💰 今日收支',
       ingresos_label: '📈 收入',
       gastos_label: '📉 支出',
-      regla10: '💡 10% 法则 — 建议储蓄',
+      regla10: '💡 10% 法则 · 建议储蓄',
       ahorro_si: '今天我存了 10%！',
       ahorro_no: '今天存了 10% 吗？',
       resultado_dia: '今日结果',
@@ -164,7 +164,7 @@ export const zh: typeof es = {
   metas: {
     loading: '请稍候...',
     titulo: '你知道自己要去哪里吗？',
-    intro_p1: '一艘没有目的地的船不是在航行——而是在漂流。它可以有最好的引擎、最好的船员、最好的风。没有目的地，大海把它带到任何地方。',
+    intro_p1: '一艘没有目的地的船不是在航行，而是在漂流。它可以有最好的引擎、最好的船员、最好的风。没有目的地，大海把它带到任何地方。',
     intro_p2: '成功不是偶然。它是',
     intro_p2_bold: '逐步实现你清晰选择的理想',
     intro_p2_end: '。一个你在起航前就规划好的目的地。',
