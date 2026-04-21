@@ -3,7 +3,7 @@ import './globals.css'
 import { LocaleProvider } from '@/lib/i18n/LocaleContext'
 
 export const metadata: Metadata = {
-  title: 'Amauta Libre — Hábitos, tareas y aprendizaje',
+  title: 'Amauta Libre · Hábitos, tareas y aprendizaje',
   description: 'Tu espacio personal para construir hábitos, organizar tus tareas y crecer. Gratis para todos.',
   icons: {
     icon: [

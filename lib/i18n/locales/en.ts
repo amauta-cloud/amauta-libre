@@ -43,7 +43,7 @@ export const en: typeof es = {
       movimientos: '💰 Daily transactions',
       ingresos_label: '📈 Income',
       gastos_label: '📉 Expenses',
-      regla10: '💡 10% Rule — suggested savings',
+      regla10: '💡 10% Rule · suggested savings',
       ahorro_si: "I saved 10% today!",
       ahorro_no: 'Did I save 10% today?',
       resultado_dia: "Day's result",
@@ -164,7 +164,7 @@ export const en: typeof es = {
   metas: {
     loading: 'One moment...',
     titulo: 'Do you know where you are going?',
-    intro_p1: "A ship without a destination doesn't sail — it drifts. It can have the best engine, the best crew, the best winds. Without a destination, the ocean takes it wherever it wants.",
+    intro_p1: "A ship without a destination doesn't sail, it drifts. It can have the best engine, the best crew, the best winds. Without a destination, the ocean takes it wherever it wants.",
     intro_p2: 'Success is not an accident. It is the',
     intro_p2_bold: 'progressive realization of an ideal you chose with clarity',
     intro_p2_end: '. A destination you charted before setting sail.',
