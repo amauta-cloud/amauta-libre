@@ -127,6 +127,8 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [nuevoUnidad, setNuevoUnidad] = useState('')
   const [nuevoMeta, setNuevoMeta] = useState('')
   const [habitoSaving, setHabitoSaving] = useState(false)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
 
   // Live stats
   const completados = localHabitos.filter(h => {
@@ -356,6 +358,22 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     if (!confirm(t('tablero.habitos.eliminar_confirm'))) return
     await supabase.from('habitos').update({ activo: false }).eq('id', id)
     setLocalHabitos(prev => prev.filter(h => h.id !== id))
+  }
+
+  function handleDragDrop(targetId: string) {
+    if (!draggingId || draggingId === targetId) return
+    const personal = localHabitos.filter(h => !h.obligatorio)
+    const fixed = localHabitos.filter(h => h.obligatorio)
+    const fromIdx = personal.findIndex(h => h.id === draggingId)
+    const toIdx = personal.findIndex(h => h.id === targetId)
+    const reordered = [...personal]
+    const [moved] = reordered.splice(fromIdx, 1)
+    reordered.splice(toIdx, 0, moved)
+    const updated = reordered.map((h, i) => ({ ...h, orden: i + 1 }))
+    setLocalHabitos([...fixed, ...updated])
+    setDraggingId(null)
+    setDragOverId(null)
+    Promise.all(updated.map((h, i) => supabase.from('habitos').update({ orden: i + 1 }).eq('id', h.id)))
   }
 
   // Month stats
@@ -800,7 +818,16 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.875rem' }}>
               {localHabitos.filter(h => !h.obligatorio).map(h => (
-                <div key={h.id}>
+                <div
+                  key={h.id}
+                  draggable={!editingHabito}
+                  onDragStart={() => setDraggingId(h.id)}
+                  onDragOver={e => { e.preventDefault(); setDragOverId(h.id) }}
+                  onDragLeave={() => setDragOverId(null)}
+                  onDrop={() => handleDragDrop(h.id)}
+                  onDragEnd={() => { setDraggingId(null); setDragOverId(null) }}
+                  style={{ opacity: draggingId === h.id ? 0.4 : 1, transition: 'opacity 0.15s' }}
+                >
                   {editingHabito?.id === h.id ? (
                     <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '12px', padding: '1rem' }}>
                       <div style={{ fontSize: '0.82rem', color: '#a78bfa', fontWeight: 700, marginBottom: '0.75rem' }}>{t('tablero.habitos.editar', { name: h.nombre })}</div>
@@ -820,7 +847,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       </div>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.7rem 0.875rem', borderRadius: '10px', background: 'rgba(255,255,255,0.04)' }}>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: '0.75rem',
+                      padding: '0.7rem 0.875rem', borderRadius: '10px',
+                      background: dragOverId === h.id ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.04)',
+                      border: dragOverId === h.id ? '1px dashed rgba(139,92,246,0.4)' : '1px solid transparent',
+                      cursor: 'grab', transition: 'background 0.1s, border 0.1s',
+                    }}>
+                      <span style={{ fontSize: '0.85rem', color: '#374151', cursor: 'grab', userSelect: 'none', flexShrink: 0 }}>⠿</span>
                       <span style={{ fontSize: '1.1rem' }}>{h.emoji}</span>
                       <span style={{ fontSize: '0.875rem', color: '#e5e7eb', flex: 1 }}>{h.nombre}</span>
                       {h.tipo === 'numero' && h.unidad && <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{h.unidad}</span>}
