@@ -129,6 +129,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [habitoSaving, setHabitoSaving] = useState(false)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
+  const [historialOpen, setHistorialOpen] = useState<string | null>(null)
 
   // Live stats
   const completados = localHabitos.filter(h => {
@@ -571,6 +572,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       title="Agregar nota"
                       style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: notaInputs[h.id] ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.04)', color: notaInputs[h.id] ? '#a78bfa' : '#4b5563', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       📝
+                    </button>
+                    <button onClick={() => setHistorialOpen(h.id)}
+                      title="Ver historial"
+                      style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.04)', color: '#4b5563', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      📊
                     </button>
                   </div>
                 </div>
@@ -1097,6 +1103,93 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           </div>
         </div>
       )}
+
+      {/* ── HISTORIAL MODAL ── */}
+      {historialOpen && (() => {
+        const h = localHabitos.find(x => x.id === historialOpen)
+        if (!h) return null
+        const days30: { fecha: string; done: boolean }[] = []
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date(today + 'T12:00:00')
+          d.setDate(d.getDate() - i)
+          const fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+          const reg = historial.find(r => r.habito_id === h.id && r.fecha === fecha)
+          const done = reg?.valor_bool === true || (reg?.valor_numero != null && reg.valor_numero > 0)
+          days30.push({ fecha, done })
+        }
+        const completados30 = days30.filter(d => d.done).length
+        const pct30 = Math.round((completados30 / 30) * 100)
+        const racha30 = rachaHabito(h.id)
+        return (
+          <div onClick={() => setHistorialOpen(null)} style={{
+            position: 'fixed', inset: 0, zIndex: 200,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          }}>
+            <div onClick={e => e.stopPropagation()} style={{
+              width: '100%', maxWidth: '500px',
+              background: '#1a1730',
+              border: '1px solid rgba(139,92,246,0.25)',
+              borderRadius: '20px 20px 0 0',
+              padding: '1.5rem',
+              display: 'flex', flexDirection: 'column', gap: '1.25rem',
+            }}>
+              <div style={{ width: '36px', height: '4px', borderRadius: '99px', background: 'rgba(255,255,255,0.15)', margin: '0 auto -0.5rem' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>{h.emoji}</span>
+                  <div>
+                    <div style={{ color: '#f3f0ff', fontWeight: 700, fontSize: '1rem' }}>{h.nombre}</div>
+                    <div style={{ color: '#6b7280', fontSize: '0.72rem' }}>Últimos 30 días</div>
+                  </div>
+                </div>
+                <button onClick={() => setHistorialOpen(null)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1 }}>✕</button>
+              </div>
+
+              {/* Stats row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.625rem' }}>
+                <div style={{ padding: '0.75rem', borderRadius: '10px', background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.15)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fb923c' }}>{racha30}</div>
+                  <div style={{ fontSize: '0.62rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Racha</div>
+                </div>
+                <div style={{ padding: '0.75rem', borderRadius: '10px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#a78bfa' }}>{completados30}</div>
+                  <div style={{ fontSize: '0.62rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Días</div>
+                </div>
+                <div style={{ padding: '0.75rem', borderRadius: '10px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#10b981' }}>{pct30}%</div>
+                  <div style={{ fontSize: '0.62rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cumplimiento</div>
+                </div>
+              </div>
+
+              {/* Calendar dots */}
+              <div>
+                <div style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.625rem' }}>Historial</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '0.3rem' }}>
+                  {days30.map(({ fecha, done }) => {
+                    const isToday = fecha === today
+                    return (
+                      <div key={fecha} title={fecha} style={{
+                        aspectRatio: '1',
+                        borderRadius: '4px',
+                        background: done ? '#8B5CF6' : 'rgba(255,255,255,0.05)',
+                        border: isToday ? '1px solid rgba(139,92,246,0.6)' : '1px solid transparent',
+                        position: 'relative',
+                      }} />
+                    )
+                  })}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#8B5CF6' }} />
+                  <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>Completado</span>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} />
+                  <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>Sin registro</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </>
   )
 }
