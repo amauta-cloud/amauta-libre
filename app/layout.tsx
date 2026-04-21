@@ -1,34 +1,57 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
-import { LocaleProvider } from '@/lib/i18n/LocaleContext'
+import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+})
 
 export const metadata: Metadata = {
-  title: 'Amauta Libre · Hábitos, tareas y aprendizaje',
-  description: 'Tu espacio personal para construir hábitos, organizar tus tareas y crecer. Gratis para todos.',
-  icons: {
-    icon: [
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon.ico' },
-    ],
-    apple: '/apple-touch-icon.png',
-    other: [
-      { rel: 'icon', url: '/icon-192.png', sizes: '192x192' },
-      { rel: 'icon', url: '/icon-512.png', sizes: '512x512' },
-    ],
+  title: 'Amauta Libre — Tus hábitos, tus tareas, tu crecimiento.',
+  description: 'App gratuita de hábitos, finanzas personales y metas. Sin plan pago. Sin tarjeta. Funciona desde el navegador de tu celular.',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'Amauta Libre',
+    statusBarStyle: 'black-translucent',
   },
   openGraph: {
     title: 'Amauta Libre',
     description: 'Tus hábitos, tus tareas, tu crecimiento. Gratis para siempre.',
-    images: [{ url: '/og-image.png', width: 512, height: 512 }],
+    url: 'https://libre.amauta.cloud',
+    siteName: 'Amauta Libre',
+    images: [{ url: 'https://libre.amauta.cloud/og-image.png', width: 1200, height: 630 }],
+    type: 'website',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Amauta Libre',
+    description: 'Tus hábitos, tus tareas, tu crecimiento. Gratis para siempre.',
+    images: ['https://libre.amauta.cloud/og-image.png'],
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#7c3aed',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <body style={{ minHeight: '100vh', background: '#0f0d1a', color: '#f9fafb' }}>
-        <LocaleProvider>{children}</LocaleProvider>
+    <html lang="es" className={inter.variable}>
+      <body style={{ fontFamily: 'var(--font-inter), Inter, sans-serif' }}>
+        {children}
+        <ServiceWorkerRegister />
       </body>
     </html>
   )
