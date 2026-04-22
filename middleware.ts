@@ -28,15 +28,25 @@ export async function middleware(request: NextRequest) {
   } catch {
     // treat as unauthenticated
   }
+
   const { pathname } = request.nextUrl
 
-  const isPublic = pathname === '/login' || pathname.startsWith('/auth')
+  const isPublic =
+    pathname === '/' ||
+    pathname === '/login' ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/privacidad') ||
+    pathname.startsWith('/terminos')
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
   if (user && pathname === '/login') {
+    return NextResponse.redirect(new URL('/tablero', request.url))
+  }
+
+  if (user && pathname === '/') {
     return NextResponse.redirect(new URL('/tablero', request.url))
   }
 
