@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useLocale } from '@/lib/i18n/LocaleContext'
 import OnboardingTutorial from '@/components/OnboardingTutorial'
+import PushNotificationSetup from '@/components/PushNotificationSetup'
 
 type Habito = {
   id: string
@@ -743,6 +744,8 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               {finanzasSaving ? t('common.saving') : finanzasSaved ? t('common.saved') : t('tablero.hoy.guardar_mov')}
             </button>
           </div>
+
+          <PushNotificationSetup />
         </div>
       )}
 

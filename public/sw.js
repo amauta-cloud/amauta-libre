@@ -26,7 +26,6 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
   const url = new URL(event.request.url)
-  // No cachear rutas de API ni autenticación
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) return
 
   event.respondWith(
@@ -39,5 +38,28 @@ self.addEventListener('fetch', (event) => {
         return response
       })
       .catch(() => caches.match(event.request))
+  )
+})
+
+self.addEventListener('push', (event) => {
+  const data = event.data?.json() ?? {}
+  const title = data.title ?? 'Amauta Libre'
+  const options = {
+    body: data.body ?? '¿Registraste tus hábitos hoy?',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-192x192.png',
+    data: { url: data.url ?? '/tablero' },
+  }
+  event.waitUntil(self.registration.showNotification(title, options))
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      const existing = clientList.find(c => c.url.includes('/tablero'))
+      if (existing) return existing.focus()
+      return clients.openWindow(event.notification.data?.url ?? '/tablero')
+    })
   )
 })
