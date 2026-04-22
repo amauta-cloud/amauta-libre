@@ -2,10 +2,20 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdmin } from '@supabase/supabase-js'
 import Link from 'next/link'
+import AdminPushButton from '@/components/AdminPushButton'
 
 export const dynamic = 'force-dynamic'
 
 const ADMIN_EMAIL = 'amauta.iiaa@gmail.com'
+
+const CATEGORIA_COLORS: Record<string, string> = {
+  Salud: '#10b981',
+  Mente: '#8b5cf6',
+  Dinero: '#f59e0b',
+  Aprender: '#3b82f6',
+  Social: '#f472b6',
+  General: '#6b7280',
+}
 
 function dateStr(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -15,11 +25,27 @@ function fmt(n: number) {
   return n.toLocaleString('es-AR')
 }
 
-function StatCard({ label, value, color, sub }: { label: string; value: string; color: string; sub: string }) {
+function tendencia(actual: number, anterior: number): { pct: number; up: boolean } | null {
+  if (anterior === 0) return null
+  const pct = Math.round(((actual - anterior) / anterior) * 100)
+  return { pct, up: pct >= 0 }
+}
+
+function StatCard({ label, value, color, sub, trend }: {
+  label: string; value: string; color: string; sub: string
+  trend?: { pct: number; up: boolean } | null
+}) {
   return (
     <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '14px', padding: '1.25rem' }}>
       <div style={{ fontSize: '0.62rem', color: '#6b7280', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '0.4rem' }}>{label}</div>
-      <div style={{ fontSize: '2rem', fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+        <div style={{ fontSize: '2rem', fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
+        {trend && (
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: trend.up ? '#10b981' : '#ef4444' }}>
+            {trend.up ? '▲' : '▼'} {Math.abs(trend.pct)}%
+          </span>
+        )}
+      </div>
       <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.3rem' }}>{sub}</div>
     </div>
   )
@@ -37,6 +63,7 @@ export default async function AdminPage() {
 
   const today = dateStr(new Date())
   const hace7 = dateStr(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+  const hace14 = dateStr(new Date(Date.now() - 14 * 24 * 60 * 60 * 1000))
   const hace30 = dateStr(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
   const hace90 = dateStr(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000))
 
@@ -48,7 +75,7 @@ export default async function AdminPage() {
     pushSubsRes,
     habitosRes,
     educacionRes,
-    ultimaActRes,
+    registros90Res,
     authUsersRes,
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email'),
@@ -56,9 +83,8 @@ export default async function AdminPage() {
     admin.from('habito_registros').select('usuario_id').gte('fecha', hace7),
     admin.from('habito_registros').select('usuario_id').gte('fecha', hace30),
     admin.from('push_subscriptions').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
-    admin.from('habitos').select('nombre, emoji').eq('activo', true),
+    admin.from('habitos').select('nombre, emoji, categoria').eq('activo', true),
     admin.from('educacion_estado').select('usuario_id, etapa_actual'),
-    // Última actividad extendida a 90 días para no mostrar "nunca" erróneo
     admin.from('habito_registros').select('usuario_id, fecha').gte('fecha', hace90),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
   ])
@@ -73,11 +99,18 @@ export default async function AdminPage() {
 
   const authUsers = authUsersRes.data?.users ?? []
   const hace7Date = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  const hace14Date = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
   const hace30Date = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-  const nuevos7 = authUsers.filter(u => new Date(u.created_at) > hace7Date).length
-  const nuevos30 = authUsers.filter(u => new Date(u.created_at) > hace30Date).length
 
-  // Top hábitos por cantidad de usuarios que lo tienen activo
+  const nuevos7 = authUsers.filter(u => new Date(u.created_at) > hace7Date).length
+  const nuevos7Ant = authUsers.filter(u => {
+    const d = new Date(u.created_at)
+    return d > hace14Date && d <= hace7Date
+  }).length
+  const nuevos30 = authUsers.filter(u => new Date(u.created_at) > hace30Date).length
+  const tendenciaNuevos = tendencia(nuevos7, nuevos7Ant)
+
+  // Top hábitos por cantidad de usuarios
   const habitoCount: Record<string, { emoji: string; count: number }> = {}
   for (const h of (habitosRes.data ?? [])) {
     if (!habitoCount[h.nombre]) habitoCount[h.nombre] = { emoji: h.emoji, count: 0 }
@@ -87,26 +120,53 @@ export default async function AdminPage() {
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 8)
 
+  // Distribución de categorías
+  const catCount: Record<string, number> = {}
+  for (const h of (habitosRes.data ?? [])) {
+    const cat = h.categoria ?? 'General'
+    catCount[cat] = (catCount[cat] ?? 0) + 1
+  }
+  const totalHabitos = Object.values(catCount).reduce((a, b) => a + b, 0)
+  const catOrdenadas = Object.entries(catCount)
+    .sort((a, b) => b[1] - a[1])
+
   // Education
   const completadosEdu = (educacionRes.data ?? []).filter(e => e.etapa_actual >= 11).length
   const pctEdu = totalUsuarios > 0 ? Math.round((completadosEdu / totalUsuarios) * 100) : 0
   const retencion7 = totalUsuarios > 0 ? Math.round((activos7 / totalUsuarios) * 100) : 0
+  const retencionColor = retencion7 >= 40 ? '#10b981' : retencion7 >= 20 ? '#f59e0b' : '#ef4444'
 
-  // Última actividad real por usuario (90 días de ventana)
+  // DAU chart: últimos 30 días
+  const registros90 = registros90Res.data ?? []
+  const dauPorFecha: Record<string, Set<string>> = {}
+  for (const r of registros90) {
+    if (r.fecha >= hace30) {
+      if (!dauPorFecha[r.fecha]) dauPorFecha[r.fecha] = new Set()
+      dauPorFecha[r.fecha].add(r.usuario_id)
+    }
+  }
+  const dauArray: { fecha: string; label: string; count: number }[] = []
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000)
+    const fecha = dateStr(d)
+    const label = i % 7 === 0 ? `${d.getDate()}/${d.getMonth() + 1}` : ''
+    dauArray.push({ fecha, label, count: dauPorFecha[fecha]?.size ?? 0 })
+  }
+  const maxDau = Math.max(...dauArray.map(d => d.count), 1)
+
+  // Última actividad por usuario (90 días)
   const ultimaActMap: Record<string, string> = {}
-  for (const r of (ultimaActRes.data ?? [])) {
+  for (const r of registros90) {
     if (!ultimaActMap[r.usuario_id] || r.fecha > ultimaActMap[r.usuario_id]) {
       ultimaActMap[r.usuario_id] = r.fecha
     }
   }
 
-  // Usuarios dormidos: activos alguna vez pero sin actividad en 30+ días
   const dormidos = usuarios.filter(u => {
     const ultima = ultimaActMap[u.id]
     return ultima && ultima < hace30
   }).length
 
-  // Tabla usuarios ordenada: activos primero, luego por última actividad
   const usuariosTabla = usuarios
     .map(u => ({
       ...u,
@@ -119,8 +179,6 @@ export default async function AdminPage() {
       if (!b.ultimaActividad) return -1
       return b.ultimaActividad.localeCompare(a.ultimaActividad)
     })
-
-  const retencionColor = retencion7 >= 40 ? '#10b981' : retencion7 >= 20 ? '#f59e0b' : '#ef4444'
 
   return (
     <div style={{ minHeight: '100vh', background: '#0f0d1a', padding: '2rem 1rem', fontFamily: 'Inter, sans-serif' }}>
@@ -135,53 +193,93 @@ export default async function AdminPage() {
             <h1 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>Panel de control</h1>
             <p style={{ color: '#4b5563', fontSize: '0.78rem', marginTop: '0.25rem' }}>{today}</p>
           </div>
-          <Link href="/tablero" style={{ fontSize: '0.78rem', color: '#6b7280', textDecoration: 'none', padding: '0.4rem 0.75rem', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', whiteSpace: 'nowrap', flexShrink: 0, marginTop: '0.25rem' }}>
-            ← App
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem', flexShrink: 0 }}>
+            <AdminPushButton totalSubs={pushSubs} />
+            <Link href="/tablero" style={{ fontSize: '0.78rem', color: '#6b7280', textDecoration: 'none', padding: '0.4rem 0.75rem', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', whiteSpace: 'nowrap' }}>
+              ← App
+            </Link>
+          </div>
         </div>
 
-        {/* Stats principales — 3 columnas en desktop, 2 en mobile */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        {/* Stats cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(155px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
           <StatCard label="Total usuarios" value={fmt(totalUsuarios)} color="#a78bfa" sub="registrados" />
           <StatCard label="Activos hoy" value={fmt(activosHoy)} color="#10b981" sub="registraron hábitos" />
           <StatCard label="Activos 7 días" value={fmt(activos7)} color="#34d399" sub={`${retencion7}% retención`} />
-          <StatCard label="Nuevos 7 días" value={fmt(nuevos7)} color="#60a5fa" sub={`${fmt(nuevos30)} en 30 días`} />
+          <StatCard label="Nuevos 7 días" value={fmt(nuevos7)} color="#60a5fa" sub={`${fmt(nuevos30)} en 30 días`} trend={tendenciaNuevos} />
           <StatCard label="Push subs" value={fmt(pushSubs)} color="#f59e0b" sub="notificaciones activas" />
         </div>
 
         {/* Alerta dormidos */}
         {dormidos > 0 && (
           <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px', padding: '0.875rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1rem' }}>⚠️</span>
+            <span style={{ fontSize: '1rem', flexShrink: 0 }}>⚠️</span>
             <div>
               <span style={{ color: '#fca5a5', fontSize: '0.82rem', fontWeight: 600 }}>{dormidos} usuario{dormidos > 1 ? 's' : ''} sin actividad en más de 30 días</span>
-              <span style={{ color: '#6b7280', fontSize: '0.75rem', marginLeft: '0.5rem' }}>— candidatos para campaña de reactivación</span>
+              <span style={{ color: '#6b7280', fontSize: '0.75rem', marginLeft: '0.5rem' }}>candidatos para campaña de reactivación</span>
             </div>
           </div>
         )}
 
-        {/* Top hábitos + Engagement */}
+        {/* DAU Chart — actividad diaria 30 días */}
+        <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
+            <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: 0 }}>Usuarios activos por día</h2>
+            <span style={{ color: '#4b5563', fontSize: '0.68rem' }}>últimos 30 días</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '80px' }}>
+            {dauArray.map((d, i) => {
+              const pct = maxDau > 0 ? (d.count / maxDau) * 100 : 0
+              const isToday = d.fecha === today
+              return (
+                <div key={d.fecha} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', height: '100%', justifyContent: 'flex-end' }}>
+                  <div
+                    title={`${d.fecha}: ${d.count} usuario${d.count !== 1 ? 's' : ''}`}
+                    style={{
+                      width: '100%',
+                      height: `${Math.max(pct, d.count > 0 ? 4 : 2)}%`,
+                      borderRadius: '3px 3px 0 0',
+                      background: isToday ? '#a78bfa' : d.count > 0 ? '#7c3aed' : 'rgba(255,255,255,0.04)',
+                      minHeight: '2px',
+                      transition: 'height 0.2s',
+                    }}
+                  />
+                </div>
+              )
+            })}
+          </div>
+          {/* Labels cada 7 días */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', marginTop: '4px' }}>
+            {dauArray.map((d, i) => (
+              <div key={d.fecha} style={{ flex: 1, textAlign: 'center', fontSize: '0.55rem', color: '#4b5563', overflow: 'hidden' }}>
+                {d.label}
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+            <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>Pico: {maxDau} usuario{maxDau !== 1 ? 's' : ''}</span>
+            <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>Promedio: {dauArray.length > 0 ? Math.round(dauArray.reduce((a, d) => a + d.count, 0) / dauArray.length) : 0} / día</span>
+          </div>
+        </div>
+
+        {/* Top hábitos + Categorías + Engagement */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
 
+          {/* Top hábitos */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem' }}>
             <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 1rem 0' }}>Hábitos más usados</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-              {topHabitos.length === 0 && (
-                <p style={{ color: '#4b5563', fontSize: '0.78rem', margin: 0 }}>Sin datos aún</p>
-              )}
+              {topHabitos.length === 0 && <p style={{ color: '#4b5563', fontSize: '0.78rem', margin: 0 }}>Sin datos aún</p>}
               {topHabitos.map(([nombre, { emoji, count }]) => (
                 <div key={nombre} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span style={{ fontSize: '1rem', width: '1.5rem', flexShrink: 0 }}>{emoji}</span>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
                       <span style={{ fontSize: '0.77rem', color: '#d1d5db' }}>{nombre}</span>
-                      <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>{count} {count === 1 ? 'usuario' : 'usuarios'}</span>
+                      <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>{count}</span>
                     </div>
                     <div style={{ height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.06)' }}>
-                      <div style={{
-                        height: '100%', borderRadius: '99px', background: '#7c3aed',
-                        width: `${Math.round((count / (topHabitos[0]?.[1]?.count ?? 1)) * 100)}%`,
-                      }} />
+                      <div style={{ height: '100%', borderRadius: '99px', background: '#7c3aed', width: `${Math.round((count / (topHabitos[0]?.[1]?.count ?? 1)) * 100)}%` }} />
                     </div>
                   </div>
                 </div>
@@ -189,26 +287,51 @@ export default async function AdminPage() {
             </div>
           </div>
 
+          {/* Categorías */}
+          <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem' }}>
+            <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 1rem 0' }}>Hábitos por categoría</h2>
+            {catOrdenadas.length === 0 ? (
+              <p style={{ color: '#4b5563', fontSize: '0.78rem', margin: 0 }}>Sin datos aún</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                {catOrdenadas.map(([cat, count]) => {
+                  const pct = totalHabitos > 0 ? Math.round((count / totalHabitos) * 100) : 0
+                  const color = CATEGORIA_COLORS[cat] ?? '#6b7280'
+                  return (
+                    <div key={cat}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                        <span style={{ fontSize: '0.77rem', color: '#d1d5db', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />
+                          {cat}
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>{count} ({pct}%)</span>
+                      </div>
+                      <div style={{ height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.06)' }}>
+                        <div style={{ height: '100%', borderRadius: '99px', background: color, width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  )
+                })}
+                <p style={{ fontSize: '0.65rem', color: '#4b5563', margin: '0.25rem 0 0 0' }}>{fmt(totalHabitos)} hábitos activos en total</p>
+              </div>
+            )}
+          </div>
+
+          {/* Engagement cards */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', flex: 1 }}>
               <div style={{ fontSize: '0.62rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Retención 7 días</div>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: retencionColor, lineHeight: 1 }}>
-                {totalUsuarios > 0 ? `${retencion7}%` : '—'}
-              </div>
-              <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.3rem' }}>{activos7} activos / {totalUsuarios} total</div>
-              <div style={{ height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.06)', marginTop: '0.75rem' }}>
-                <div style={{ height: '100%', borderRadius: '99px', background: retencionColor, width: `${Math.min(100, retencion7)}%`, transition: 'width 0.3s' }} />
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: retencionColor, lineHeight: 1 }}>{totalUsuarios > 0 ? `${retencion7}%` : '—'}</div>
+              <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.3rem' }}>{activos7} de {totalUsuarios} usuarios</div>
+              <div style={{ height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.06)', marginTop: '0.6rem' }}>
+                <div style={{ height: '100%', borderRadius: '99px', background: retencionColor, width: `${Math.min(100, retencion7)}%` }} />
               </div>
             </div>
-
             <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', flex: 1 }}>
               <div style={{ fontSize: '0.62rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Activos 30 días</div>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#a78bfa', lineHeight: 1 }}>
-                {totalUsuarios > 0 ? `${Math.round((activos30 / totalUsuarios) * 100)}%` : '—'}
-              </div>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#a78bfa', lineHeight: 1 }}>{totalUsuarios > 0 ? `${Math.round((activos30 / totalUsuarios) * 100)}%` : '—'}</div>
               <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.3rem' }}>{activos30} de {totalUsuarios} usuarios</div>
             </div>
-
             <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', flex: 1 }}>
               <div style={{ fontSize: '0.62rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Educación completada</div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: '#F5C518', lineHeight: 1 }}>{pctEdu}%</div>
@@ -226,12 +349,7 @@ export default async function AdminPage() {
             <thead>
               <tr>
                 {['Nombre', 'Email', 'Registrado', 'Último hábito'].map(h => (
-                  <th key={h} style={{
-                    textAlign: 'left', color: '#6b7280', fontWeight: 600,
-                    padding: '0.35rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)',
-                    fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.06em',
-                    whiteSpace: 'nowrap',
-                  }}>{h}</th>
+                  <th key={h} style={{ textAlign: 'left', color: '#6b7280', fontWeight: 600, padding: '0.35rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -242,34 +360,24 @@ export default async function AdminPage() {
                 const registrado = u.authUser?.created_at
                   ? new Date(u.authUser.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: '2-digit' })
                   : '—'
-
                 let actividadColor = '#374151'
                 let actividadLabel = u.ultimaActividad ?? 'nunca'
                 if (activo7d) { actividadColor = '#10b981'; actividadLabel += ' ✓' }
                 else if (activo30d) { actividadColor = '#9ca3af' }
                 else if (u.ultimaActividad) { actividadColor = '#6b7280' }
-
                 return (
                   <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '0.6rem 0.75rem', color: '#e5e7eb', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                      {u.nombre || <span style={{ color: '#374151' }}>—</span>}
-                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem', color: '#e5e7eb', fontWeight: 500, whiteSpace: 'nowrap' }}>{u.nombre || <span style={{ color: '#374151' }}>—</span>}</td>
                     <td style={{ padding: '0.6rem 0.75rem', color: '#9ca3af' }}>{u.email}</td>
                     <td style={{ padding: '0.6rem 0.75rem', color: '#6b7280', whiteSpace: 'nowrap' }}>{registrado}</td>
                     <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
-                      <span style={{ color: actividadColor, fontWeight: activo7d ? 600 : 400 }}>
-                        {actividadLabel}
-                      </span>
+                      <span style={{ color: actividadColor, fontWeight: activo7d ? 600 : 400 }}>{actividadLabel}</span>
                     </td>
                   </tr>
                 )
               })}
               {usuariosTabla.length === 0 && (
-                <tr>
-                  <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#4b5563', fontSize: '0.8rem' }}>
-                    Sin usuarios registrados
-                  </td>
-                </tr>
+                <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#4b5563', fontSize: '0.8rem' }}>Sin usuarios registrados</td></tr>
               )}
             </tbody>
           </table>
