@@ -50,6 +50,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/tablero', request.url))
   }
 
+  if (pathname.startsWith('/admin') && user?.email !== 'amauta.iiaa@gmail.com') {
+    return NextResponse.redirect(new URL('/tablero', request.url))
+  }
+
   return supabaseResponse
 }
 
