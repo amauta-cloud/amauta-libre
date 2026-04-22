@@ -1,4 +1,4 @@
 @import "tailwindcss";
 
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; padding: 0; }
+body { margin: 0; padding: 0; background: #0f0d1a; color: #fff; }
