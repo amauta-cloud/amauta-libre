@@ -18,6 +18,7 @@ interface Tarea {
   texto: string
   estado: 'pendiente' | 'en_progreso' | 'completada'
   fecha_limite: string | null
+  hora_limite: string | null
   creado_en: string
 }
 
@@ -78,6 +79,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
   const [tareasLoading, setTareasLoading] = useState(true)
   const [tareaTexto, setTareaTexto] = useState('')
   const [tareaFecha, setTareaFecha] = useState('')
+  const [tareaHora, setTareaHora] = useState('')
   const [tareaAdding, setTareaAdding] = useState(false)
   const [showCompleted, setShowCompleted] = useState(false)
 
@@ -152,8 +154,8 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
   async function addTarea() {
     if (!tareaTexto.trim()) return
     setTareaAdding(true)
-    await supabase.from('tareas').insert({ usuario_id: userId, texto: tareaTexto.trim(), estado: 'pendiente', fecha_limite: tareaFecha || null })
-    setTareaTexto(''); setTareaFecha(''); setTareaAdding(false)
+    await supabase.from('tareas').insert({ usuario_id: userId, texto: tareaTexto.trim(), estado: 'pendiente', fecha_limite: tareaFecha || null, hora_limite: tareaHora || null })
+    setTareaTexto(''); setTareaFecha(''); setTareaHora(''); setTareaAdding(false)
     loadTareas()
   }
 
@@ -327,9 +329,11 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
               placeholder={t('planificacion.tarea_placeholder')}
               style={{ width: '100%', background: 'transparent', border: 'none', color: '#fff', fontSize: '0.9rem', outline: 'none', marginBottom: '0.75rem' }}
             />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <input type="date" value={tareaFecha} min={today} onChange={e => setTareaFecha(e.target.value)}
                 style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: '#9ca3af', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark' }} />
+              <input type="time" step="1" value={tareaHora} onChange={e => setTareaHora(e.target.value)} disabled={!tareaFecha}
+                style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: tareaFecha ? '#9ca3af' : '#4b5563', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark', cursor: tareaFecha ? 'auto' : 'not-allowed' }} />
               <button onClick={addTarea} disabled={!tareaTexto.trim() || tareaAdding}
                 style={{ marginLeft: 'auto', padding: '0.45rem 1.1rem', borderRadius: '8px', background: tareaTexto.trim() ? '#8B5CF6' : 'rgba(139,92,246,0.2)', border: 'none', color: '#fff', fontSize: '0.82rem', fontWeight: 600, cursor: tareaTexto.trim() ? 'pointer' : 'default' }}>
                 {tareaAdding ? t('planificacion.guardando') : t('planificacion.tarea_agregar')}
@@ -477,7 +481,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
 
 function TareaSection({ label, color, items, today, onToggle, onDelete, t }: {
   label: string; color: string; items: Tarea[]; today: string
-  onToggle: (t: Tarea) => void; onDelete: (id: string) => void
+  onToggle: (tarea: Tarea) => void; onDelete: (id: string) => void
   t: (key: string, vars?: Record<string, string | number>) => string
 }) {
   return (
@@ -505,6 +509,7 @@ function TareaSection({ label, color, items, today, onToggle, onDelete, t }: {
                 {tarea.fecha_limite && (
                   <span style={{ marginTop: '0.3rem', display: 'inline-block', fontSize: '0.7rem', fontWeight: 600, color: vencida ? '#ef4444' : tarea.fecha_limite === today ? '#f59e0b' : '#6b7280' }}>
                     {diasRestantes(tarea.fecha_limite, today, t)}
+                    {tarea.hora_limite && <> · ⏰ {tarea.hora_limite}</>}
                   </span>
                 )}
               </div>
