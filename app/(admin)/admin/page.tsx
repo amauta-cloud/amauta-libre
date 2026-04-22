@@ -77,16 +77,18 @@ export default async function AdminPage() {
     educacionRes,
     registros90Res,
     authUsersRes,
+    registrosHoyRes,
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email'),
     admin.from('habito_registros').select('usuario_id').eq('fecha', today),
     admin.from('habito_registros').select('usuario_id').gte('fecha', hace7),
     admin.from('habito_registros').select('usuario_id').gte('fecha', hace30),
     admin.from('push_subscriptions').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
-    admin.from('habitos').select('nombre, emoji, categoria').eq('activo', true),
+    admin.from('habitos').select('id, nombre, emoji, categoria').eq('activo', true),
     admin.from('educacion_estado').select('usuario_id, etapa_actual'),
     admin.from('habito_registros').select('usuario_id, fecha').gte('fecha', hace90),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+    admin.from('habito_registros').select('usuario_id, habito_id').eq('fecha', today).eq('completado', true).limit(500),
   ])
 
   const usuarios = usuariosRes.data ?? []
@@ -166,6 +168,41 @@ export default async function AdminPage() {
     const ultima = ultimaActMap[u.id]
     return ultima && ultima < hace30
   }).length
+
+  // Habitos map id → { nombre, emoji }
+  type HabitoRow = { id: string; nombre: string; emoji: string; categoria: string }
+  const habitosMap: Record<string, { nombre: string; emoji: string }> = {}
+  for (const h of (habitosRes.data ?? []) as HabitoRow[]) {
+    habitosMap[h.id] = { nombre: h.nombre, emoji: h.emoji }
+  }
+
+  // Registros completados hoy por usuario
+  type RegRow = { usuario_id: string; habito_id: string }
+  const registrosHoy = ((registrosHoyRes as any).data ?? []) as RegRow[]
+  const hoyPorUsuario: Record<string, RegRow[]> = {}
+  for (const r of registrosHoy) {
+    if (!hoyPorUsuario[r.usuario_id]) hoyPorUsuario[r.usuario_id] = []
+    hoyPorUsuario[r.usuario_id].push(r)
+  }
+
+  // Rachas activas: días consecutivos desde hoy usando registros90
+  const userDateSets: Record<string, Set<string>> = {}
+  for (const r of registros90) {
+    if (!userDateSets[r.usuario_id]) userDateSets[r.usuario_id] = new Set()
+    userDateSets[r.usuario_id].add(r.fecha)
+  }
+  const rachasData = usuarios.map(u => {
+    const fechas = userDateSets[u.id] ?? new Set<string>()
+    let streak = 0
+    const d = new Date()
+    while (true) {
+      const f = dateStr(d)
+      if (!fechas.has(f)) break
+      streak++
+      d.setDate(d.getDate() - 1)
+    }
+    return { id: u.id, nombre: u.nombre, email: u.email, streak }
+  }).filter(u => u.streak > 0).sort((a, b) => b.streak - a.streak).slice(0, 8)
 
   const usuariosTabla = usuarios
     .map(u => ({
@@ -260,6 +297,83 @@ export default async function AdminPage() {
             <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>Pico: {maxDau} usuario{maxDau !== 1 ? 's' : ''}</span>
             <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>Promedio: {dauArray.length > 0 ? Math.round(dauArray.reduce((a, d) => a + d.count, 0) / dauArray.length) : 0} / día</span>
           </div>
+        </div>
+
+        {/* Tablero hoy + Rachas activas */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+
+          {/* Tablero hoy */}
+          <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.875rem' }}>
+              <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: 0 }}>Tablero hoy</h2>
+              <span style={{ color: '#4b5563', fontSize: '0.68rem' }}>{activosHoy}/{totalUsuarios} activos</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '0.4rem' }}>
+              {usuarios.map(u => {
+                const regs = hoyPorUsuario[u.id]
+                const activo = !!regs && regs.length > 0
+                const emojis = regs?.slice(0, 4).map(r => habitosMap[r.habito_id]?.emoji ?? '').filter(Boolean).join('') ?? ''
+                return (
+                  <div
+                    key={u.id}
+                    title={`${u.nombre || u.email}: ${regs?.length ?? 0} hábitos hoy`}
+                    style={{
+                      padding: '0.3rem 0.55rem',
+                      borderRadius: '8px',
+                      background: activo ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${activo ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)'}`,
+                      display: 'flex', alignItems: 'center', gap: '0.35rem',
+                    }}
+                  >
+                    <span style={{ fontSize: '0.6rem', color: activo ? '#10b981' : '#374151', flexShrink: 0 }}>
+                      {activo ? '✓' : '·'}
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: activo ? '#d1d5db' : '#4b5563', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+                      {u.nombre?.split(' ')[0] || (u.email as string)?.split('@')[0] || '—'}
+                    </span>
+                    {activo && emojis && (
+                      <span style={{ fontSize: '0.65rem', flexShrink: 0 }}>{emojis}</span>
+                    )}
+                  </div>
+                )
+              })}
+              {usuarios.length === 0 && (
+                <p style={{ color: '#4b5563', fontSize: '0.78rem', margin: 0 }}>Sin usuarios</p>
+              )}
+            </div>
+          </div>
+
+          {/* Rachas activas */}
+          <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem' }}>
+            <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 0.875rem 0' }}>Rachas activas</h2>
+            {rachasData.length === 0 ? (
+              <p style={{ color: '#4b5563', fontSize: '0.78rem', margin: 0 }}>Sin rachas activas hoy</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                {rachasData.map((u, i) => {
+                  const pct = Math.round((u.streak / (rachasData[0]?.streak ?? 1)) * 100)
+                  const color = u.streak >= 30 ? '#f59e0b' : u.streak >= 7 ? '#a78bfa' : '#6b7280'
+                  return (
+                    <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      <span style={{ fontSize: '0.6rem', color: '#374151', width: '0.875rem', textAlign: 'right', flexShrink: 0 }}>{i + 1}</span>
+                      <span style={{ fontSize: '0.75rem', color: '#d1d5db', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+                        {u.nombre?.split(' ')[0] || (u.email as string | null)?.split('@')[0] || '—'}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                        <div style={{ width: '60px', height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.06)' }}>
+                          <div style={{ height: '100%', borderRadius: '99px', background: color, width: `${pct}%` }} />
+                        </div>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color, width: '2.5rem', textAlign: 'right' }}>
+                          {u.streak >= 7 ? '🔥' : '⚡'} {u.streak}d
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* Top hábitos + Categorías + Engagement */}
