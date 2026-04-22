@@ -185,13 +185,14 @@ export default async function AdminPage() {
     hoyPorUsuario[r.usuario_id].push(r)
   }
 
-  // Rachas activas: días consecutivos desde hoy usando registros90
+  // Rachas para todos los usuarios
   const userDateSets: Record<string, Set<string>> = {}
   for (const r of registros90) {
     if (!userDateSets[r.usuario_id]) userDateSets[r.usuario_id] = new Set()
     userDateSets[r.usuario_id].add(r.fecha)
   }
-  const rachasData = usuarios.map(u => {
+  const streakMap: Record<string, number> = {}
+  for (const u of usuarios) {
     const fechas = userDateSets[u.id] ?? new Set<string>()
     let streak = 0
     const d = new Date()
@@ -201,14 +202,28 @@ export default async function AdminPage() {
       streak++
       d.setDate(d.getDate() - 1)
     }
-    return { id: u.id, nombre: u.nombre, email: u.email, streak }
-  }).filter(u => u.streak > 0).sort((a, b) => b.streak - a.streak).slice(0, 8)
+    streakMap[u.id] = streak
+  }
+  const rachasData = usuarios
+    .filter(u => streakMap[u.id] > 0)
+    .sort((a, b) => (streakMap[b.id] ?? 0) - (streakMap[a.id] ?? 0))
+    .slice(0, 8)
+    .map(u => ({ ...u, streak: streakMap[u.id] }))
+
+  // Educación por usuario
+  const eduMap: Record<string, number> = {}
+  for (const e of (educacionRes.data ?? [])) {
+    eduMap[e.usuario_id] = e.etapa_actual
+  }
 
   const usuariosTabla = usuarios
     .map(u => ({
       ...u,
       ultimaActividad: ultimaActMap[u.id] ?? null,
       authUser: authUsers.find(a => a.id === u.id),
+      streak: streakMap[u.id] ?? 0,
+      habitosHoy: hoyPorUsuario[u.id]?.length ?? 0,
+      educacionEtapa: eduMap[u.id] ?? 0,
     }))
     .sort((a, b) => {
       if (!a.ultimaActividad && !b.ultimaActividad) return 0
@@ -462,7 +477,7 @@ export default async function AdminPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
             <thead>
               <tr>
-                {['Nombre', 'Email', 'Registrado', 'Último hábito'].map(h => (
+                {['Usuario', 'Registrado', 'Racha', 'Hoy', 'Edu', 'Última actividad', ''].map(h => (
                   <th key={h} style={{ textAlign: 'left', color: '#6b7280', fontWeight: 600, padding: '0.35rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -476,22 +491,46 @@ export default async function AdminPage() {
                   : '—'
                 let actividadColor = '#374151'
                 let actividadLabel = u.ultimaActividad ?? 'nunca'
-                if (activo7d) { actividadColor = '#10b981'; actividadLabel += ' ✓' }
+                if (activo7d) { actividadColor = '#10b981' }
                 else if (activo30d) { actividadColor = '#9ca3af' }
                 else if (u.ultimaActividad) { actividadColor = '#6b7280' }
+                const streakColor = u.streak >= 30 ? '#f59e0b' : u.streak >= 7 ? '#a78bfa' : u.streak > 0 ? '#6b7280' : '#374151'
+                const eduColor = u.educacionEtapa >= 11 ? '#10b981' : u.educacionEtapa >= 5 ? '#a78bfa' : u.educacionEtapa > 0 ? '#6b7280' : '#374151'
                 return (
                   <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '0.6rem 0.75rem', color: '#e5e7eb', fontWeight: 500, whiteSpace: 'nowrap' }}>{u.nombre || <span style={{ color: '#374151' }}>—</span>}</td>
-                    <td style={{ padding: '0.6rem 0.75rem', color: '#9ca3af' }}>{u.email}</td>
-                    <td style={{ padding: '0.6rem 0.75rem', color: '#6b7280', whiteSpace: 'nowrap' }}>{registrado}</td>
                     <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
-                      <span style={{ color: actividadColor, fontWeight: activo7d ? 600 : 400 }}>{actividadLabel}</span>
+                      <div style={{ color: '#e5e7eb', fontWeight: 500 }}>{u.nombre || '—'}</div>
+                      <div style={{ color: '#4b5563', fontSize: '0.65rem' }}>{u.email}</div>
+                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem', color: '#6b7280', whiteSpace: 'nowrap', fontSize: '0.72rem' }}>{registrado}</td>
+                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: streakColor, fontWeight: 600, fontSize: '0.78rem' }}>
+                        {u.streak > 0 ? `${u.streak >= 7 ? '🔥' : '⚡'}${u.streak}d` : '—'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: u.habitosHoy > 0 ? '#10b981' : '#374151', fontWeight: u.habitosHoy > 0 ? 600 : 400, fontSize: '0.78rem' }}>
+                        {u.habitosHoy > 0 ? `✓ ${u.habitosHoy}` : '—'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: eduColor, fontSize: '0.78rem', fontWeight: 600 }}>
+                        {u.educacionEtapa}/11
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: actividadColor, fontSize: '0.72rem' }}>{actividadLabel}</span>
+                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <Link href={`/admin/usuario/${u.id}`} style={{ fontSize: '0.72rem', color: '#7c3aed', textDecoration: 'none', padding: '0.25rem 0.5rem', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '6px', whiteSpace: 'nowrap' }}>
+                        Ver →
+                      </Link>
                     </td>
                   </tr>
                 )
               })}
               {usuariosTabla.length === 0 && (
-                <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#4b5563', fontSize: '0.8rem' }}>Sin usuarios registrados</td></tr>
+                <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: '#4b5563', fontSize: '0.8rem' }}>Sin usuarios registrados</td></tr>
               )}
             </tbody>
           </table>
