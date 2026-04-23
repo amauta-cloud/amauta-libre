@@ -17,7 +17,7 @@ export const es = {
   nav: {
     tablero: 'Tablero',
     planificacion: 'Planificación',
-    educacion: 'Educación',
+    educacion: 'Aprendizaje',
     salir: 'Salir',
     language: 'Idioma',
     config: 'Configuración',
@@ -190,7 +190,7 @@ export const es = {
     guardado_toast: 'Metas guardadas. Vamos.',
   },
   educacion: {
-    titulo: '📚 Educación',
+    titulo: '📚 Aprendizaje',
     hola: 'Hola, {name}. Arrancamos.',
     paso_progreso: 'Paso {paso} de {total} · {name}',
     back_portal: '← Portal',
@@ -302,8 +302,8 @@ export const es = {
     step1_desc: 'Acá marcás lo que cumpliste, anotás ingresos y gastos, y ves cómo cerró el día. Hacelo a tu manera.',
     step2_title: 'Los hábitos son tuyos',
     step2_desc: 'Hay plantillas listas para arrancar. Pero podés sumar los que vos querés trabajar. El sistema se adapta a vos.',
-    step3_title: 'Planificación y Educación',
-    step3_desc: 'Tus tareas e ideas van a Planificación. Los libros y audios del camino, a Educación. El ritmo lo ponés vos.',
+    step3_title: 'Planificación y Aprendizaje',
+    step3_desc: 'Tus tareas e ideas van a Planificación. Los libros y audios del camino, a Aprendizaje. El ritmo lo ponés vos.',
     step4_title: 'Tu meta, siempre a la vista',
     step4_desc: 'Lo que escribiste aparece acá todos los días. Los días difíciles existen. Esto está para recordarte por qué arrancaste.',
   },
