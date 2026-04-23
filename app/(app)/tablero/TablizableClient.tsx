@@ -143,8 +143,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [editingDay, setEditingDay] = useState<string | null>(null)
   const [editDayRegMap, setEditDayRegMap] = useState<Record<string, Registro>>({})
   const [editDayFin, setEditDayFin] = useState<Finanzas>({ ingresos: 0, gastos: 0, ahorro: false })
-  const [editIngresosInput, setEditIngresosInput] = useState('')
-  const [editGastosInput, setEditGastosInput] = useState('')
+  const [editDayItems, setEditDayItems] = useState<FinanzaItem[]>([])
+  const [editItemTipo, setEditItemTipo] = useState<'ingreso' | 'gasto'>('ingreso')
+  const [editItemMonto, setEditItemMonto] = useState('')
+  const [editItemDesc, setEditItemDesc] = useState('')
+  const [editItemAdding, setEditItemAdding] = useState(false)
   const [editSaving, setEditSaving] = useState(false)
   const [editSaved, setEditSaved] = useState(false)
 
@@ -351,19 +354,66 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   async function openEditDay(dateStr: string) {
     if (dateStr > today) return
-    const [{ data: regs }, { data: fin }] = await Promise.all([
+    const [{ data: regs }, { data: fin }, { data: items }] = await Promise.all([
       supabase.from('habito_registros').select('habito_id,valor_bool,valor_numero').eq('usuario_id', userId).eq('fecha', dateStr),
       supabase.from('finanzas_diarias').select('ingresos,gastos,ahorro').eq('usuario_id', userId).eq('fecha', dateStr).maybeSingle(),
+      supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', dateStr).order('creado_en'),
     ])
     const rm: Record<string, Registro> = {}
     for (const r of (regs || [])) rm[r.habito_id] = { ...r, nota: null }
     setEditDayRegMap(rm)
-    const f = fin || { ingresos: 0, gastos: 0, ahorro: false }
-    setEditDayFin(f)
-    setEditIngresosInput(f.ingresos > 0 ? String(f.ingresos) : '')
-    setEditGastosInput(f.gastos > 0 ? String(f.gastos) : '')
+    const loadedItems = (items || []) as FinanzaItem[]
+    setEditDayItems(loadedItems)
+    const ingresos = loadedItems.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
+    const gastos = loadedItems.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
+    setEditDayFin({ ingresos, gastos, ahorro: fin?.ahorro || false })
+    setEditItemTipo('ingreso'); setEditItemMonto(''); setEditItemDesc('')
     setEditingDay(dateStr)
     setEditSaved(false)
+  }
+
+  async function syncEditDayFinanzas(items: FinanzaItem[], ahorro?: boolean) {
+    if (!editingDay) return
+    const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
+    const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
+    const ahorroVal = ahorro !== undefined ? ahorro : editDayFin.ahorro
+    setEditDayFin({ ingresos, gastos, ahorro: ahorroVal })
+    await supabase.from('finanzas_diarias').upsert({
+      usuario_id: userId, fecha: editingDay, ingresos, gastos, ahorro: ahorroVal,
+    }, { onConflict: 'usuario_id,fecha' })
+  }
+
+  async function addEditDayItem() {
+    if (!editingDay) return
+    const monto = parseFloat(editItemMonto) || 0
+    setEditItemAdding(true)
+    const { data } = await supabase.from('finanzas_items').insert({
+      usuario_id: userId, fecha: editingDay, tipo: editItemTipo, monto, descripcion: editItemDesc.trim() || null,
+    }).select().single()
+    if (data) {
+      const newItems = [...editDayItems, data as FinanzaItem]
+      setEditDayItems(newItems)
+      await syncEditDayFinanzas(newItems)
+    }
+    setEditItemMonto(''); setEditItemDesc(''); setEditItemAdding(false)
+  }
+
+  async function deleteEditDayItem(id: string) {
+    await supabase.from('finanzas_items').delete().eq('id', id)
+    const newItems = editDayItems.filter(i => i.id !== id)
+    setEditDayItems(newItems)
+    await syncEditDayFinanzas(newItems)
+  }
+
+  async function toggleEditAhorro() {
+    const newAhorro = !editDayFin.ahorro
+    setEditDayFin(prev => ({ ...prev, ahorro: newAhorro }))
+    if (editingDay) {
+      await supabase.from('finanzas_diarias').upsert({
+        usuario_id: userId, fecha: editingDay,
+        ingresos: editDayFin.ingresos, gastos: editDayFin.gastos, ahorro: newAhorro,
+      }, { onConflict: 'usuario_id,fecha' })
+    }
   }
 
   async function saveEditDay() {
@@ -377,15 +427,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
         valor_numero: h.tipo === 'numero' ? (r?.valor_numero ?? 0) : null,
       }
     })
-    await Promise.all([
-      supabase.from('habito_registros').upsert(upserts, { onConflict: 'habito_id,fecha' }),
-      supabase.from('finanzas_diarias').upsert({
-        usuario_id: userId, fecha: editingDay,
-        ingresos: parseFloat(editIngresosInput) || 0,
-        gastos: parseFloat(editGastosInput) || 0,
-        ahorro: editDayFin.ahorro,
-      }, { onConflict: 'usuario_id,fecha' }),
-    ])
+    await supabase.from('habito_registros').upsert(upserts, { onConflict: 'habito_id,fecha' })
     setEditSaving(false)
     setEditSaved(true)
     setTimeout(() => { setEditingDay(null); loadMonthData() }, 1200)
@@ -1288,26 +1330,70 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
             <div style={{ marginBottom: '1rem' }}>
               <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.625rem' }}>{t('tablero.edit_day.movimientos')}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: parseFloat(editIngresosInput) > 0 ? '0.75rem' : 0 }}>
-                <div>
-                  <label style={{ fontSize: '0.72rem', color: '#10b981', display: 'block', marginBottom: '0.3rem' }}>{t('tablero.edit_day.ingresos_label')}</label>
-                  <input type="number" value={editIngresosInput} onChange={e => setEditIngresosInput(e.target.value)} placeholder="0"
-                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#10b981', fontSize: '0.9rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.72rem', color: '#ef4444', display: 'block', marginBottom: '0.3rem' }}>{t('tablero.edit_day.gastos_label')}</label>
-                  <input type="number" value={editGastosInput} onChange={e => setEditGastosInput(e.target.value)} placeholder="0"
-                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', fontSize: '0.9rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
-                </div>
+
+              {/* Form agregar item */}
+              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: '0.625rem', flexWrap: 'wrap' }}>
+                <button onClick={() => setEditItemTipo(v => v === 'ingreso' ? 'gasto' : 'ingreso')} style={{
+                  padding: '0.45rem 0.7rem', borderRadius: '7px', border: 'none', cursor: 'pointer',
+                  background: editItemTipo === 'ingreso' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                  color: editItemTipo === 'ingreso' ? '#10b981' : '#ef4444',
+                  fontSize: '0.75rem', fontWeight: 700, flexShrink: 0,
+                }}>
+                  {editItemTipo === 'ingreso' ? '+ Ingreso' : '- Gasto'}
+                </button>
+                <input
+                  type="number" value={editItemMonto} onChange={e => setEditItemMonto(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addEditDayItem()}
+                  placeholder="Monto"
+                  style={{ width: '80px', padding: '0.45rem 0.5rem', borderRadius: '7px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${editItemTipo === 'ingreso' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, color: '#f3f0ff', fontSize: '0.85rem', fontWeight: 700, outline: 'none', flexShrink: 0 }}
+                />
+                <input
+                  value={editItemDesc} onChange={e => setEditItemDesc(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addEditDayItem()}
+                  placeholder="Detalle (opcional)"
+                  style={{ flex: 1, minWidth: '70px', padding: '0.45rem 0.5rem', borderRadius: '7px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af', fontSize: '0.78rem', outline: 'none' }}
+                />
+                <button onClick={addEditDayItem} disabled={editItemAdding} style={{
+                  padding: '0.45rem 0.75rem', borderRadius: '7px', border: 'none', cursor: 'pointer',
+                  background: 'rgba(139,92,246,0.2)', color: '#a78bfa', fontSize: '0.78rem', fontWeight: 700, flexShrink: 0,
+                }}>
+                  {editItemAdding ? '...' : 'Agregar'}
+                </button>
               </div>
-              {parseFloat(editIngresosInput) > 0 && (
-                <button onClick={() => setEditDayFin(prev => ({ ...prev, ahorro: !prev.ahorro }))}
+
+              {/* Lista de items */}
+              {editDayItems.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginBottom: '0.625rem' }}>
+                  {editDayItems.map(item => (
+                    <div key={item.id} style={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.45rem 0.7rem', borderRadius: '7px',
+                      background: item.tipo === 'ingreso' ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)',
+                      border: `1px solid ${item.tipo === 'ingreso' ? 'rgba(16,185,129,0.18)' : 'rgba(239,68,68,0.18)'}`,
+                    }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 800, color: item.tipo === 'ingreso' ? '#10b981' : '#ef4444', flexShrink: 0 }}>
+                        {item.tipo === 'ingreso' ? '+' : '-'}{fmt(item.monto)}
+                      </span>
+                      {item.descripcion && (
+                        <span style={{ fontSize: '0.75rem', color: '#9ca3af', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.descripcion}
+                        </span>
+                      )}
+                      <button onClick={() => deleteEditDayItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '0.95rem', padding: '0 2px', marginLeft: 'auto', flexShrink: 0 }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Ahorro toggle */}
+              {editDayFin.ingresos > 0 && (
+                <button onClick={toggleEditAhorro}
                   style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none', background: editDayFin.ahorro ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.04)', cursor: 'pointer', borderLeft: `3px solid ${editDayFin.ahorro ? '#10b981' : 'transparent'}` }}>
                   <div style={{ width: '20px', height: '20px', borderRadius: '5px', flexShrink: 0, border: editDayFin.ahorro ? 'none' : '2px solid rgba(255,255,255,0.2)', background: editDayFin.ahorro ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {editDayFin.ahorro && <span style={{ fontSize: '0.6rem', color: 'white' }}>✓</span>}
                   </div>
                   <span style={{ fontSize: '0.82rem', color: editDayFin.ahorro ? '#10b981' : '#9ca3af', fontWeight: editDayFin.ahorro ? 700 : 400 }}>
-                    🐷 {editDayFin.ahorro ? t('tablero.edit_day.ahorro_si', { amount: fmt(Math.round(parseFloat(editIngresosInput) * 0.1)) }) : t('tablero.edit_day.ahorro_no', { amount: fmt(Math.round(parseFloat(editIngresosInput) * 0.1)) })}
+                    🐷 {editDayFin.ahorro ? t('tablero.edit_day.ahorro_si', { amount: fmt(Math.round(editDayFin.ingresos * 0.1)) }) : t('tablero.edit_day.ahorro_no', { amount: fmt(Math.round(editDayFin.ingresos * 0.1)) })}
                   </span>
                 </button>
               )}
