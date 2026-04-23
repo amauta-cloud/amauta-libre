@@ -21,7 +21,7 @@ export default function OnboardingTutorial() {
   }
 
   function next() {
-    if (step < 4) setStep(s => s + 1)
+    if (step < 5) setStep(s => s + 1)
     else dismiss()
   }
 
@@ -37,6 +37,11 @@ export default function OnboardingTutorial() {
       emoji: '✅',
       title: t('onboarding.step1_title'),
       desc: t('onboarding.step1_desc'),
+    },
+    {
+      emoji: '💰',
+      title: t('onboarding.step5_title'),
+      desc: t('onboarding.step5_desc'),
     },
     {
       emoji: '⚙️',

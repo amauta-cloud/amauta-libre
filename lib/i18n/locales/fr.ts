@@ -308,5 +308,7 @@ export const fr: typeof es = {
     step3_desc: 'Tes tâches et idées sont dans Planification. Les livres et audios du parcours, dans Éducation. Tu avances quand tu veux, au rythme que tu peux.',
     step4_title: 'Ton objectif, toujours visible',
     step4_desc: "Ce que tu as écrit apparaît ici chaque jour. Pas pour te mettre la pression. Pour que les jours difficiles tu ne perdes pas de vue pourquoi tu fais ça.",
+    step5_title: "Ton argent, en ordre",
+    step5_desc: "Tu enregistres tes revenus et dépenses par catégorie. Quand de l'argent rentre, l'app propose d'en mettre 10% de côté. À la fin du mois, tu vois où est allé chaque euro.",
   },
 }

@@ -308,5 +308,7 @@ export const pt: typeof es = {
     step3_desc: 'Suas tarefas e ideias estão em Planejamento. Os livros e áudios da jornada, em Educação. Você avança quando quiser, no ritmo que puder.',
     step4_title: 'Sua meta, sempre à vista',
     step4_desc: 'O que você escreveu aparece aqui todos os dias. Não para te pressionar. Para que nos dias difíceis você não perca de vista por que está fazendo isso.',
+    step5_title: 'Seu dinheiro, em ordem',
+    step5_desc: 'Registre receitas e despesas por categoria. Quando entra dinheiro, o app sugere separar 10% como investimento. No final do mês, você vê onde foi cada real.',
   },
 }

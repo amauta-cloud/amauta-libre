@@ -308,5 +308,7 @@ export const id: typeof es = {
     step3_desc: 'Tugas dan idemu ada di Perencanaan. Buku dan audio dari perjalanan, di Pendidikan. Kamu maju saat kamu mau, dengan kecepatan yang bisa kamu lakukan.',
     step4_title: 'Tujuanmu, selalu terlihat',
     step4_desc: 'Yang kamu tulis muncul di sini setiap hari. Bukan untuk menekanmu. Agar di hari-hari berat kamu tidak kehilangan pandangan tentang mengapa kamu melakukan ini.',
+    step5_title: 'Uangmu, tertata',
+    step5_desc: 'Catat pemasukan dan pengeluaran per kategori. Saat uang masuk, app menyarankan menyisihkan 10% sebagai investasi. Di akhir bulan, kamu lihat ke mana setiap rupiah pergi.',
   },
 }
