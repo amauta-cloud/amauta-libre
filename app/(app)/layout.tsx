@@ -10,15 +10,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const { data: perfil } = await supabase
     .from('usuarios')
-    .select('nombre, avatar_url')
+    .select('nombre')
     .eq('id', user.id)
     .single()
+
+  const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <NavBar
         nombre={perfil?.nombre || user.user_metadata?.full_name}
-        avatar={perfil?.avatar_url || user.user_metadata?.avatar_url}
+        avatar={avatarUrl}
         userId={user.id}
       />
       <main style={{

@@ -141,44 +141,54 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
           {t('nav.salir')}
         </button>
 
-        {/* Eliminar cuenta */}
-        {!deleteConfirm ? (
-          <button onClick={() => setDeleteConfirm(true)} style={{
-            width: '100%', padding: '0.5rem', borderRadius: '8px',
-            border: 'none', background: 'transparent',
-            color: '#4b5563', fontSize: '0.72rem', cursor: 'pointer', textAlign: 'center',
-          }}>
-            {t('nav.eliminar_cuenta')}
-          </button>
-        ) : (
-          <div style={{ padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)' }}>
-            <p style={{ color: '#fca5a5', fontSize: '0.78rem', marginBottom: '0.75rem', textAlign: 'center' }}>
-              {t('nav.eliminar_desc')}
-            </p>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button onClick={() => setDeleteConfirm(false)} style={{
-                flex: 1, padding: '0.5rem', borderRadius: '8px',
-                border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
-                color: '#9ca3af', fontSize: '0.78rem', cursor: 'pointer',
-              }}>
-                Cancelar
-              </button>
-              <button onClick={handleDeleteAccount} disabled={deleting} style={{
-                flex: 1, padding: '0.5rem', borderRadius: '8px',
-                border: 'none', background: '#ef4444',
-                color: '#fff', fontSize: '0.78rem', fontWeight: 600, cursor: deleting ? 'default' : 'pointer',
-                opacity: deleting ? 0.7 : 1,
-              }}>
-                {deleting ? t('nav.eliminando') : t('nav.eliminar_confirmar')}
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Legal links */}
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', paddingTop: '0.25rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
           <a href="/privacidad" style={{ color: '#374151', fontSize: '0.65rem', textDecoration: 'none' }}>Privacidad</a>
           <a href="/terminos" style={{ color: '#374151', fontSize: '0.65rem', textDecoration: 'none' }}>Términos</a>
+        </div>
+
+        {/* Zona de peligro */}
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '0.65rem', color: '#4b5563', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'center', marginBottom: '0.75rem' }}>
+            Zona de peligro
+          </div>
+
+          {!deleteConfirm ? (
+            <button onClick={() => setDeleteConfirm(true)} style={{
+              width: '100%', padding: '0.6rem', borderRadius: '8px',
+              border: '1px solid rgba(239,68,68,0.15)', background: 'transparent',
+              color: '#6b7280', fontSize: '0.78rem', cursor: 'pointer', textAlign: 'center',
+            }}>
+              {t('nav.eliminar_cuenta')}
+            </button>
+          ) : (
+            <div style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.06)' }}>
+              <div style={{ fontSize: '1.5rem', textAlign: 'center', marginBottom: '0.5rem' }}>⚠️</div>
+              <p style={{ color: '#fca5a5', fontSize: '0.82rem', marginBottom: '0.375rem', textAlign: 'center', fontWeight: 700 }}>
+                ¿Estás seguro?
+              </p>
+              <p style={{ color: '#9ca3af', fontSize: '0.74rem', marginBottom: '1rem', textAlign: 'center', lineHeight: 1.5 }}>
+                Vas a perder <strong style={{ color: '#fca5a5' }}>todos tus datos</strong>: hábitos, registros, finanzas, metas e historial. Esta acción no se puede deshacer.
+              </p>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={() => setDeleteConfirm(false)} style={{
+                  flex: 1, padding: '0.6rem', borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.07)',
+                  color: '#d1d5db', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+                }}>
+                  Cancelar
+                </button>
+                <button onClick={handleDeleteAccount} disabled={deleting} style={{
+                  flex: 1, padding: '0.6rem', borderRadius: '8px',
+                  border: 'none', background: '#ef4444',
+                  color: '#fff', fontSize: '0.78rem', fontWeight: 700, cursor: deleting ? 'default' : 'pointer',
+                  opacity: deleting ? 0.7 : 1,
+                }}>
+                  {deleting ? t('nav.eliminando') : t('nav.eliminar_confirmar')}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
