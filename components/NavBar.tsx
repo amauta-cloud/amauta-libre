@@ -19,6 +19,10 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
   const [nombreSaving, setNombreSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [soporteOpen, setSoporteOpen] = useState(false)
+  const [soporteText, setSoporteText] = useState('')
+  const [soporteCategoria, setSoporteCategoria] = useState<'bug' | 'sugerencia' | 'otro'>('otro')
+  const [soporteStatus, setSoporteStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
 
   const NAV = [
     { href: '/tablero',       label: t('nav.tablero'),       icon: '⚡' },
@@ -54,6 +58,22 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
 
   function handleLang(code: Locale) {
     setLocale(code)
+  }
+
+  async function enviarSoporte() {
+    if (!soporteText.trim() || !userId) return
+    setSoporteStatus('sending')
+    const { error } = await supabase.from('soporte_mensajes').insert({
+      usuario_id: userId,
+      mensaje: soporteText.trim(),
+      categoria: soporteCategoria,
+    })
+    if (error) {
+      setSoporteStatus('error')
+    } else {
+      setSoporteStatus('sent')
+      setSoporteText('')
+    }
   }
 
   const currentLocale = LOCALES.find(l => l.code === locale)
@@ -148,6 +168,87 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
         >
           🗺️ {t('onboarding.volver')}
         </button>
+
+        {/* Soporte / Feedback */}
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
+          <button
+            onClick={() => { setSoporteOpen(o => !o); setSoporteStatus('idle') }}
+            style={{
+              width: '100%', padding: '0.65rem', borderRadius: '10px',
+              border: '1px solid rgba(255,255,255,0.08)', background: soporteOpen ? 'rgba(255,255,255,0.04)' : 'transparent',
+              color: '#9ca3af', fontSize: '0.82rem', fontWeight: 500, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}
+          >
+            <span>💬 Comentarios o problemas</span>
+            <span style={{ fontSize: '0.7rem', color: '#4b5563' }}>{soporteOpen ? '▲' : '▼'}</span>
+          </button>
+
+          {soporteOpen && (
+            <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+              {soporteStatus === 'sent' ? (
+                <div style={{
+                  padding: '0.875rem', borderRadius: '10px', textAlign: 'center',
+                  background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
+                }}>
+                  <div style={{ fontSize: '1.5rem', marginBottom: '0.375rem' }}>✅</div>
+                  <div style={{ color: '#34d399', fontSize: '0.85rem', fontWeight: 600 }}>Mensaje recibido</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>Te leemos. Gracias.</div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', gap: '0.375rem' }}>
+                    {(['bug', 'sugerencia', 'otro'] as const).map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setSoporteCategoria(cat)}
+                        style={{
+                          flex: 1, padding: '0.35rem 0.25rem', borderRadius: '8px', fontSize: '0.72rem',
+                          border: '1px solid',
+                          borderColor: soporteCategoria === cat ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.07)',
+                          background: soporteCategoria === cat ? 'rgba(139,92,246,0.15)' : 'transparent',
+                          color: soporteCategoria === cat ? '#a78bfa' : '#6b7280',
+                          cursor: 'pointer', fontWeight: soporteCategoria === cat ? 600 : 400,
+                        }}
+                      >
+                        {cat === 'bug' ? '🐛 Bug' : cat === 'sugerencia' ? '💡 Idea' : '💬 Otro'}
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    value={soporteText}
+                    onChange={e => setSoporteText(e.target.value)}
+                    placeholder="Contame qué pasó o qué mejorarías..."
+                    rows={3}
+                    style={{
+                      width: '100%', padding: '0.625rem', borderRadius: '8px', resize: 'none',
+                      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#d1d5db', fontSize: '0.82rem', lineHeight: 1.55, outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                  {soporteStatus === 'error' && (
+                    <div style={{ color: '#f87171', fontSize: '0.72rem', textAlign: 'center' }}>
+                      No se pudo enviar. Intentá de nuevo.
+                    </div>
+                  )}
+                  <button
+                    onClick={enviarSoporte}
+                    disabled={!soporteText.trim() || soporteStatus === 'sending'}
+                    style={{
+                      width: '100%', padding: '0.6rem', borderRadius: '8px', border: 'none',
+                      background: soporteText.trim() ? 'rgba(139,92,246,0.25)' : 'rgba(255,255,255,0.05)',
+                      color: soporteText.trim() ? '#a78bfa' : '#4b5563',
+                      fontSize: '0.82rem', fontWeight: 600, cursor: soporteText.trim() ? 'pointer' : 'default',
+                    }}
+                  >
+                    {soporteStatus === 'sending' ? 'Enviando...' : 'Enviar →'}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Cerrar sesión */}
         <button onClick={handleLogout} style={{

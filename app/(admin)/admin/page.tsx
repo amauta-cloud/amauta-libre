@@ -78,6 +78,7 @@ export default async function AdminPage() {
     registros90Res,
     authUsersRes,
     registrosHoyRes,
+    soporteRes,
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email'),
     admin.from('habito_registros').select('usuario_id').eq('fecha', today),
@@ -89,10 +90,13 @@ export default async function AdminPage() {
     admin.from('habito_registros').select('usuario_id, fecha').gte('fecha', hace90),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     admin.from('habito_registros').select('usuario_id, habito_id').eq('fecha', today).eq('completado', true).limit(500),
+    admin.from('soporte_mensajes').select('id, usuario_id, mensaje, categoria, creado_en').order('creado_en', { ascending: false }).limit(50).then(r => r.error ? { data: [] as { id: string; usuario_id: string; mensaje: string; categoria: string; creado_en: string }[] } : r),
   ])
 
   const usuarios = usuariosRes.data ?? []
   const totalUsuarios = usuarios.length
+  const soporteMensajes = soporteRes.data ?? []
+  const emailMap = Object.fromEntries(usuarios.map(u => [u.id, u.email || u.nombre || '?']))
 
   const activosHoy = new Set((activosHoyRes.data ?? []).map(r => r.usuario_id)).size
   const activos7 = new Set((activos7Res.data ?? []).map(r => r.usuario_id)).size
@@ -534,6 +538,36 @@ export default async function AdminPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mensajes de soporte */}
+        <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '16px', padding: '1.5rem' }}>
+          <div style={{ fontSize: '0.72rem', color: '#6b7280', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '1rem' }}>
+            💬 Mensajes de soporte ({soporteMensajes.length})
+          </div>
+          {soporteMensajes.length === 0 ? (
+            <div style={{ color: '#4b5563', fontSize: '0.82rem', textAlign: 'center', padding: '1.5rem' }}>Sin mensajes todavía</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '0.75rem' }}>
+              {soporteMensajes.map(m => {
+                const catColor = m.categoria === 'bug' ? '#ef4444' : m.categoria === 'sugerencia' ? '#8b5cf6' : '#6b7280'
+                const fecha = new Date(m.creado_en)
+                const fechaStr = `${fecha.toLocaleDateString('es-AR')} ${fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`
+                return (
+                  <div key={m.id} style={{ padding: '0.875rem', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, color: catColor, textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>
+                        {m.categoria === 'bug' ? '🐛 Bug' : m.categoria === 'sugerencia' ? '💡 Idea' : '💬 Otro'}
+                      </span>
+                      <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>{fechaStr}</span>
+                    </div>
+                    <p style={{ margin: '0 0 0.375rem', color: '#d1d5db', fontSize: '0.85rem', lineHeight: 1.5 }}>{m.mensaje}</p>
+                    <div style={{ fontSize: '0.65rem', color: '#4b5563' }}>{emailMap[m.usuario_id] || m.usuario_id}</div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
       </div>
