@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useLocale } from '@/lib/i18n/LocaleContext'
 import OnboardingTutorial from '@/components/OnboardingTutorial'
 import PushNotificationSetup from '@/components/PushNotificationSetup'
+import RatingPrompt from '@/components/RatingPrompt'
 
 type Habito = {
   id: string
@@ -976,6 +977,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           </div>
 
           <PushNotificationSetup />
+          <RatingPrompt racha={racha} />
         </div>
       )}
 
