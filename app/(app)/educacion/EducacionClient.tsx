@@ -33,9 +33,11 @@ const TIPO_COLOR: Record<string, { bg: string; border: string; text: string }> =
 export default function EducacionClient({
   etapas,
   userId,
+  nombre = '',
 }: {
   etapas: Etapa[]
   userId: string
+  nombre?: string
 }) {
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -126,7 +128,7 @@ export default function EducacionClient({
         <div style={{ marginBottom: '1.75rem' }}>
           <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{t('educacion.titulo')}</h1>
           <p style={{ margin: '0.2rem 0 0', fontSize: '0.78rem', color: '#6b7280' }}>
-            {paso === 0 ? t('educacion.hola', { name: '' }).trim().replace(/,\s*$/, '') : t('educacion.paso_progreso', { paso, total: totalPasos, name: '' }).trim()}
+            {paso === 0 ? t('educacion.hola', { name: nombre }).trim() : t('educacion.paso_progreso', { paso, total: totalPasos, name: nombre }).trim()}
           </p>
         </div>
 

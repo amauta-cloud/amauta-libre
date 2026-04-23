@@ -14,7 +14,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .eq('id', user.id)
     .single()
 
-  const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null
+  const meta = user.user_metadata || {}
+  const identityData = user.identities?.[0]?.identity_data || {}
+  const avatarUrl = meta.avatar_url || meta.picture || identityData.avatar_url || identityData.picture || null
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
