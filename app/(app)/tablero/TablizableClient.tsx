@@ -55,6 +55,7 @@ type MetasData = {
 } | null
 
 type Finanzas = { ingresos: number; gastos: number; ahorro: boolean }
+type FinanzaItem = { id: string; tipo: 'ingreso' | 'gasto'; monto: number; descripcion: string | null; creado_en: string }
 
 const EMOJIS = ['⭐','🎯','📚','🏃','🧠','💧','🥗','🛌','✍️','🎨','🎵','💼','🌿','🙏','📞','💊','🚴','🏋️','🧘','🍎','🔥','💪','🎧','📖','⚽','🎸','🖥️','🌅','🎭','🦁']
 
@@ -123,10 +124,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   // Finanzas hoy
   const [finanzas, setFinanzas] = useState<Finanzas>({ ingresos: 0, gastos: 0, ahorro: false })
-  const [ingresosInput, setIngresosInput] = useState('')
-  const [gastosInput, setGastosInput] = useState('')
-  const [finanzasSaving, setFinanzasSaving] = useState(false)
-  const [finanzasSaved, setFinanzasSaved] = useState(false)
+  const [finanzaItems, setFinanzaItems] = useState<FinanzaItem[]>([])
+  const [itemTipo, setItemTipo] = useState<'ingreso' | 'gasto'>('ingreso')
+  const [itemMonto, setItemMonto] = useState('')
+  const [itemDesc, setItemDesc] = useState('')
+  const [itemAdding, setItemAdding] = useState(false)
 
   // Mes tab
   const now = new Date()
@@ -176,18 +178,16 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   // Load today's finanzas
   useEffect(() => {
-    supabase.from('finanzas_diarias')
-      .select('ingresos,gastos,ahorro')
-      .eq('usuario_id', userId)
-      .eq('fecha', today)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) {
-          setFinanzas({ ingresos: data.ingresos || 0, gastos: data.gastos || 0, ahorro: data.ahorro || false })
-          setIngresosInput(data.ingresos > 0 ? String(data.ingresos) : '')
-          setGastosInput(data.gastos > 0 ? String(data.gastos) : '')
-        }
-      })
+    Promise.all([
+      supabase.from('finanzas_diarias').select('ahorro').eq('usuario_id', userId).eq('fecha', today).maybeSingle(),
+      supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', today).order('creado_en'),
+    ]).then(([finRes, itemsRes]) => {
+      const items = (itemsRes.data || []) as FinanzaItem[]
+      setFinanzaItems(items)
+      const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
+      const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
+      setFinanzas({ ingresos, gastos, ahorro: finRes.data?.ahorro || false })
+    })
   }, [userId, today]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load month data
@@ -293,17 +293,44 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     }
   }
 
-  async function saveFinanzas() {
-    const ingresos = parseFloat(ingresosInput) || 0
-    const gastos = parseFloat(gastosInput) || 0
-    setFinanzas(prev => ({ ...prev, ingresos, gastos }))
-    setFinanzasSaving(true)
+  async function syncFinanzasDiarias(items: FinanzaItem[], ahorro?: boolean) {
+    const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
+    const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
+    const ahorroVal = ahorro !== undefined ? ahorro : finanzas.ahorro
+    setFinanzas({ ingresos, gastos, ahorro: ahorroVal })
     await supabase.from('finanzas_diarias').upsert({
-      usuario_id: userId, fecha: today, ingresos, gastos, ahorro: finanzas.ahorro,
+      usuario_id: userId, fecha: today, ingresos, gastos, ahorro: ahorroVal,
     }, { onConflict: 'usuario_id,fecha' })
-    setFinanzasSaving(false)
-    setFinanzasSaved(true)
-    setTimeout(() => setFinanzasSaved(false), 2000)
+  }
+
+  async function addFinanzaItem() {
+    const monto = parseFloat(itemMonto) || 0
+    setItemAdding(true)
+    const { data } = await supabase.from('finanzas_items').insert({
+      usuario_id: userId, fecha: today, tipo: itemTipo, monto, descripcion: itemDesc.trim() || null,
+    }).select().single()
+    if (data) {
+      const newItems = [...finanzaItems, data as FinanzaItem]
+      setFinanzaItems(newItems)
+      await syncFinanzasDiarias(newItems)
+    }
+    setItemMonto(''); setItemDesc(''); setItemAdding(false)
+  }
+
+  async function deleteFinanzaItem(id: string) {
+    await supabase.from('finanzas_items').delete().eq('id', id)
+    const newItems = finanzaItems.filter(i => i.id !== id)
+    setFinanzaItems(newItems)
+    await syncFinanzasDiarias(newItems)
+  }
+
+  async function toggleAhorro() {
+    const newAhorro = !finanzas.ahorro
+    setFinanzas(prev => ({ ...prev, ahorro: newAhorro }))
+    await supabase.from('finanzas_diarias').upsert({
+      usuario_id: userId, fecha: today,
+      ingresos: finanzas.ingresos, gastos: finanzas.gastos, ahorro: newAhorro,
+    }, { onConflict: 'usuario_id,fecha' })
   }
 
   // Month calculations
@@ -440,8 +467,8 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const profit = totalIngresos - totalGastos
   const ahorroAcumulado = monthFinanzas.filter(f => f.ahorro && f.ingresos > 0).reduce((a, f) => a + Math.round(f.ingresos * 0.1), 0)
 
-  const ingresosHoy = parseFloat(ingresosInput) || 0
-  const gastosHoy = parseFloat(gastosInput) || 0
+  const ingresosHoy = finanzas.ingresos
+  const gastosHoy = finanzas.gastos
   const sugerido10 = Math.round(ingresosHoy * 0.1)
 
   const navBtn = (tab: typeof activeTab, label: string, emoji: string) => (
@@ -680,19 +707,62 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           {/* Finanzas */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
             <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.hoy.movimientos')}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem', marginBottom: '0.875rem' }}>
-              <div>
-                <label style={{ fontSize: '0.75rem', color: '#10b981', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>{t('tablero.hoy.ingresos_label')}</label>
-                <input type="number" value={ingresosInput} onChange={e => setIngresosInput(e.target.value)} placeholder="0"
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#10b981', fontSize: '1rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.75rem', color: '#ef4444', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>{t('tablero.hoy.gastos_label')}</label>
-                <input type="number" value={gastosInput} onChange={e => setGastosInput(e.target.value)} placeholder="0"
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', fontSize: '1rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
-              </div>
+
+            {/* Form agregar item */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.875rem', flexWrap: 'wrap' }}>
+              <button onClick={() => setItemTipo(v => v === 'ingreso' ? 'gasto' : 'ingreso')} style={{
+                padding: '0.55rem 0.85rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                background: itemTipo === 'ingreso' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                color: itemTipo === 'ingreso' ? '#10b981' : '#ef4444',
+                fontSize: '0.78rem', fontWeight: 700, flexShrink: 0, transition: 'all 0.15s',
+              }}>
+                {itemTipo === 'ingreso' ? '+ Ingreso' : '- Gasto'}
+              </button>
+              <input
+                type="number" value={itemMonto} onChange={e => setItemMonto(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addFinanzaItem()}
+                placeholder="Monto"
+                style={{ width: '90px', padding: '0.55rem 0.6rem', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${itemTipo === 'ingreso' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, color: '#f3f0ff', fontSize: '0.9rem', fontWeight: 700, outline: 'none', flexShrink: 0 }}
+              />
+              <input
+                value={itemDesc} onChange={e => setItemDesc(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addFinanzaItem()}
+                placeholder="Detalle (opcional)"
+                style={{ flex: 1, minWidth: '80px', padding: '0.55rem 0.6rem', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af', fontSize: '0.8rem', outline: 'none' }}
+              />
+              <button onClick={addFinanzaItem} disabled={itemAdding} style={{
+                padding: '0.55rem 0.875rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                background: 'rgba(139,92,246,0.25)', color: '#a78bfa', fontSize: '0.82rem', fontWeight: 700, flexShrink: 0,
+              }}>
+                {itemAdding ? '...' : 'Agregar'}
+              </button>
             </div>
 
+            {/* Lista de items del día */}
+            {finanzaItems.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '0.875rem' }}>
+                {finanzaItems.map(item => (
+                  <div key={item.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.5rem 0.75rem', borderRadius: '8px',
+                    background: item.tipo === 'ingreso' ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)',
+                    border: `1px solid ${item.tipo === 'ingreso' ? 'rgba(16,185,129,0.18)' : 'rgba(239,68,68,0.18)'}`,
+                  }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 800, color: item.tipo === 'ingreso' ? '#10b981' : '#ef4444', flexShrink: 0 }}>
+                      {item.tipo === 'ingreso' ? '+' : '-'}{fmt(item.monto)}
+                    </span>
+                    {item.descripcion && (
+                      <span style={{ fontSize: '0.78rem', color: '#9ca3af', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.descripcion}
+                      </span>
+                    )}
+                    <button onClick={() => deleteFinanzaItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '1rem', padding: '0 2px', marginLeft: 'auto', flexShrink: 0 }}>×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Regla del 10% + ahorro */}
             {ingresosHoy > 0 && (
               <div style={{ marginBottom: '0.875rem', padding: '0.75rem 1rem', borderRadius: '10px', background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.625rem' }}>
@@ -702,7 +772,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   </div>
                   <div style={{ fontSize: '1.5rem' }}>🐷</div>
                 </div>
-                <button onClick={() => setFinanzas(prev => ({ ...prev, ahorro: !prev.ahorro }))} style={{
+                <button onClick={toggleAhorro} style={{
                   display: 'flex', alignItems: 'center', gap: '0.625rem',
                   width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none',
                   background: finanzas.ahorro ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)',
@@ -719,8 +789,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               </div>
             )}
 
+            {/* Resultado del día */}
             {(ingresosHoy > 0 || gastosHoy > 0) && (
-              <div style={{ marginBottom: '0.875rem' }}>
+              <div>
                 <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', background: (ingresosHoy - gastosHoy) >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${(ingresosHoy - gastosHoy) >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{t('tablero.hoy.resultado_dia')}</span>
                   <span style={{ fontSize: '1.1rem', fontWeight: 800, color: (ingresosHoy - gastosHoy) >= 0 ? '#10b981' : '#ef4444' }}>
@@ -734,15 +805,6 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                 )}
               </div>
             )}
-
-            <button onClick={saveFinanzas} disabled={finanzasSaving} style={{
-              width: '100%', padding: '0.75rem', borderRadius: '10px', border: 'none',
-              background: finanzasSaved ? '#10b981' : 'rgba(139,92,246,0.2)',
-              color: finanzasSaved ? '#fff' : '#a78bfa', fontSize: '0.85rem', fontWeight: 700,
-              cursor: finanzasSaving ? 'default' : 'pointer', transition: 'background 0.3s',
-            }}>
-              {finanzasSaving ? t('common.saving') : finanzasSaved ? t('common.saved') : t('tablero.hoy.guardar_mov')}
-            </button>
           </div>
 
           <PushNotificationSetup />
