@@ -333,7 +333,24 @@ export default function EducacionClient({
           </>
         )}
 
-        <div style={{ textAlign: 'center', marginTop: '2.5rem', color: '#4b5563', fontSize: '0.72rem' }}>
+        {/* CTA Librería */}
+        <a href="https://libreria.amauta.cloud" target="_blank" rel="noopener noreferrer" style={{
+          display: 'block', textDecoration: 'none', marginTop: '2rem',
+          background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.18)',
+          borderRadius: '12px', padding: '1rem 1.25rem',
+        }}>
+          <div style={{ fontSize: '0.65rem', color: '#34d399', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.25rem' }}>
+            📚 Librería · Solo Argentina
+          </div>
+          <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '0.88rem', marginBottom: '0.2rem' }}>
+            ¿Buscás el libro físico?
+          </div>
+          <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+            Encontrá los títulos recomendados en nuestra librería →
+          </div>
+        </a>
+
+        <div style={{ textAlign: 'center', marginTop: '1.5rem', color: '#4b5563', fontSize: '0.72rem' }}>
           Amauta Libre
         </div>
       </div>

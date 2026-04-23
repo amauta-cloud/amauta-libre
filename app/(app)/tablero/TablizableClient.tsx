@@ -1525,6 +1525,23 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             border: '1px solid rgba(139,92,246,0.3)', background: 'rgba(139,92,246,0.08)',
             color: '#a78bfa', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none',
           }}>{t('tablero.metas_tab.editar')}</Link>
+
+          {/* CTA Amauta Cloud */}
+          <a href="https://amauta.cloud/landing" target="_blank" rel="noopener noreferrer" style={{
+            display: 'block', textDecoration: 'none',
+            background: 'linear-gradient(135deg, rgba(139,92,246,0.1), rgba(236,72,153,0.07))',
+            border: '1px solid rgba(139,92,246,0.22)', borderRadius: '12px', padding: '1rem 1.25rem',
+          }}>
+            <div style={{ fontSize: '0.65rem', color: '#a78bfa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.25rem' }}>
+              ¿Querés ir más lejos?
+            </div>
+            <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '0.88rem', marginBottom: '0.2rem' }}>
+              Amauta Cloud — Mentoría con IA 🚀
+            </div>
+            <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+              Acompañamiento personalizado para emprender y escalar tu negocio →
+            </div>
+          </a>
         </div>
       )}
 
