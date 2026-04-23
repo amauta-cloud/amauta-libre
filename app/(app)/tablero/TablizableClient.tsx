@@ -221,16 +221,15 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   // Load today's finanzas
   useEffect(() => {
-    Promise.all([
-      supabase.from('finanzas_diarias').select('ahorro').eq('usuario_id', userId).eq('fecha', today).maybeSingle(),
-      supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', today).order('creado_en'),
-    ]).then(([finRes, itemsRes]) => {
-      const items = (itemsRes.data || []) as FinanzaItem[]
-      setFinanzaItems(items)
-      const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
-      const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
-      setFinanzas({ ingresos, gastos, ahorro: finRes.data?.ahorro || false })
-    })
+    supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', today).order('creado_en')
+      .then(({ data }) => {
+        const items = (data || []) as FinanzaItem[]
+        setFinanzaItems(items)
+        const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
+        const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
+        const ahorro = items.some(i => i.categoria === 'Inversión')
+        setFinanzas({ ingresos, gastos, ahorro })
+      })
   }, [userId, today]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load month data
@@ -418,8 +417,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     setEditDayItems(loadedItems)
     const ingresos = loadedItems.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
     const gastos = loadedItems.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
-    setEditDayFin({ ingresos, gastos, ahorro: fin?.ahorro || false })
-    setEditItemTipo('ingreso'); setEditItemMonto(''); setEditItemDesc('')
+    const ahorro = loadedItems.some(i => i.categoria === 'Inversión')
+    setEditDayFin({ ingresos, gastos, ahorro })
+    setEditItemTipo('ingreso'); setEditItemMonto(''); setEditItemDesc(''); setEditItemCategoria(null)
     setEditingDay(dateStr)
     setEditSaved(false)
   }
