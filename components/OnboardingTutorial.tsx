@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useLocale } from '@/lib/i18n/LocaleContext'
 
-const STORAGE_KEY = 'amauta_onboarding_done'
+export const ONBOARDING_STORAGE_KEY = 'amauta_onboarding_done'
 
 export default function OnboardingTutorial() {
   const { t } = useLocale()
@@ -11,53 +11,30 @@ export default function OnboardingTutorial() {
   const [step, setStep] = useState(0)
 
   useEffect(() => {
-    const done = localStorage.getItem(STORAGE_KEY)
+    const done = localStorage.getItem(ONBOARDING_STORAGE_KEY)
     if (!done) setVisible(true)
   }, [])
 
   function dismiss() {
-    localStorage.setItem(STORAGE_KEY, '1')
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, '1')
     setVisible(false)
   }
 
   function next() {
-    if (step < 5) setStep(s => s + 1)
+    if (step < 6) setStep(s => s + 1)
     else dismiss()
   }
 
   if (!visible) return null
 
   const steps = [
-    {
-      emoji: '👋',
-      title: t('onboarding.step0_title'),
-      desc: t('onboarding.step0_desc'),
-    },
-    {
-      emoji: '✅',
-      title: t('onboarding.step1_title'),
-      desc: t('onboarding.step1_desc'),
-    },
-    {
-      emoji: '💰',
-      title: t('onboarding.step5_title'),
-      desc: t('onboarding.step5_desc'),
-    },
-    {
-      emoji: '⚙️',
-      title: t('onboarding.step2_title'),
-      desc: t('onboarding.step2_desc'),
-    },
-    {
-      emoji: '📋',
-      title: t('onboarding.step3_title'),
-      desc: t('onboarding.step3_desc'),
-    },
-    {
-      emoji: '⚓',
-      title: t('onboarding.step4_title'),
-      desc: t('onboarding.step4_desc'),
-    },
+    { emoji: '👋', title: t('onboarding.step0_title'), desc: t('onboarding.step0_desc') },
+    { emoji: '⚡', title: t('onboarding.step1_title'), desc: t('onboarding.step1_desc') },
+    { emoji: '✅', title: t('onboarding.step2_title'), desc: t('onboarding.step2_desc') },
+    { emoji: '💰', title: t('onboarding.step3_title'), desc: t('onboarding.step3_desc') },
+    { emoji: '📋', title: t('onboarding.step4_title'), desc: t('onboarding.step4_desc') },
+    { emoji: '📚', title: t('onboarding.step5_title'), desc: t('onboarding.step5_desc') },
+    { emoji: '🎯', title: t('onboarding.step6_title'), desc: t('onboarding.step6_desc') },
   ]
 
   const current = steps[step]
@@ -78,7 +55,7 @@ export default function OnboardingTutorial() {
         boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
         display: 'flex', flexDirection: 'column', gap: '1.25rem',
       }}>
-        {/* Emoji + step */}
+        {/* Header: emoji + paso X de Y + omitir */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{
             width: '56px', height: '56px', borderRadius: '14px',
@@ -88,16 +65,21 @@ export default function OnboardingTutorial() {
           }}>
             {current.emoji}
           </div>
-          <button
-            onClick={dismiss}
-            style={{
-              background: 'none', border: 'none', color: '#4b5563',
-              fontSize: '0.78rem', cursor: 'pointer', padding: '0.25rem 0.5rem',
-              borderRadius: '6px', transition: 'color 0.15s',
-            }}
-          >
-            {t('onboarding.omitir')}
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.375rem' }}>
+            <span style={{ color: '#6b7280', fontSize: '0.72rem' }}>
+              {step + 1} / {steps.length}
+            </span>
+            <button
+              onClick={dismiss}
+              style={{
+                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+                color: '#6b7280', fontSize: '0.72rem', cursor: 'pointer',
+                padding: '0.25rem 0.625rem', borderRadius: '6px',
+              }}
+            >
+              {t('onboarding.omitir')}
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -121,7 +103,7 @@ export default function OnboardingTutorial() {
             <div key={i} style={{
               width: i === step ? '20px' : '6px', height: '6px',
               borderRadius: '99px', transition: 'all 0.25s',
-              background: i === step ? '#8B5CF6' : 'rgba(139,92,246,0.2)',
+              background: i === step ? '#8B5CF6' : i < step ? 'rgba(139,92,246,0.45)' : 'rgba(139,92,246,0.2)',
             }} />
           ))}
         </div>

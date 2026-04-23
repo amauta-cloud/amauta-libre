@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useLocale, LOCALES, type Locale } from '@/lib/i18n/LocaleContext'
+import { ONBOARDING_STORAGE_KEY } from '@/components/OnboardingTutorial'
 
 export default function NavBar({ nombre: initialNombre, avatar, userId }: { nombre?: string; avatar?: string; userId?: string }) {
   const pathname = usePathname()
@@ -131,6 +132,22 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
             ))}
           </div>
         </div>
+
+        {/* Ver guía de nuevo */}
+        <button
+          onClick={() => {
+            localStorage.removeItem(ONBOARDING_STORAGE_KEY)
+            setConfigOpen(false)
+            window.location.reload()
+          }}
+          style={{
+            width: '100%', padding: '0.65rem', borderRadius: '10px',
+            border: '1px solid rgba(139,92,246,0.2)', background: 'rgba(139,92,246,0.06)',
+            color: '#a78bfa', fontSize: '0.82rem', fontWeight: 500, cursor: 'pointer',
+          }}
+        >
+          🗺️ {t('onboarding.volver')}
+        </button>
 
         {/* Cerrar sesión */}
         <button onClick={handleLogout} style={{
