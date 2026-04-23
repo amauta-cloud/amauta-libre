@@ -596,9 +596,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
         background: 'rgba(255,255,255,0.04)', borderRadius: '10px', marginBottom: '1.25rem',
       }}>
         {navBtn('hoy', t('tablero.tabs.hoy'), '⚡')}
+        {navBtn('finanzas', 'Finanzas', '💰')}
         {navBtn('mes', t('tablero.tabs.mes'), '📊')}
         {navBtn('habitos', t('tablero.tabs.habitos'), '✏️')}
-        {navBtn('finanzas', 'Finanzas', '💰')}
         {navBtn('metas', t('tablero.tabs.metas'), '🎯')}
       </div>
 
@@ -961,6 +961,17 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Link al análisis completo */}
+            {(ingresosHoy > 0 || gastosHoy > 0) && (
+              <button onClick={() => setActiveTab('finanzas')} style={{
+                marginTop: '0.75rem', width: '100%', padding: '0.55rem', borderRadius: '8px',
+                border: '1px solid rgba(139,92,246,0.2)', background: 'rgba(139,92,246,0.06)',
+                color: '#a78bfa', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+              }}>
+                Ver análisis mensual →
+              </button>
             )}
           </div>
 
@@ -1470,28 +1481,45 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       {/* ── METAS ── */}
       {activeTab === 'metas' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '14px', padding: '1.25rem', textAlign: 'center' }}>
-            <p style={{ margin: 0, color: '#9ca3af', fontSize: '0.85rem', lineHeight: 1.6, fontStyle: 'italic' }}>
-              {t('tablero.metas_tab.quote')}<br />
-              <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>{t('tablero.metas_tab.quote_author')}</span>
-            </p>
+          {/* Racha actual como ancla de progreso */}
+          <div style={{ background: 'rgba(251,146,60,0.07)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '14px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ fontSize: '1.75rem' }}>🔥</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ color: '#fb923c', fontWeight: 700, fontSize: '0.95rem' }}>{racha} días activo</div>
+              <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.15rem' }}>
+                {racha === 0 ? 'Arrancá hoy para construir tu racha' : racha >= 30 ? '¡Ya superaste el primer ciclo!' : `Seguís construyendo el hábito`}
+              </div>
+            </div>
           </div>
           {[
-            { key: 'meta30', label: t('metas.meta30_titulo'), emoji: '🌱', color: '#10b981', bg: 'rgba(16,185,129,0.06)', bdr: 'rgba(16,185,129,0.2)', value: metas?.meta30 },
-            { key: 'meta90', label: t('metas.meta90_titulo'), emoji: '🚀', color: '#a78bfa', bg: 'rgba(139,92,246,0.06)', bdr: 'rgba(139,92,246,0.2)', value: metas?.meta90 },
-            { key: 'meta180', label: t('metas.meta180_titulo'), emoji: '🏆', color: '#F5C518', bg: 'rgba(245,197,24,0.06)', bdr: 'rgba(245,197,24,0.2)', value: metas?.meta180 },
-          ].map(m => (
-            <div key={m.key} style={{ background: m.bg, border: `1px solid ${m.bdr}`, borderRadius: '14px', padding: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '1.25rem' }}>{m.emoji}</span>
-                <span style={{ color: m.color, fontWeight: 700, fontSize: '0.9rem' }}>{m.label}</span>
+            { key: 'meta30', label: t('metas.meta30_titulo'), emoji: '🌱', color: '#10b981', bg: 'rgba(16,185,129,0.06)', bdr: 'rgba(16,185,129,0.2)', value: metas?.meta30, dias: 30 },
+            { key: 'meta90', label: t('metas.meta90_titulo'), emoji: '🚀', color: '#a78bfa', bg: 'rgba(139,92,246,0.06)', bdr: 'rgba(139,92,246,0.2)', value: metas?.meta90, dias: 90 },
+            { key: 'meta180', label: t('metas.meta180_titulo'), emoji: '🏆', color: '#F5C518', bg: 'rgba(245,197,24,0.06)', bdr: 'rgba(245,197,24,0.2)', value: metas?.meta180, dias: 180 },
+          ].map(m => {
+            const progreso = Math.min(100, Math.round((racha / m.dias) * 100))
+            const diasRestantes = Math.max(0, m.dias - racha)
+            return (
+              <div key={m.key} style={{ background: m.bg, border: `1px solid ${m.bdr}`, borderRadius: '14px', padding: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.1rem' }}>{m.emoji}</span>
+                    <span style={{ color: m.color, fontWeight: 700, fontSize: '0.88rem' }}>{m.label}</span>
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: progreso === 100 ? m.color : '#6b7280', fontWeight: progreso === 100 ? 700 : 400 }}>
+                    {progreso === 100 ? '✓ Completado' : `${racha}/${m.dias} días · ${diasRestantes} restantes`}
+                  </span>
+                </div>
+                {/* Barra de progreso */}
+                <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', marginBottom: '0.75rem', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${progreso}%`, background: m.color, borderRadius: '4px', transition: 'width 0.5s ease' }} />
+                </div>
+                {m.value
+                  ? <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.88rem', lineHeight: 1.6 }}>{m.value}</p>
+                  : <p style={{ margin: 0, color: '#4b5563', fontSize: '0.82rem', fontStyle: 'italic' }}>{t('tablero.metas_tab.sin_meta')}</p>
+                }
               </div>
-              {m.value
-                ? <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem', lineHeight: 1.6 }}>{m.value}</p>
-                : <p style={{ margin: 0, color: '#4b5563', fontSize: '0.85rem', fontStyle: 'italic' }}>{t('tablero.metas_tab.sin_meta')}</p>
-              }
-            </div>
-          ))}
+            )
+          })}
           <Link href="/metas" style={{
             display: 'block', textAlign: 'center', padding: '0.875rem', borderRadius: '12px',
             border: '1px solid rgba(139,92,246,0.3)', background: 'rgba(139,92,246,0.08)',
