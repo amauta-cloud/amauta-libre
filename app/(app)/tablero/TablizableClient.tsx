@@ -752,14 +752,22 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
             {/* Form agregar item */}
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.875rem', flexWrap: 'wrap' }}>
-              <button onClick={() => setItemTipo(v => v === 'ingreso' ? 'gasto' : 'ingreso')} style={{
-                padding: '0.55rem 0.85rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
-                background: itemTipo === 'ingreso' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
-                color: itemTipo === 'ingreso' ? '#10b981' : '#ef4444',
-                fontSize: '0.78rem', fontWeight: 700, flexShrink: 0, transition: 'all 0.15s',
-              }}>
-                {itemTipo === 'ingreso' ? '+ Ingreso' : '- Gasto'}
-              </button>
+              <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
+                <button onClick={() => setItemTipo('ingreso')} style={{
+                  padding: '0.55rem 0.85rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                  background: itemTipo === 'ingreso' ? 'rgba(16,185,129,0.25)' : 'rgba(16,185,129,0.06)',
+                  color: '#10b981', fontSize: '0.78rem', fontWeight: itemTipo === 'ingreso' ? 700 : 400,
+                  outline: itemTipo === 'ingreso' ? '1.5px solid rgba(16,185,129,0.5)' : '1px solid rgba(16,185,129,0.15)',
+                  transition: 'all 0.15s',
+                }}>+ Ingreso</button>
+                <button onClick={() => setItemTipo('gasto')} style={{
+                  padding: '0.55rem 0.85rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                  background: itemTipo === 'gasto' ? 'rgba(239,68,68,0.25)' : 'rgba(239,68,68,0.06)',
+                  color: '#ef4444', fontSize: '0.78rem', fontWeight: itemTipo === 'gasto' ? 700 : 400,
+                  outline: itemTipo === 'gasto' ? '1.5px solid rgba(239,68,68,0.5)' : '1px solid rgba(239,68,68,0.15)',
+                  transition: 'all 0.15s',
+                }}>- Gasto</button>
+              </div>
               <input
                 type="number" value={itemMonto} onChange={e => setItemMonto(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addFinanzaItem()}
@@ -1333,14 +1341,22 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
               {/* Form agregar item */}
               <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: '0.625rem', flexWrap: 'wrap' }}>
-                <button onClick={() => setEditItemTipo(v => v === 'ingreso' ? 'gasto' : 'ingreso')} style={{
-                  padding: '0.45rem 0.7rem', borderRadius: '7px', border: 'none', cursor: 'pointer',
-                  background: editItemTipo === 'ingreso' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
-                  color: editItemTipo === 'ingreso' ? '#10b981' : '#ef4444',
-                  fontSize: '0.75rem', fontWeight: 700, flexShrink: 0,
-                }}>
-                  {editItemTipo === 'ingreso' ? '+ Ingreso' : '- Gasto'}
-                </button>
+                <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
+                  <button onClick={() => setEditItemTipo('ingreso')} style={{
+                    padding: '0.45rem 0.7rem', borderRadius: '7px', border: 'none', cursor: 'pointer',
+                    background: editItemTipo === 'ingreso' ? 'rgba(16,185,129,0.25)' : 'rgba(16,185,129,0.06)',
+                    color: '#10b981', fontSize: '0.75rem', fontWeight: editItemTipo === 'ingreso' ? 700 : 400,
+                    outline: editItemTipo === 'ingreso' ? '1.5px solid rgba(16,185,129,0.5)' : '1px solid rgba(16,185,129,0.15)',
+                    transition: 'all 0.15s',
+                  }}>+ Ingreso</button>
+                  <button onClick={() => setEditItemTipo('gasto')} style={{
+                    padding: '0.45rem 0.7rem', borderRadius: '7px', border: 'none', cursor: 'pointer',
+                    background: editItemTipo === 'gasto' ? 'rgba(239,68,68,0.25)' : 'rgba(239,68,68,0.06)',
+                    color: '#ef4444', fontSize: '0.75rem', fontWeight: editItemTipo === 'gasto' ? 700 : 400,
+                    outline: editItemTipo === 'gasto' ? '1.5px solid rgba(239,68,68,0.5)' : '1px solid rgba(239,68,68,0.15)',
+                    transition: 'all 0.15s',
+                  }}>- Gasto</button>
+                </div>
                 <input
                   type="number" value={editItemMonto} onChange={e => setEditItemMonto(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addEditDayItem()}
