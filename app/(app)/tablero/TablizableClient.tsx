@@ -114,7 +114,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   const [regMap, setRegMap] = useState(initialRegMap)
   const [loading, setLoading] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'hoy' | 'mes' | 'habitos' | 'metas'>('hoy')
+  const [activeTab, setActiveTab] = useState<'hoy' | 'mes' | 'habitos' | 'finanzas' | 'metas'>('hoy')
   const [habitoFeedback, setHabitoFeedback] = useState<string | null>(null)
 
   // Numeric habit stepper values (controlled)
@@ -250,7 +250,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }, [userId, year, month]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (activeTab === 'mes') loadMonthData()
+    if (activeTab === 'mes' || activeTab === 'finanzas') loadMonthData()
   }, [activeTab, loadMonthData])
 
   async function toggleBool(habito: Habito) {
@@ -598,6 +598,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
         {navBtn('hoy', t('tablero.tabs.hoy'), '⚡')}
         {navBtn('mes', t('tablero.tabs.mes'), '📊')}
         {navBtn('habitos', t('tablero.tabs.habitos'), '✏️')}
+        {navBtn('finanzas', 'Finanzas', '💰')}
         {navBtn('metas', t('tablero.tabs.metas'), '🎯')}
       </div>
 
@@ -1340,10 +1341,81 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             )}
           </div>
 
-          {/* Categorías de Finanzas */}
+        </div>
+      )}
+
+      {/* ── FINANZAS ── */}
+      {activeTab === 'finanzas' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+          {/* Resumen del mes */}
+          {monthLoading ? (
+            <div style={{ textAlign: 'center', color: '#6b7280', padding: '1.5rem', fontSize: '0.85rem' }}>{t('common.loading')}</div>
+          ) : (totalIngresos > 0 || totalGastos > 0) ? (
+            <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
+              <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>
+                Este mes — {new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { month: 'long' }).format(new Date(year, month - 1, 1)).charAt(0).toUpperCase() + new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { month: 'long' }).format(new Date(year, month - 1, 1)).slice(1)} {year}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', borderRadius: '7px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.12)' }}>
+                  <span style={{ fontSize: '0.82rem', color: '#9ca3af' }}>💚 Ingresos</span>
+                  <span style={{ fontWeight: 700, color: '#10b981' }}>+{fmt(totalIngresos)}</span>
+                </div>
+                {(totalGastos - inversionMes) > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', borderRadius: '7px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.12)' }}>
+                    <span style={{ fontSize: '0.82rem', color: '#9ca3af' }}>🔴 Gastos</span>
+                    <span style={{ fontWeight: 700, color: '#ef4444' }}>-{fmt(totalGastos - inversionMes)}</span>
+                  </div>
+                )}
+                {inversionMes > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', borderRadius: '7px', background: 'rgba(245,197,24,0.06)', border: '1px solid rgba(245,197,24,0.15)' }}>
+                    <span style={{ fontSize: '0.82rem', color: '#9ca3af' }}>📈 Inversión</span>
+                    <span style={{ fontWeight: 700, color: '#F5C518' }}>-{fmt(inversionMes)}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.75rem', borderRadius: '8px', background: profit >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${profit >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`, marginTop: '0.1rem' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e5e7eb' }}>📊 Resultado</span>
+                  <span style={{ fontSize: '1.1rem', fontWeight: 800, color: profit >= 0 ? '#10b981' : '#ef4444' }}>{profit >= 0 ? '+' : ''}{fmt(profit)}</span>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Desglose por categoría */}
+          {!monthLoading && monthItems.length > 0 && (() => {
+            const catTotals = finanzaCategorias
+              .map(cat => ({
+                ...cat,
+                total: monthItems.filter(i => i.categoria === cat.nombre && i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0),
+              }))
+              .filter(c => c.total > 0)
+              .sort((a, b) => b.total - a.total)
+            const maxTotal = Math.max(...catTotals.map(c => c.total), 1)
+            if (catTotals.length === 0) return null
+            return (
+              <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
+                <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>Desglose de gastos</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {catTotals.map(cat => (
+                    <div key={cat.id}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                        <span style={{ fontSize: '0.8rem', color: '#d1d5db' }}>{cat.emoji} {cat.nombre}</span>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: cat.nombre === 'Inversión' ? '#F5C518' : '#ef4444' }}>{fmt(cat.total)}</span>
+                      </div>
+                      <div style={{ height: '5px', borderRadius: '99px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', borderRadius: '99px', width: `${Math.round(cat.total / maxTotal * 100)}%`, background: cat.nombre === 'Inversión' ? 'linear-gradient(90deg,#F5C518,#f59e0b)' : 'linear-gradient(90deg,#ef4444,#f87171)', transition: 'width 0.4s ease' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Categorías — gestión */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
-              <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>💰 Categorías de Finanzas</div>
+              <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>Categorías</div>
               <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{finanzaCategorias.filter(c => !c.es_base).length} personales</span>
             </div>
 
