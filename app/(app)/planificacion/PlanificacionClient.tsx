@@ -73,6 +73,10 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
   const [ideaShowForm, setIdeaShowForm] = useState(false)
   const [ideaEditing, setIdeaEditing] = useState<Idea | null>(null)
   const [ideaEditTexto, setIdeaEditTexto] = useState('')
+  const [ideaToTask, setIdeaToTask] = useState<Idea | null>(null)
+  const [ideaToTaskFecha, setIdeaToTaskFecha] = useState('')
+  const [ideaToTaskHora, setIdeaToTaskHora] = useState('')
+  const [ideaToTaskAdding, setIdeaToTaskAdding] = useState(false)
 
   // ── TAREAS ──
   const [tareas, setTareas] = useState<Tarea[]>([])
@@ -148,6 +152,21 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
     if (!confirm(t('planificacion.ideas_eliminar'))) return
     await supabase.from('ideas').delete().eq('id', id)
     loadIdeas()
+  }
+
+  async function convertIdeaToTask() {
+    if (!ideaToTask) return
+    setIdeaToTaskAdding(true)
+    await supabase.from('tareas').insert({
+      usuario_id: userId,
+      texto: ideaToTask.texto,
+      estado: 'pendiente',
+      fecha_limite: ideaToTaskFecha || null,
+      hora_limite: ideaToTaskFecha && ideaToTaskHora ? ideaToTaskHora : null,
+    })
+    await supabase.from('ideas').update({ realizado: true }).eq('id', ideaToTask.id)
+    setIdeaToTask(null); setIdeaToTaskFecha(''); setIdeaToTaskHora(''); setIdeaToTaskAdding(false)
+    loadIdeas(); loadTareas()
   }
 
   // ── TAREAS ACTIONS ──
@@ -306,10 +325,32 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                     {idea.texto}
                   </p>
                   <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
-                    <button onClick={() => { setIdeaEditing(idea); setIdeaEditTexto(idea.texto); setIdeaShowForm(false) }}
+                    <button onClick={() => { setIdeaToTask(idea); setIdeaToTaskFecha(''); setIdeaToTaskHora(''); setIdeaEditing(null); setIdeaShowForm(false) }}
+                      title="Pasar a tarea"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a78bfa', fontSize: '0.72rem', padding: '2px 4px', fontWeight: 700 }}>→✅</button>
+                    <button onClick={() => { setIdeaEditing(idea); setIdeaEditTexto(idea.texto); setIdeaShowForm(false); setIdeaToTask(null) }}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.8rem', padding: '2px 4px' }}>✏️</button>
                     <button onClick={() => deleteIdea(idea.id)}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.6)', fontSize: '0.8rem', padding: '2px 4px' }}>🗑️</button>
+                  </div>
+                </div>
+              )}
+              {ideaToTask?.id === idea.id && (
+                <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '10px', padding: '0.75rem', marginTop: '0.5rem' }}>
+                  <p style={{ margin: '0 0 0.6rem', fontSize: '0.75rem', color: '#a78bfa', fontWeight: 600 }}>¿Querés ponerle fecha y hora límite? (opcional)</p>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+                    <input type="date" value={ideaToTaskFecha} min={today} onChange={e => setIdeaToTaskFecha(e.target.value)}
+                      style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: '#9ca3af', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark' }} />
+                    <input type="time" step="1" value={ideaToTaskHora} onChange={e => setIdeaToTaskHora(e.target.value)} disabled={!ideaToTaskFecha}
+                      style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: ideaToTaskFecha ? '#9ca3af' : '#4b5563', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark', cursor: ideaToTaskFecha ? 'auto' : 'not-allowed' }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button onClick={convertIdeaToTask} disabled={ideaToTaskAdding}
+                      style={{ ...BTN_BASE, flex: 1, background: '#8b5cf6', color: 'white', fontSize: '0.78rem' }}>
+                      {ideaToTaskAdding ? 'Guardando...' : 'Convertir en tarea'}
+                    </button>
+                    <button onClick={() => setIdeaToTask(null)}
+                      style={{ ...BTN_BASE, background: 'transparent', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '0.4rem 0.6rem', fontSize: '0.78rem' }}>✕</button>
                   </div>
                 </div>
               )}
@@ -371,7 +412,22 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
       )}
 
       {/* ══ CALENDARIO ══ */}
-      {tab === 'calendario' && (
+      {tab === 'calendario' && (() => {
+        const tareasConFecha = tareas.filter(t => t.fecha_limite && t.estado !== 'completada')
+        type CalItem =
+          | { kind: 'evento'; data: Evento }
+          | { kind: 'tarea'; data: Tarea }
+        const merged: CalItem[] = [
+          ...eventos.map(ev => ({ kind: 'evento' as const, data: ev })),
+          ...tareasConFecha.map(t => ({ kind: 'tarea' as const, data: t })),
+        ].sort((a, b) => {
+          const fechaA = a.kind === 'evento' ? a.data.fecha : a.data.fecha_limite!
+          const fechaB = b.kind === 'evento' ? b.data.fecha : b.data.fecha_limite!
+          const horaA = a.kind === 'evento' ? (a.data.hora || '') : (a.data.hora_limite || '')
+          const horaB = b.kind === 'evento' ? (b.data.hora || '') : (b.data.hora_limite || '')
+          return fechaA < fechaB ? -1 : fechaA > fechaB ? 1 : horaA < horaB ? -1 : 1
+        })
+        return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {evShowForm ? (
             <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: '12px', padding: '1rem' }}>
@@ -404,77 +460,114 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
             <AddBtn onClick={() => { setEvShowForm(true); setEvEditing(null) }} />
           )}
 
-          {eventosLoading && <div style={{ textAlign: 'center', color: '#4b5563', padding: '2rem', fontSize: '0.82rem' }}>{t('planificacion.cargando')}</div>}
+          {(eventosLoading || tareasLoading) && <div style={{ textAlign: 'center', color: '#4b5563', padding: '2rem', fontSize: '0.82rem' }}>{t('planificacion.cargando')}</div>}
 
-          {!eventosLoading && eventos.length === 0 && !evShowForm && (
+          {!eventosLoading && !tareasLoading && merged.length === 0 && !evShowForm && (
             <div style={{ textAlign: 'center', color: '#4b5563', padding: '2.5rem 1rem', fontSize: '0.85rem' }}>
               {t('planificacion.evento_empty')}<br />
               <span style={{ fontSize: '0.75rem' }}>{t('planificacion.evento_empty_sub')}</span>
             </div>
           )}
 
-          {eventos.map(ev => (
-            <div key={ev.id}>
-              {evEditing?.id === ev.id ? (
-                <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '12px', padding: '1rem' }}>
-                  <input value={evEditTitulo} onChange={e => setEvEditTitulo(e.target.value)} placeholder={t('planificacion.evento_titulo_edit')} autoFocus
-                    style={{ ...INPUT_STYLE, marginBottom: '0.625rem' }} />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem', marginBottom: '0.625rem' }}>
-                    <div>
-                      <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>{t('planificacion.evento_fecha_label')}</label>
-                      <input type="date" value={evEditFecha} onChange={e => setEvEditFecha(e.target.value)}
-                        style={{ ...INPUT_STYLE, colorScheme: 'dark' }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>{t('planificacion.evento_hora_label')}</label>
-                      <input type="time" value={evEditHora} onChange={e => setEvEditHora(e.target.value)}
-                        style={{ ...INPUT_STYLE, colorScheme: 'dark' }} />
-                    </div>
-                  </div>
-                  <textarea value={evEditNotas} onChange={e => setEvEditNotas(e.target.value)} placeholder={t('planificacion.evento_notas_edit')} rows={2}
-                    style={{ ...INPUT_STYLE, resize: 'vertical', marginBottom: '0.75rem' }} />
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={saveEditEvento} disabled={!evEditTitulo.trim() || !evEditFecha}
-                      style={{ ...BTN_BASE, flex: 1, background: '#8b5cf6', color: 'white' }}>{t('planificacion.guardar')}</button>
-                    <button onClick={() => setEvEditing(null)}
-                      style={{ ...BTN_BASE, background: 'transparent', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '0.55rem 0.75rem' }}>✕</button>
-                  </div>
-                </div>
-              ) : (
-                <div style={{
-                  background: ev.realizado ? 'rgba(16,185,129,0.05)' : '#1a1730',
-                  border: `1px solid ${ev.realizado ? 'rgba(16,185,129,0.2)' : ev.fecha < today ? 'rgba(239,68,68,0.2)' : 'rgba(139,92,246,0.1)'}`,
-                  borderRadius: '12px', padding: '0.875rem 1rem',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: ev.realizado ? '#6b7280' : '#e5e7eb', wordBreak: 'break-word' }}>
-                        {ev.titulo}
-                      </p>
-                      <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
-                        {ev.fecha && <span style={{ fontSize: '0.72rem', color: '#a78bfa' }}>📅 {formatFecha(ev.fecha)}</span>}
-                        {ev.hora && <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>⏰ {ev.hora}</span>}
-                        {ev.realizado && <span style={{ fontSize: '0.68rem', color: '#10b981', fontWeight: 600 }}>{t('planificacion.evento_realizado')}</span>}
+          {merged.map(item => {
+            if (item.kind === 'evento') {
+              const ev = item.data
+              return (
+                <div key={`ev-${ev.id}`}>
+                  {evEditing?.id === ev.id ? (
+                    <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '12px', padding: '1rem' }}>
+                      <input value={evEditTitulo} onChange={e => setEvEditTitulo(e.target.value)} placeholder={t('planificacion.evento_titulo_edit')} autoFocus
+                        style={{ ...INPUT_STYLE, marginBottom: '0.625rem' }} />
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem', marginBottom: '0.625rem' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>{t('planificacion.evento_fecha_label')}</label>
+                          <input type="date" value={evEditFecha} onChange={e => setEvEditFecha(e.target.value)}
+                            style={{ ...INPUT_STYLE, colorScheme: 'dark' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.3rem' }}>{t('planificacion.evento_hora_label')}</label>
+                          <input type="time" value={evEditHora} onChange={e => setEvEditHora(e.target.value)}
+                            style={{ ...INPUT_STYLE, colorScheme: 'dark' }} />
+                        </div>
                       </div>
-                      {ev.notas && <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem', color: '#9ca3af', lineHeight: 1.5 }}>{ev.notas}</p>}
+                      <textarea value={evEditNotas} onChange={e => setEvEditNotas(e.target.value)} placeholder={t('planificacion.evento_notas_edit')} rows={2}
+                        style={{ ...INPUT_STYLE, resize: 'vertical', marginBottom: '0.75rem' }} />
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={saveEditEvento} disabled={!evEditTitulo.trim() || !evEditFecha}
+                          style={{ ...BTN_BASE, flex: 1, background: '#8b5cf6', color: 'white' }}>{t('planificacion.guardar')}</button>
+                        <button onClick={() => setEvEditing(null)}
+                          style={{ ...BTN_BASE, background: 'transparent', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '0.55rem 0.75rem' }}>✕</button>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
-                      <button onClick={() => toggleEvento(ev)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: ev.realizado ? '#10b981' : '#6b7280', fontSize: '0.85rem', padding: '2px 4px' }}>
-                        {ev.realizado ? '↩' : '✓'}
-                      </button>
-                      <button onClick={() => { setEvEditing(ev); setEvEditTitulo(ev.titulo); setEvEditFecha(ev.fecha); setEvEditHora(ev.hora || ''); setEvEditNotas(ev.notas); setEvShowForm(false) }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.8rem', padding: '2px 4px' }}>✏️</button>
-                      <button onClick={() => deleteEvento(ev.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.6)', fontSize: '0.8rem', padding: '2px 4px' }}>🗑️</button>
+                  ) : (
+                    <div style={{
+                      background: ev.realizado ? 'rgba(16,185,129,0.05)' : '#1a1730',
+                      border: `1px solid ${ev.realizado ? 'rgba(16,185,129,0.2)' : ev.fecha < today ? 'rgba(239,68,68,0.2)' : 'rgba(139,92,246,0.1)'}`,
+                      borderRadius: '12px', padding: '0.875rem 1rem',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                            <span style={{ fontSize: '0.65rem', background: 'rgba(139,92,246,0.2)', color: '#a78bfa', borderRadius: '4px', padding: '1px 5px', fontWeight: 600 }}>EVENTO</span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: ev.realizado ? '#6b7280' : '#e5e7eb', wordBreak: 'break-word' }}>
+                            {ev.titulo}
+                          </p>
+                          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
+                            {ev.fecha && <span style={{ fontSize: '0.72rem', color: '#a78bfa' }}>📅 {formatFecha(ev.fecha)}</span>}
+                            {ev.hora && <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>⏰ {ev.hora}</span>}
+                            {ev.realizado && <span style={{ fontSize: '0.68rem', color: '#10b981', fontWeight: 600 }}>{t('planificacion.evento_realizado')}</span>}
+                          </div>
+                          {ev.notas && <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem', color: '#9ca3af', lineHeight: 1.5 }}>{ev.notas}</p>}
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
+                          <button onClick={() => toggleEvento(ev)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: ev.realizado ? '#10b981' : '#6b7280', fontSize: '0.85rem', padding: '2px 4px' }}>
+                            {ev.realizado ? '↩' : '✓'}
+                          </button>
+                          <button onClick={() => { setEvEditing(ev); setEvEditTitulo(ev.titulo); setEvEditFecha(ev.fecha); setEvEditHora(ev.hora || ''); setEvEditNotas(ev.notas); setEvShowForm(false) }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.8rem', padding: '2px 4px' }}>✏️</button>
+                          <button onClick={() => deleteEvento(ev.id)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.6)', fontSize: '0.8rem', padding: '2px 4px' }}>🗑️</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            }
+            // tarea con fecha
+            const tarea = item.data
+            const vencida = tarea.fecha_limite && tarea.fecha_limite < today
+            return (
+              <div key={`t-${tarea.id}`} style={{
+                background: '#1a1730',
+                border: `1px solid ${vencida ? 'rgba(239,68,68,0.25)' : tarea.fecha_limite === today ? 'rgba(245,158,11,0.3)' : 'rgba(139,92,246,0.15)'}`,
+                borderRadius: '12px', padding: '0.875rem 1rem',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                  <span style={{ fontSize: '0.65rem', background: 'rgba(16,185,129,0.15)', color: '#10b981', borderRadius: '4px', padding: '1px 5px', fontWeight: 600 }}>TAREA</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: '#e5e7eb', wordBreak: 'break-word' }}>{tarea.texto}</p>
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.72rem', color: vencida ? '#ef4444' : tarea.fecha_limite === today ? '#f59e0b' : '#a78bfa' }}>
+                        ✅ {formatFecha(tarea.fecha_limite!)}
+                      </span>
+                      {tarea.hora_limite && <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>⏰ {tarea.hora_limite}</span>}
+                      {vencida && <span style={{ fontSize: '0.68rem', color: '#ef4444', fontWeight: 600 }}>{diasRestantes(tarea.fecha_limite!, today, t)}</span>}
                     </div>
                   </div>
+                  <button onClick={() => toggleTarea(tarea)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.85rem', padding: '2px 4px' }}>✓</button>
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            )
+          })}
         </div>
-      )}
+      )
+    })()}
     </div>
   )
 }
