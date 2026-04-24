@@ -828,7 +828,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             return (
               <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '1rem 1.125rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
-                  <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>Semana en revisión</span>
+                  <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>{t('tablero.hoy.semana_revision')}</span>
                   <span style={{ fontSize: '0.75rem', color: semPct >= 70 ? '#10b981' : semPct >= 40 ? '#a78bfa' : '#6b7280', fontWeight: 700 }}>{semPct}% promedio</span>
                 </div>
                 <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'flex-end', height: '48px', marginBottom: '0.625rem' }}>
@@ -864,14 +864,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     color: '#10b981', fontSize: '0.78rem', fontWeight: itemTipo === 'ingreso' ? 700 : 400,
                     outline: itemTipo === 'ingreso' ? '1.5px solid rgba(16,185,129,0.5)' : '1px solid rgba(16,185,129,0.15)',
                     transition: 'all 0.15s',
-                  }}>+ Ingreso</button>
+                  }}>{t('tablero.hoy.ingreso_btn')}</button>
                   <button onClick={() => setItemTipo('gasto')} style={{
                     padding: '0.5rem 0.875rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
                     background: itemTipo === 'gasto' ? 'rgba(239,68,68,0.25)' : 'rgba(239,68,68,0.06)',
                     color: '#ef4444', fontSize: '0.78rem', fontWeight: itemTipo === 'gasto' ? 700 : 400,
                     outline: itemTipo === 'gasto' ? '1.5px solid rgba(239,68,68,0.5)' : '1px solid rgba(239,68,68,0.15)',
                     transition: 'all 0.15s',
-                  }}>− Gasto</button>
+                  }}>{t('tablero.hoy.gasto_btn')}</button>
                 </>
               )}
               {itemCategoria === 'Inversión' && (
@@ -908,13 +908,13 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               <input
                 type="number" value={itemMonto} onChange={e => setItemMonto(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addFinanzaItem()}
-                placeholder="Monto"
+                placeholder={t('tablero.hoy.monto_placeholder')}
                 style={{ width: '90px', padding: '0.55rem 0.6rem', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${itemCategoria === 'Inversión' ? 'rgba(245,197,24,0.3)' : itemTipo === 'ingreso' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, color: '#f3f0ff', fontSize: '0.9rem', fontWeight: 700, outline: 'none', flexShrink: 0 }}
               />
               <input
                 value={itemDesc} onChange={e => setItemDesc(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addFinanzaItem()}
-                placeholder="Detalle (opcional)"
+                placeholder={t('tablero.hoy.detalle_placeholder')}
                 style={{ flex: 1, minWidth: '80px', padding: '0.55rem 0.6rem', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af', fontSize: '0.8rem', outline: 'none' }}
               />
               <button onClick={addFinanzaItem} disabled={itemAdding || !itemMonto} style={{
@@ -1521,7 +1521,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                         onClick={() => { setEditingCategoria(cat); setEditCatNombre(cat.nombre); setEditCatEmoji(cat.emoji) }}
                         style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '0.75rem', padding: '0 4px' }}
                       >✏️</button>
-                      <button onClick={() => { if (confirm('¿Eliminar esta categoría?')) deleteCategoria(cat.id) }} style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '1rem', padding: '0 4px' }}>×</button>
+                      <button onClick={() => { if (confirm(t('tablero.finanzas.eliminar_cat'))) deleteCategoria(cat.id) }} style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '1rem', padding: '0 4px' }}>×</button>
                     </div>
                   )}
                 </div>
@@ -1540,7 +1540,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   value={nuevaCatNombre}
                   onChange={e => setNuevaCatNombre(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addCategoria()}
-                  placeholder="Nombre de categoría"
+                  placeholder={t('tablero.finanzas.cat_placeholder')}
                   style={{ flex: 1, minWidth: '120px', padding: '0.55rem 0.6rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none' }}
                 />
                 <button onClick={addCategoria} disabled={!nuevaCatNombre.trim() || catSaving} style={{ padding: '0.55rem 0.875rem', borderRadius: '8px', border: 'none', background: 'rgba(139,92,246,0.25)', color: '#a78bfa', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
@@ -1782,14 +1782,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       color: '#10b981', fontSize: '0.75rem', fontWeight: editItemTipo === 'ingreso' ? 700 : 400,
                       outline: editItemTipo === 'ingreso' ? '1.5px solid rgba(16,185,129,0.5)' : '1px solid rgba(16,185,129,0.15)',
                       transition: 'all 0.15s',
-                    }}>+ Ingreso</button>
+                    }}>{t('tablero.hoy.ingreso_btn')}</button>
                     <button onClick={() => setEditItemTipo('gasto')} style={{
                       padding: '0.4rem 0.7rem', borderRadius: '7px', border: 'none', cursor: 'pointer',
                       background: editItemTipo === 'gasto' ? 'rgba(239,68,68,0.25)' : 'rgba(239,68,68,0.06)',
                       color: '#ef4444', fontSize: '0.75rem', fontWeight: editItemTipo === 'gasto' ? 700 : 400,
                       outline: editItemTipo === 'gasto' ? '1.5px solid rgba(239,68,68,0.5)' : '1px solid rgba(239,68,68,0.15)',
                       transition: 'all 0.15s',
-                    }}>− Gasto</button>
+                    }}>{t('tablero.hoy.gasto_btn')}</button>
                   </>
                 )}
                 {editItemCategoria === 'Inversión' && (
@@ -1826,13 +1826,13 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                 <input
                   type="number" value={editItemMonto} onChange={e => setEditItemMonto(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addEditDayItem()}
-                  placeholder="Monto"
+                  placeholder={t('tablero.hoy.monto_placeholder')}
                   style={{ width: '80px', padding: '0.45rem 0.5rem', borderRadius: '7px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${editItemCategoria === 'Inversión' ? 'rgba(245,197,24,0.3)' : editItemTipo === 'ingreso' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, color: '#f3f0ff', fontSize: '0.85rem', fontWeight: 700, outline: 'none', flexShrink: 0 }}
                 />
                 <input
                   value={editItemDesc} onChange={e => setEditItemDesc(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addEditDayItem()}
-                  placeholder="Detalle (opcional)"
+                  placeholder={t('tablero.hoy.detalle_placeholder')}
                   style={{ flex: 1, minWidth: '70px', padding: '0.45rem 0.5rem', borderRadius: '7px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af', fontSize: '0.78rem', outline: 'none' }}
                 />
                 <button onClick={addEditDayItem} disabled={editItemAdding || !editItemMonto} style={{

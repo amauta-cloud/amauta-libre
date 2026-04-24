@@ -326,7 +326,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                   </p>
                   <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
                     <button onClick={() => { setIdeaToTask(idea); setIdeaToTaskFecha(''); setIdeaToTaskHora(''); setIdeaEditing(null); setIdeaShowForm(false) }}
-                      title="Pasar a tarea"
+                      title={t('planificacion.pasar_a_tarea')}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a78bfa', fontSize: '0.72rem', padding: '2px 4px', fontWeight: 700 }}>→✅</button>
                     <button onClick={() => { setIdeaEditing(idea); setIdeaEditTexto(idea.texto); setIdeaShowForm(false); setIdeaToTask(null) }}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.8rem', padding: '2px 4px' }}>✏️</button>
@@ -337,7 +337,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
               )}
               {ideaToTask?.id === idea.id && (
                 <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '10px', padding: '0.75rem', marginTop: '0.5rem' }}>
-                  <p style={{ margin: '0 0 0.6rem', fontSize: '0.75rem', color: '#a78bfa', fontWeight: 600 }}>¿Querés ponerle fecha y hora límite? (opcional)</p>
+                  <p style={{ margin: '0 0 0.6rem', fontSize: '0.75rem', color: '#a78bfa', fontWeight: 600 }}>{t('planificacion.idea_fecha_hint')}</p>
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
                     <input type="date" value={ideaToTaskFecha} min={today} onChange={e => setIdeaToTaskFecha(e.target.value)}
                       style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: '#9ca3af', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark' }} />
@@ -347,7 +347,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button onClick={convertIdeaToTask} disabled={ideaToTaskAdding}
                       style={{ ...BTN_BASE, flex: 1, background: '#8b5cf6', color: 'white', fontSize: '0.78rem' }}>
-                      {ideaToTaskAdding ? 'Guardando...' : 'Convertir en tarea'}
+                      {ideaToTaskAdding ? t('planificacion.guardando') : t('planificacion.convertir_tarea')}
                     </button>
                     <button onClick={() => setIdeaToTask(null)}
                       style={{ ...BTN_BASE, background: 'transparent', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '0.4rem 0.6rem', fontSize: '0.78rem' }}>✕</button>
@@ -510,7 +510,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                            <span style={{ fontSize: '0.65rem', background: 'rgba(139,92,246,0.2)', color: '#a78bfa', borderRadius: '4px', padding: '1px 5px', fontWeight: 600 }}>EVENTO</span>
+                            <span style={{ fontSize: '0.65rem', background: 'rgba(139,92,246,0.2)', color: '#a78bfa', borderRadius: '4px', padding: '1px 5px', fontWeight: 600 }}>{t('planificacion.badge_evento')}</span>
                           </div>
                           <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: ev.realizado ? '#6b7280' : '#e5e7eb', wordBreak: 'break-word' }}>
                             {ev.titulo}
@@ -548,7 +548,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                 borderRadius: '12px', padding: '0.875rem 1rem',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span style={{ fontSize: '0.65rem', background: 'rgba(16,185,129,0.15)', color: '#10b981', borderRadius: '4px', padding: '1px 5px', fontWeight: 600 }}>TAREA</span>
+                  <span style={{ fontSize: '0.65rem', background: 'rgba(16,185,129,0.15)', color: '#10b981', borderRadius: '4px', padding: '1px 5px', fontWeight: 600 }}>{t('planificacion.badge_tarea')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                   <div style={{ flex: 1 }}>
@@ -583,8 +583,8 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                   opacity: 0.7,
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.15rem' }}>
-                    <span style={{ fontSize: '0.65rem', background: 'rgba(16,185,129,0.15)', color: '#10b981', borderRadius: '4px', padding: '1px 5px', fontWeight: 600 }}>TAREA</span>
-                    <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 600 }}>✓ Completada</span>
+                    <span style={{ fontSize: '0.65rem', background: 'rgba(16,185,129,0.15)', color: '#10b981', borderRadius: '4px', padding: '1px 5px', fontWeight: 600 }}>{t('planificacion.badge_tarea')}</span>
+                    <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 600 }}>{t('planificacion.badge_completada')}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
                     <div style={{ flex: 1 }}>

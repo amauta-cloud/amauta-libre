@@ -315,7 +315,7 @@ export default function EducacionClient({
                           </div>
                           {e.contenido && e.contenido !== '#' && (
                             <a href={e.contenido} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: col.text, textDecoration: 'none', fontWeight: 600 }}>
-                              Abrir →
+                              {t('educacion.cta_abrir')}
                             </a>
                           )}
                         </div>
@@ -340,13 +340,13 @@ export default function EducacionClient({
           borderRadius: '12px', padding: '1rem 1.25rem',
         }}>
           <div style={{ fontSize: '0.65rem', color: '#34d399', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.25rem' }}>
-            📚 Librería · Solo Argentina
+            {t('educacion.libreria_titulo')}
           </div>
           <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '0.88rem', marginBottom: '0.2rem' }}>
-            ¿Buscás el libro físico?
+            {t('educacion.libreria_busca')}
           </div>
           <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-            Encontrá los títulos recomendados en nuestra librería →
+            {t('educacion.libreria_desc')}
           </div>
         </a>
 
@@ -422,7 +422,7 @@ function ContentCard({ etapa, mensajeIntro, paso, t }: {
         </a>
       ) : (
         <div style={{ fontSize: '0.78rem', color: '#4b5563', fontStyle: 'italic' }}>
-          El material llega pronto.
+          {t('educacion.material_pronto')}
         </div>
       )}
     </div>

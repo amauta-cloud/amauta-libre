@@ -294,7 +294,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
                   border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.07)',
                   color: '#d1d5db', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
                 }}>
-                  Cancelar
+                  {t('common.cancel')}
                 </button>
                 <button onClick={handleDeleteAccount} disabled={deleting} style={{
                   flex: 1, padding: '0.6rem', borderRadius: '8px',
