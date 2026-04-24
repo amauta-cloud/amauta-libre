@@ -33,9 +33,11 @@ const TIPO_COLOR: Record<string, { bg: string; border: string; text: string }> =
 export default function EducacionClient({
   etapas,
   userId,
+  nombre = '',
 }: {
   etapas: Etapa[]
   userId: string
+  nombre?: string
 }) {
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -126,7 +128,7 @@ export default function EducacionClient({
         <div style={{ marginBottom: '1.75rem' }}>
           <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{t('educacion.titulo')}</h1>
           <p style={{ margin: '0.2rem 0 0', fontSize: '0.78rem', color: '#6b7280' }}>
-            {paso === 0 ? t('educacion.hola', { name: '' }).trim().replace(/,\s*$/, '') : t('educacion.paso_progreso', { paso, total: totalPasos, name: '' }).trim()}
+            {paso === 0 ? t('educacion.hola', { name: nombre }).trim() : t('educacion.paso_progreso', { paso, total: totalPasos, name: nombre }).trim()}
           </p>
         </div>
 
@@ -331,7 +333,24 @@ export default function EducacionClient({
           </>
         )}
 
-        <div style={{ textAlign: 'center', marginTop: '2.5rem', color: '#4b5563', fontSize: '0.72rem' }}>
+        {/* CTA Librería */}
+        <a href="https://libreria.amauta.cloud" target="_blank" rel="noopener noreferrer" style={{
+          display: 'block', textDecoration: 'none', marginTop: '2rem',
+          background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.18)',
+          borderRadius: '12px', padding: '1rem 1.25rem',
+        }}>
+          <div style={{ fontSize: '0.65rem', color: '#34d399', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.25rem' }}>
+            📚 Librería · Solo Argentina
+          </div>
+          <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '0.88rem', marginBottom: '0.2rem' }}>
+            ¿Buscás el libro físico?
+          </div>
+          <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+            Encontrá los títulos recomendados en nuestra librería →
+          </div>
+        </a>
+
+        <div style={{ textAlign: 'center', marginTop: '1.5rem', color: '#4b5563', fontSize: '0.72rem' }}>
           Amauta Libre
         </div>
       </div>

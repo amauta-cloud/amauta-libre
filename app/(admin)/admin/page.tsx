@@ -78,6 +78,8 @@ export default async function AdminPage() {
     registros90Res,
     authUsersRes,
     registrosHoyRes,
+    soporteRes,
+    finanzasRes,
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email'),
     admin.from('habito_registros').select('usuario_id').eq('fecha', today),
@@ -88,11 +90,17 @@ export default async function AdminPage() {
     admin.from('educacion_estado').select('usuario_id, etapa_actual'),
     admin.from('habito_registros').select('usuario_id, fecha').gte('fecha', hace90),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
-    admin.from('habito_registros').select('usuario_id, habito_id').eq('fecha', today).eq('completado', true).limit(500),
+    admin.from('habito_registros').select('usuario_id, habito_id').eq('fecha', today).limit(500),
+    admin.from('soporte_mensajes').select('id, usuario_id, mensaje, categoria, creado_en').order('creado_en', { ascending: false }).limit(50).then(r => r.error ? { data: [] as { id: string; usuario_id: string; mensaje: string; categoria: string; creado_en: string }[] } : r),
+    admin.from('finanzas_items').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
   ])
 
   const usuarios = usuariosRes.data ?? []
   const totalUsuarios = usuarios.length
+  const soporteMensajes = soporteRes.data ?? []
+  const emailMap = Object.fromEntries(usuarios.map(u => [u.id, u.email || u.nombre || '?']))
+  const usuariosConFinanzas = new Set((finanzasRes.data ?? []).map(r => r.usuario_id)).size
+  const pctFinanzas = totalUsuarios > 0 ? Math.round((usuariosConFinanzas / totalUsuarios) * 100) : 0
 
   const activosHoy = new Set((activosHoyRes.data ?? []).map(r => r.usuario_id)).size
   const activos7 = new Set((activos7Res.data ?? []).map(r => r.usuario_id)).size
@@ -185,13 +193,14 @@ export default async function AdminPage() {
     hoyPorUsuario[r.usuario_id].push(r)
   }
 
-  // Rachas activas: días consecutivos desde hoy usando registros90
+  // Rachas para todos los usuarios
   const userDateSets: Record<string, Set<string>> = {}
   for (const r of registros90) {
     if (!userDateSets[r.usuario_id]) userDateSets[r.usuario_id] = new Set()
     userDateSets[r.usuario_id].add(r.fecha)
   }
-  const rachasData = usuarios.map(u => {
+  const streakMap: Record<string, number> = {}
+  for (const u of usuarios) {
     const fechas = userDateSets[u.id] ?? new Set<string>()
     let streak = 0
     const d = new Date()
@@ -201,14 +210,28 @@ export default async function AdminPage() {
       streak++
       d.setDate(d.getDate() - 1)
     }
-    return { id: u.id, nombre: u.nombre, email: u.email, streak }
-  }).filter(u => u.streak > 0).sort((a, b) => b.streak - a.streak).slice(0, 8)
+    streakMap[u.id] = streak
+  }
+  const rachasData = usuarios
+    .filter(u => streakMap[u.id] > 0)
+    .sort((a, b) => (streakMap[b.id] ?? 0) - (streakMap[a.id] ?? 0))
+    .slice(0, 8)
+    .map(u => ({ ...u, streak: streakMap[u.id] }))
+
+  // Educación por usuario
+  const eduMap: Record<string, number> = {}
+  for (const e of (educacionRes.data ?? [])) {
+    eduMap[e.usuario_id] = e.etapa_actual
+  }
 
   const usuariosTabla = usuarios
     .map(u => ({
       ...u,
       ultimaActividad: ultimaActMap[u.id] ?? null,
       authUser: authUsers.find(a => a.id === u.id),
+      streak: streakMap[u.id] ?? 0,
+      habitosHoy: hoyPorUsuario[u.id]?.length ?? 0,
+      educacionEtapa: eduMap[u.id] ?? 0,
     }))
     .sort((a, b) => {
       if (!a.ultimaActividad && !b.ultimaActividad) return 0
@@ -228,7 +251,7 @@ export default async function AdminPage() {
               Amauta Libre — Admin
             </p>
             <h1 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>Panel de control</h1>
-            <p style={{ color: '#4b5563', fontSize: '0.78rem', marginTop: '0.25rem' }}>{today}</p>
+            <p style={{ color: '#4b5563', fontSize: '0.78rem', marginTop: '0.25rem' }}>{today} · <span style={{ color: '#6b7280' }}>v1.5.0</span></p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem', flexShrink: 0 }}>
             <AdminPushButton totalSubs={pushSubs} />
@@ -245,6 +268,7 @@ export default async function AdminPage() {
           <StatCard label="Activos 7 días" value={fmt(activos7)} color="#34d399" sub={`${retencion7}% retención`} />
           <StatCard label="Nuevos 7 días" value={fmt(nuevos7)} color="#60a5fa" sub={`${fmt(nuevos30)} en 30 días`} trend={tendenciaNuevos} />
           <StatCard label="Push subs" value={fmt(pushSubs)} color="#f59e0b" sub="notificaciones activas" />
+          <StatCard label="Usan finanzas" value={`${pctFinanzas}%`} color="#10b981" sub={`${usuariosConFinanzas} de ${totalUsuarios} usuarios`} />
         </div>
 
         {/* Alerta dormidos */}
@@ -462,7 +486,7 @@ export default async function AdminPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
             <thead>
               <tr>
-                {['Nombre', 'Email', 'Registrado', 'Último hábito'].map(h => (
+                {['Usuario', 'Registrado', 'Racha', 'Hoy', 'Edu', 'Última actividad', ''].map(h => (
                   <th key={h} style={{ textAlign: 'left', color: '#6b7280', fontWeight: 600, padding: '0.35rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -476,25 +500,79 @@ export default async function AdminPage() {
                   : '—'
                 let actividadColor = '#374151'
                 let actividadLabel = u.ultimaActividad ?? 'nunca'
-                if (activo7d) { actividadColor = '#10b981'; actividadLabel += ' ✓' }
+                if (activo7d) { actividadColor = '#10b981' }
                 else if (activo30d) { actividadColor = '#9ca3af' }
                 else if (u.ultimaActividad) { actividadColor = '#6b7280' }
+                const streakColor = u.streak >= 30 ? '#f59e0b' : u.streak >= 7 ? '#a78bfa' : u.streak > 0 ? '#6b7280' : '#374151'
+                const eduColor = u.educacionEtapa >= 11 ? '#10b981' : u.educacionEtapa >= 5 ? '#a78bfa' : u.educacionEtapa > 0 ? '#6b7280' : '#374151'
                 return (
                   <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '0.6rem 0.75rem', color: '#e5e7eb', fontWeight: 500, whiteSpace: 'nowrap' }}>{u.nombre || <span style={{ color: '#374151' }}>—</span>}</td>
-                    <td style={{ padding: '0.6rem 0.75rem', color: '#9ca3af' }}>{u.email}</td>
-                    <td style={{ padding: '0.6rem 0.75rem', color: '#6b7280', whiteSpace: 'nowrap' }}>{registrado}</td>
                     <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
-                      <span style={{ color: actividadColor, fontWeight: activo7d ? 600 : 400 }}>{actividadLabel}</span>
+                      <div style={{ color: '#e5e7eb', fontWeight: 500 }}>{u.nombre || '—'}</div>
+                      <div style={{ color: '#4b5563', fontSize: '0.65rem' }}>{u.email}</div>
+                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem', color: '#6b7280', whiteSpace: 'nowrap', fontSize: '0.72rem' }}>{registrado}</td>
+                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: streakColor, fontWeight: 600, fontSize: '0.78rem' }}>
+                        {u.streak > 0 ? `${u.streak >= 7 ? '🔥' : '⚡'}${u.streak}d` : '—'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: u.habitosHoy > 0 ? '#10b981' : '#374151', fontWeight: u.habitosHoy > 0 ? 600 : 400, fontSize: '0.78rem' }}>
+                        {u.habitosHoy > 0 ? `✓ ${u.habitosHoy}` : '—'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: eduColor, fontSize: '0.78rem', fontWeight: 600 }}>
+                        {u.educacionEtapa}/11
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: actividadColor, fontSize: '0.72rem' }}>{actividadLabel}</span>
+                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <Link href={`/admin/usuario/${u.id}`} style={{ fontSize: '0.72rem', color: '#7c3aed', textDecoration: 'none', padding: '0.25rem 0.5rem', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '6px', whiteSpace: 'nowrap' }}>
+                        Ver →
+                      </Link>
                     </td>
                   </tr>
                 )
               })}
               {usuariosTabla.length === 0 && (
-                <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#4b5563', fontSize: '0.8rem' }}>Sin usuarios registrados</td></tr>
+                <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: '#4b5563', fontSize: '0.8rem' }}>Sin usuarios registrados</td></tr>
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mensajes de soporte */}
+        <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '16px', padding: '1.5rem' }}>
+          <div style={{ fontSize: '0.72rem', color: '#6b7280', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '1rem' }}>
+            💬 Mensajes de soporte ({soporteMensajes.length})
+          </div>
+          {soporteMensajes.length === 0 ? (
+            <div style={{ color: '#4b5563', fontSize: '0.82rem', textAlign: 'center', padding: '1.5rem' }}>Sin mensajes todavía</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '0.75rem' }}>
+              {soporteMensajes.map(m => {
+                const catColor = m.categoria === 'bug' ? '#ef4444' : m.categoria === 'sugerencia' ? '#8b5cf6' : '#6b7280'
+                const fecha = new Date(m.creado_en)
+                const fechaStr = `${fecha.toLocaleDateString('es-AR')} ${fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`
+                return (
+                  <div key={m.id} style={{ padding: '0.875rem', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, color: catColor, textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>
+                        {m.categoria === 'bug' ? '🐛 Bug' : m.categoria === 'sugerencia' ? '💡 Idea' : '💬 Otro'}
+                      </span>
+                      <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>{fechaStr}</span>
+                    </div>
+                    <p style={{ margin: '0 0 0.375rem', color: '#d1d5db', fontSize: '0.85rem', lineHeight: 1.5 }}>{m.mensaje}</p>
+                    <div style={{ fontSize: '0.65rem', color: '#4b5563' }}>{emailMap[m.usuario_id] || m.usuario_id}</div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
       </div>

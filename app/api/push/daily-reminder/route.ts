@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
+import { getQuoteOfDay } from '@/lib/quotes'
 
 export async function GET(req: NextRequest) {
   if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
@@ -12,7 +13,7 @@ export async function GET(req: NextRequest) {
     process.env.VAPID_PRIVATE_KEY,
   )
   const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -25,8 +26,8 @@ export async function GET(req: NextRequest) {
   if (!subscriptions?.length) return NextResponse.json({ sent: 0 })
 
   const payload = JSON.stringify({
-    title: '¿Cómo van tus hábitos hoy? 🔥',
-    body: 'Entrá y registrá tu progreso del día.',
+    title: 'Amauta — pensamiento del día',
+    body: getQuoteOfDay(),
     url: '/tablero',
   })
 
