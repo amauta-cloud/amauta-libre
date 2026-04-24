@@ -32,8 +32,8 @@ export async function GET(req: NextRequest) {
   const subscriptions = Array.from(seen.values())
 
   const payload = JSON.stringify({
-    title: '¿Cómo fue el día? 🔥',
-    body: 'Cerrá el día en Amauta. Un minuto y listo.',
+    title: 'Cierre del día 🌙',
+    body: 'Marcá tus hábitos antes de dormir.',
     url: '/tablero',
   })
 
