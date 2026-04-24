@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useLocale } from '@/lib/i18n/LocaleContext'
 import OnboardingTutorial from '@/components/OnboardingTutorial'
 import PushNotificationSetup from '@/components/PushNotificationSetup'
+import RatingPrompt from '@/components/RatingPrompt'
 
 type Habito = {
   id: string
@@ -55,6 +56,21 @@ type MetasData = {
 } | null
 
 type Finanzas = { ingresos: number; gastos: number; ahorro: boolean }
+type FinanzaItem = { id: string; tipo: 'ingreso' | 'gasto'; monto: number; descripcion: string | null; categoria: string | null; creado_en: string }
+type FinanzaCategoria = { id: string; nombre: string; emoji: string; es_base: boolean; orden: number }
+
+const DEFAULT_CATS_FIN = [
+  { nombre: 'Trabajo',    emoji: '💼', es_base: true, orden: 1 },
+  { nombre: 'Comida',     emoji: '🍔', es_base: true, orden: 2 },
+  { nombre: 'Casa',       emoji: '🏠', es_base: true, orden: 3 },
+  { nombre: 'Transporte', emoji: '🚗', es_base: true, orden: 4 },
+  { nombre: 'Salud',      emoji: '💊', es_base: true, orden: 5 },
+  { nombre: 'Ocio',       emoji: '🎉', es_base: true, orden: 6 },
+  { nombre: 'Inversión',  emoji: '📈', es_base: true, orden: 7 },
+  { nombre: 'Otro',       emoji: '➕', es_base: true, orden: 8 },
+]
+
+const CAT_FIN_EMOJIS = ['💰','🏠','🚗','🍔','💊','🎉','📚','🎮','🐕','👗','💡','🛒','✈️','⚽','🎨','🔧','🌿','💻','🎵','🍕']
 
 const EMOJIS = ['⭐','🎯','📚','🏃','🧠','💧','🥗','🛌','✍️','🎨','🎵','💼','🌿','🙏','📞','💊','🚴','🏋️','🧘','🍎','🔥','💪','🎧','📖','⚽','🎸','🖥️','🌅','🎭','🦁']
 
@@ -99,7 +115,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   const [regMap, setRegMap] = useState(initialRegMap)
   const [loading, setLoading] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'hoy' | 'mes' | 'habitos' | 'metas'>('hoy')
+  const [activeTab, setActiveTab] = useState<'hoy' | 'mes' | 'habitos' | 'finanzas' | 'metas'>('hoy')
   const [habitoFeedback, setHabitoFeedback] = useState<string | null>(null)
 
   // Numeric habit stepper values (controlled)
@@ -123,10 +139,19 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   // Finanzas hoy
   const [finanzas, setFinanzas] = useState<Finanzas>({ ingresos: 0, gastos: 0, ahorro: false })
-  const [ingresosInput, setIngresosInput] = useState('')
-  const [gastosInput, setGastosInput] = useState('')
-  const [finanzasSaving, setFinanzasSaving] = useState(false)
-  const [finanzasSaved, setFinanzasSaved] = useState(false)
+  const [finanzaItems, setFinanzaItems] = useState<FinanzaItem[]>([])
+  const [itemTipo, setItemTipo] = useState<'ingreso' | 'gasto'>('ingreso')
+  const [itemMonto, setItemMonto] = useState('')
+  const [itemDesc, setItemDesc] = useState('')
+  const [itemCategoria, setItemCategoria] = useState<string | null>(null)
+  const [itemAdding, setItemAdding] = useState(false)
+
+  // Finanza categorías
+  const [finanzaCategorias, setFinanzaCategorias] = useState<FinanzaCategoria[]>([])
+  const [showAddCategoria, setShowAddCategoria] = useState(false)
+  const [nuevaCatNombre, setNuevaCatNombre] = useState('')
+  const [nuevaCatEmoji, setNuevaCatEmoji] = useState('💰')
+  const [catSaving, setCatSaving] = useState(false)
 
   // Mes tab
   const now = new Date()
@@ -135,14 +160,19 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const mesNombre = new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { month: 'long' }).format(new Date(year, month - 1, 1))
   const [monthRegistros, setMonthRegistros] = useState<{ habito_id: string; fecha: string; valor_bool: boolean | null; valor_numero: number | null }[]>([])
   const [monthFinanzas, setMonthFinanzas] = useState<{ fecha: string; ingresos: number; gastos: number; ahorro: boolean }[]>([])
+  const [monthItems, setMonthItems] = useState<{ tipo: string; monto: number; categoria: string | null }[]>([])
   const [monthLoading, setMonthLoading] = useState(false)
 
   // Edit past day
   const [editingDay, setEditingDay] = useState<string | null>(null)
   const [editDayRegMap, setEditDayRegMap] = useState<Record<string, Registro>>({})
   const [editDayFin, setEditDayFin] = useState<Finanzas>({ ingresos: 0, gastos: 0, ahorro: false })
-  const [editIngresosInput, setEditIngresosInput] = useState('')
-  const [editGastosInput, setEditGastosInput] = useState('')
+  const [editDayItems, setEditDayItems] = useState<FinanzaItem[]>([])
+  const [editItemTipo, setEditItemTipo] = useState<'ingreso' | 'gasto'>('ingreso')
+  const [editItemMonto, setEditItemMonto] = useState('')
+  const [editItemDesc, setEditItemDesc] = useState('')
+  const [editItemCategoria, setEditItemCategoria] = useState<string | null>(null)
+  const [editItemAdding, setEditItemAdding] = useState(false)
   const [editSaving, setEditSaving] = useState(false)
   const [editSaved, setEditSaved] = useState(false)
 
@@ -174,19 +204,32 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }).length
   const pct = habitosHoy.length > 0 ? Math.round((completados / habitosHoy.length) * 100) : 0
 
+  // Load finance categories (create defaults if empty)
+  useEffect(() => {
+    async function loadCategorias() {
+      const { data } = await supabase.from('finanzas_categorias').select('*').eq('usuario_id', userId).eq('activo', true).order('orden')
+      if (!data || data.length === 0) {
+        const { data: created } = await supabase.from('finanzas_categorias').insert(
+          DEFAULT_CATS_FIN.map(c => ({ usuario_id: userId, ...c }))
+        ).select()
+        setFinanzaCategorias((created || []) as FinanzaCategoria[])
+      } else {
+        setFinanzaCategorias(data as FinanzaCategoria[])
+      }
+    }
+    loadCategorias()
+  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Load today's finanzas
   useEffect(() => {
-    supabase.from('finanzas_diarias')
-      .select('ingresos,gastos,ahorro')
-      .eq('usuario_id', userId)
-      .eq('fecha', today)
-      .maybeSingle()
+    supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', today).order('creado_en')
       .then(({ data }) => {
-        if (data) {
-          setFinanzas({ ingresos: data.ingresos || 0, gastos: data.gastos || 0, ahorro: data.ahorro || false })
-          setIngresosInput(data.ingresos > 0 ? String(data.ingresos) : '')
-          setGastosInput(data.gastos > 0 ? String(data.gastos) : '')
-        }
+        const items = (data || []) as FinanzaItem[]
+        setFinanzaItems(items)
+        const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
+        const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
+        const ahorro = items.some(i => i.categoria === 'Inversión')
+        setFinanzas({ ingresos, gastos, ahorro })
       })
   }, [userId, today]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -196,17 +239,19 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     const daysInMonth = new Date(year, month, 0).getDate()
     const from = `${year}-${String(month).padStart(2, '0')}-01`
     const to = `${year}-${String(month).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`
-    const [regRes, finRes] = await Promise.all([
+    const [regRes, finRes, itemsRes] = await Promise.all([
       supabase.from('habito_registros').select('habito_id,fecha,valor_bool,valor_numero').eq('usuario_id', userId).gte('fecha', from).lte('fecha', to),
       supabase.from('finanzas_diarias').select('fecha,ingresos,gastos,ahorro').eq('usuario_id', userId).gte('fecha', from).lte('fecha', to),
+      supabase.from('finanzas_items').select('tipo,monto,categoria').eq('usuario_id', userId).gte('fecha', from).lte('fecha', to),
     ])
     setMonthRegistros(regRes.data || [])
     setMonthFinanzas((finRes.data || []) as { fecha: string; ingresos: number; gastos: number; ahorro: boolean }[])
+    setMonthItems((itemsRes.data || []) as { tipo: string; monto: number; categoria: string | null }[])
     setMonthLoading(false)
   }, [userId, year, month]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (activeTab === 'mes') loadMonthData()
+    if (activeTab === 'mes' || activeTab === 'finanzas') loadMonthData()
   }, [activeTab, loadMonthData])
 
   async function toggleBool(habito: Habito) {
@@ -293,17 +338,54 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     }
   }
 
-  async function saveFinanzas() {
-    const ingresos = parseFloat(ingresosInput) || 0
-    const gastos = parseFloat(gastosInput) || 0
-    setFinanzas(prev => ({ ...prev, ingresos, gastos }))
-    setFinanzasSaving(true)
+  async function syncFinanzasDiarias(items: FinanzaItem[]) {
+    const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
+    const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
+    const ahorro = items.some(i => i.categoria === 'Inversión')
+    setFinanzas({ ingresos, gastos, ahorro })
     await supabase.from('finanzas_diarias').upsert({
-      usuario_id: userId, fecha: today, ingresos, gastos, ahorro: finanzas.ahorro,
+      usuario_id: userId, fecha: today, ingresos, gastos, ahorro,
     }, { onConflict: 'usuario_id,fecha' })
-    setFinanzasSaving(false)
-    setFinanzasSaved(true)
-    setTimeout(() => setFinanzasSaved(false), 2000)
+  }
+
+  async function addFinanzaItem() {
+    const monto = parseFloat(itemMonto) || 0
+    if (!monto) return
+    setItemAdding(true)
+    const tipoFinal: 'ingreso' | 'gasto' = itemCategoria === 'Inversión' ? 'gasto' : itemTipo
+    const { data } = await supabase.from('finanzas_items').insert({
+      usuario_id: userId, fecha: today, tipo: tipoFinal, monto, descripcion: itemDesc.trim() || null, categoria: itemCategoria,
+    }).select().single()
+    if (data) {
+      const newItems = [...finanzaItems, data as FinanzaItem]
+      setFinanzaItems(newItems)
+      await syncFinanzasDiarias(newItems)
+    }
+    setItemMonto(''); setItemDesc(''); setItemAdding(false)
+  }
+
+  async function deleteFinanzaItem(id: string) {
+    await supabase.from('finanzas_items').delete().eq('id', id)
+    const newItems = finanzaItems.filter(i => i.id !== id)
+    setFinanzaItems(newItems)
+    await syncFinanzasDiarias(newItems)
+  }
+
+  async function addCategoria() {
+    if (!nuevaCatNombre.trim()) return
+    setCatSaving(true)
+    const maxOrden = Math.max(...finanzaCategorias.map(c => c.orden), 0)
+    const { data } = await supabase.from('finanzas_categorias').insert({
+      usuario_id: userId, nombre: nuevaCatNombre.trim(), emoji: nuevaCatEmoji, es_base: false, orden: maxOrden + 1,
+    }).select().single()
+    if (data) setFinanzaCategorias(prev => [...prev, data as FinanzaCategoria])
+    setCatSaving(false)
+    setNuevaCatNombre(''); setNuevaCatEmoji('💰'); setShowAddCategoria(false)
+  }
+
+  async function deleteCategoria(id: string) {
+    await supabase.from('finanzas_categorias').update({ activo: false }).eq('id', id)
+    setFinanzaCategorias(prev => prev.filter(c => c.id !== id))
   }
 
   // Month calculations
@@ -324,19 +406,58 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   async function openEditDay(dateStr: string) {
     if (dateStr > today) return
-    const [{ data: regs }, { data: fin }] = await Promise.all([
+    const [{ data: regs }, { data: fin }, { data: items }] = await Promise.all([
       supabase.from('habito_registros').select('habito_id,valor_bool,valor_numero').eq('usuario_id', userId).eq('fecha', dateStr),
       supabase.from('finanzas_diarias').select('ingresos,gastos,ahorro').eq('usuario_id', userId).eq('fecha', dateStr).maybeSingle(),
+      supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', dateStr).order('creado_en'),
     ])
     const rm: Record<string, Registro> = {}
     for (const r of (regs || [])) rm[r.habito_id] = { ...r, nota: null }
     setEditDayRegMap(rm)
-    const f = fin || { ingresos: 0, gastos: 0, ahorro: false }
-    setEditDayFin(f)
-    setEditIngresosInput(f.ingresos > 0 ? String(f.ingresos) : '')
-    setEditGastosInput(f.gastos > 0 ? String(f.gastos) : '')
+    const loadedItems = (items || []) as FinanzaItem[]
+    setEditDayItems(loadedItems)
+    const ingresos = loadedItems.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
+    const gastos = loadedItems.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
+    const ahorro = loadedItems.some(i => i.categoria === 'Inversión')
+    setEditDayFin({ ingresos, gastos, ahorro })
+    setEditItemTipo('ingreso'); setEditItemMonto(''); setEditItemDesc(''); setEditItemCategoria(null)
     setEditingDay(dateStr)
     setEditSaved(false)
+  }
+
+  async function syncEditDayFinanzas(items: FinanzaItem[]) {
+    if (!editingDay) return
+    const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
+    const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
+    const ahorro = items.some(i => i.categoria === 'Inversión')
+    setEditDayFin({ ingresos, gastos, ahorro })
+    await supabase.from('finanzas_diarias').upsert({
+      usuario_id: userId, fecha: editingDay, ingresos, gastos, ahorro,
+    }, { onConflict: 'usuario_id,fecha' })
+  }
+
+  async function addEditDayItem() {
+    if (!editingDay) return
+    const monto = parseFloat(editItemMonto) || 0
+    if (!monto) return
+    setEditItemAdding(true)
+    const tipoFinal: 'ingreso' | 'gasto' = editItemCategoria === 'Inversión' ? 'gasto' : editItemTipo
+    const { data } = await supabase.from('finanzas_items').insert({
+      usuario_id: userId, fecha: editingDay, tipo: tipoFinal, monto, descripcion: editItemDesc.trim() || null, categoria: editItemCategoria,
+    }).select().single()
+    if (data) {
+      const newItems = [...editDayItems, data as FinanzaItem]
+      setEditDayItems(newItems)
+      await syncEditDayFinanzas(newItems)
+    }
+    setEditItemMonto(''); setEditItemDesc(''); setEditItemAdding(false)
+  }
+
+  async function deleteEditDayItem(id: string) {
+    await supabase.from('finanzas_items').delete().eq('id', id)
+    const newItems = editDayItems.filter(i => i.id !== id)
+    setEditDayItems(newItems)
+    await syncEditDayFinanzas(newItems)
   }
 
   async function saveEditDay() {
@@ -350,15 +471,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
         valor_numero: h.tipo === 'numero' ? (r?.valor_numero ?? 0) : null,
       }
     })
-    await Promise.all([
-      supabase.from('habito_registros').upsert(upserts, { onConflict: 'habito_id,fecha' }),
-      supabase.from('finanzas_diarias').upsert({
-        usuario_id: userId, fecha: editingDay,
-        ingresos: parseFloat(editIngresosInput) || 0,
-        gastos: parseFloat(editGastosInput) || 0,
-        ahorro: editDayFin.ahorro,
-      }, { onConflict: 'usuario_id,fecha' }),
-    ])
+    await supabase.from('habito_registros').upsert(upserts, { onConflict: 'habito_id,fecha' })
     setEditSaving(false)
     setEditSaved(true)
     setTimeout(() => { setEditingDay(null); loadMonthData() }, 1200)
@@ -438,10 +551,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const totalIngresos = monthFinanzas.reduce((a, f) => a + (f.ingresos || 0), 0)
   const totalGastos = monthFinanzas.reduce((a, f) => a + (f.gastos || 0), 0)
   const profit = totalIngresos - totalGastos
-  const ahorroAcumulado = monthFinanzas.filter(f => f.ahorro && f.ingresos > 0).reduce((a, f) => a + Math.round(f.ingresos * 0.1), 0)
+  const inversionMes = monthItems.filter(i => i.categoria === 'Inversión').reduce((a, i) => a + i.monto, 0)
+  const ahorroAcumulado = inversionMes
 
-  const ingresosHoy = parseFloat(ingresosInput) || 0
-  const gastosHoy = parseFloat(gastosInput) || 0
+  const ingresosHoy = finanzas.ingresos
+  const gastosHoy = finanzas.gastos
+  const inversionHoy = finanzaItems.filter(i => i.categoria === 'Inversión').reduce((a, i) => a + i.monto, 0)
+  const gastosNoInv = gastosHoy - inversionHoy
+  const libreHoy = ingresosHoy - gastosHoy
   const sugerido10 = Math.round(ingresosHoy * 0.1)
 
   const navBtn = (tab: typeof activeTab, label: string, emoji: string) => (
@@ -481,6 +598,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       }}>
         {navBtn('hoy', t('tablero.tabs.hoy'), '⚡')}
         {navBtn('mes', t('tablero.tabs.mes'), '📊')}
+        {navBtn('finanzas', t('tablero.tabs.finanzas'), '💰')}
         {navBtn('habitos', t('tablero.tabs.habitos'), '✏️')}
         {navBtn('metas', t('tablero.tabs.metas'), '🎯')}
       </div>
@@ -672,80 +790,194 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     )
                   })}
                 </div>
-                {mejorDia.pct > 0 && <div style={{ fontSize: '0.72rem', color: '#6b7280' }}>Mejor día: <span style={{ color: '#a78bfa', fontWeight: 600 }}>{mejorDia.label}</span> con {mejorDia.pct}%</div>}
+                {mejorDia.pct > 0 && <div style={{ fontSize: '0.72rem', color: '#6b7280' }}>{t('tablero.hoy.mejor_dia')} <span style={{ color: '#a78bfa', fontWeight: 600 }}>{mejorDia.label}</span> {t('tablero.hoy.mejor_dia_pct', { pct: mejorDia.pct })}</div>}
               </div>
             )
           })()}
 
           {/* Finanzas */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.hoy.movimientos')}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem', marginBottom: '0.875rem' }}>
-              <div>
-                <label style={{ fontSize: '0.75rem', color: '#10b981', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>{t('tablero.hoy.ingresos_label')}</label>
-                <input type="number" value={ingresosInput} onChange={e => setIngresosInput(e.target.value)} placeholder="0"
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#10b981', fontSize: '1rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.75rem', color: '#ef4444', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>{t('tablero.hoy.gastos_label')}</label>
-                <input type="number" value={gastosInput} onChange={e => setGastosInput(e.target.value)} placeholder="0"
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', fontSize: '1rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
-              </div>
+            <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.875rem' }}>{t('tablero.hoy.movimientos')}</div>
+
+            {/* Tipo buttons */}
+            <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.5rem' }}>
+              {itemCategoria !== 'Inversión' && (
+                <>
+                  <button onClick={() => setItemTipo('ingreso')} style={{
+                    padding: '0.5rem 0.875rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                    background: itemTipo === 'ingreso' ? 'rgba(16,185,129,0.25)' : 'rgba(16,185,129,0.06)',
+                    color: '#10b981', fontSize: '0.78rem', fontWeight: itemTipo === 'ingreso' ? 700 : 400,
+                    outline: itemTipo === 'ingreso' ? '1.5px solid rgba(16,185,129,0.5)' : '1px solid rgba(16,185,129,0.15)',
+                    transition: 'all 0.15s',
+                  }}>+ Ingreso</button>
+                  <button onClick={() => setItemTipo('gasto')} style={{
+                    padding: '0.5rem 0.875rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                    background: itemTipo === 'gasto' ? 'rgba(239,68,68,0.25)' : 'rgba(239,68,68,0.06)',
+                    color: '#ef4444', fontSize: '0.78rem', fontWeight: itemTipo === 'gasto' ? 700 : 400,
+                    outline: itemTipo === 'gasto' ? '1.5px solid rgba(239,68,68,0.5)' : '1px solid rgba(239,68,68,0.15)',
+                    transition: 'all 0.15s',
+                  }}>− Gasto</button>
+                </>
+              )}
+              {itemCategoria === 'Inversión' && (
+                <div style={{ padding: '0.5rem 0.875rem', borderRadius: '8px', background: 'rgba(245,197,24,0.15)', border: '1px solid rgba(245,197,24,0.35)', color: '#F5C518', fontSize: '0.78rem', fontWeight: 700 }}>
+                  {t('tablero.hoy.inversion_tipo')}
+                </div>
+              )}
             </div>
 
-            {ingresosHoy > 0 && (
-              <div style={{ marginBottom: '0.875rem', padding: '0.75rem 1rem', borderRadius: '10px', background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.2)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.625rem' }}>
-                  <div>
-                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600 }}>{t('tablero.hoy.regla10')}</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#F5C518', marginTop: '0.1rem' }}>{fmt(sugerido10)}</div>
-                  </div>
-                  <div style={{ fontSize: '1.5rem' }}>🐷</div>
-                </div>
-                <button onClick={() => setFinanzas(prev => ({ ...prev, ahorro: !prev.ahorro }))} style={{
-                  display: 'flex', alignItems: 'center', gap: '0.625rem',
-                  width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none',
-                  background: finanzas.ahorro ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)',
-                  cursor: 'pointer', transition: 'all 0.2s',
-                  borderLeft: `3px solid ${finanzas.ahorro ? '#10b981' : 'transparent'}`,
-                }}>
-                  <div style={{ width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0, border: finanzas.ahorro ? 'none' : '2px solid rgba(255,255,255,0.2)', background: finanzas.ahorro ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
-                    {finanzas.ahorro && <span style={{ fontSize: '0.65rem', color: 'white' }}>✓</span>}
-                  </div>
-                  <span style={{ fontSize: '0.85rem', color: finanzas.ahorro ? '#10b981' : '#9ca3af', fontWeight: finanzas.ahorro ? 700 : 400 }}>
-                    {finanzas.ahorro ? t('tablero.hoy.ahorro_si') : t('tablero.hoy.ahorro_no')}
-                  </span>
-                </button>
+            {/* Categoría chips */}
+            {finanzaCategorias.length > 0 && (
+              <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.625rem' }}>
+                {finanzaCategorias.map(cat => (
+                  <button key={cat.id}
+                    onClick={() => {
+                      const next = itemCategoria === cat.nombre ? null : cat.nombre
+                      setItemCategoria(next)
+                      if (next === 'Inversión') setItemTipo('gasto')
+                    }}
+                    style={{
+                      padding: '0.3rem 0.6rem', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '0.72rem',
+                      background: itemCategoria === cat.nombre ? 'rgba(139,92,246,0.25)' : 'rgba(255,255,255,0.05)',
+                      color: itemCategoria === cat.nombre ? '#a78bfa' : '#6b7280',
+                      outline: itemCategoria === cat.nombre ? '1px solid rgba(139,92,246,0.4)' : 'none',
+                      fontWeight: itemCategoria === cat.nombre ? 700 : 400, transition: 'all 0.12s',
+                    }}
+                  >{cat.emoji} {cat.nombre}</button>
+                ))}
               </div>
             )}
 
+            {/* Monto + descripcion + Agregar */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.875rem', flexWrap: 'wrap' }}>
+              <input
+                type="number" value={itemMonto} onChange={e => setItemMonto(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addFinanzaItem()}
+                placeholder="Monto"
+                style={{ width: '90px', padding: '0.55rem 0.6rem', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${itemCategoria === 'Inversión' ? 'rgba(245,197,24,0.3)' : itemTipo === 'ingreso' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, color: '#f3f0ff', fontSize: '0.9rem', fontWeight: 700, outline: 'none', flexShrink: 0 }}
+              />
+              <input
+                value={itemDesc} onChange={e => setItemDesc(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addFinanzaItem()}
+                placeholder="Detalle (opcional)"
+                style={{ flex: 1, minWidth: '80px', padding: '0.55rem 0.6rem', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af', fontSize: '0.8rem', outline: 'none' }}
+              />
+              <button onClick={addFinanzaItem} disabled={itemAdding || !itemMonto} style={{
+                padding: '0.55rem 0.875rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                background: 'rgba(139,92,246,0.25)', color: '#a78bfa', fontSize: '0.82rem', fontWeight: 700, flexShrink: 0,
+                opacity: !itemMonto ? 0.5 : 1,
+              }}>
+                {itemAdding ? '...' : t('tablero.hoy.agregar')}
+              </button>
+            </div>
+
+            {/* Lista de items del día */}
+            {finanzaItems.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '0.875rem' }}>
+                {finanzaItems.map(item => {
+                  const isInv = item.categoria === 'Inversión'
+                  const itemColor = item.tipo === 'ingreso' ? '#10b981' : isInv ? '#F5C518' : '#ef4444'
+                  const itemBg = item.tipo === 'ingreso' ? 'rgba(16,185,129,0.06)' : isInv ? 'rgba(245,197,24,0.06)' : 'rgba(239,68,68,0.06)'
+                  const itemBorder = item.tipo === 'ingreso' ? 'rgba(16,185,129,0.18)' : isInv ? 'rgba(245,197,24,0.25)' : 'rgba(239,68,68,0.18)'
+                  return (
+                    <div key={item.id} style={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.5rem 0.75rem', borderRadius: '8px',
+                      background: itemBg, border: `1px solid ${itemBorder}`,
+                    }}>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 800, color: itemColor, flexShrink: 0 }}>
+                        {item.tipo === 'ingreso' ? '+' : '-'}{fmt(item.monto)}
+                      </span>
+                      {item.categoria && (
+                        <span style={{ fontSize: '0.68rem', color: '#6b7280', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '0.1rem 0.4rem', flexShrink: 0 }}>
+                          {finanzaCategorias.find(c => c.nombre === item.categoria)?.emoji} {item.categoria}
+                        </span>
+                      )}
+                      {item.descripcion && (
+                        <span style={{ fontSize: '0.78rem', color: '#9ca3af', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.descripcion}
+                        </span>
+                      )}
+                      <button onClick={() => deleteFinanzaItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '1rem', padding: '0 2px', marginLeft: 'auto', flexShrink: 0 }}>×</button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Inversión del día */}
+            {ingresosHoy > 0 && (
+              <div style={{ marginBottom: '0.875rem', padding: '0.75rem 1rem', borderRadius: '10px', background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600 }}>{t('tablero.hoy.regla10')}</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: '#F5C518', marginTop: '0.1rem' }}>
+                      {t('tablero.hoy.regla10_sugeridos', { amount: fmt(sugerido10) })}
+                    </div>
+                  </div>
+                  {inversionHoy > 0 ? (
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.62rem', color: '#10b981', fontWeight: 700 }}>{t('tablero.hoy.regla10_registrado')}</div>
+                      <div style={{ fontSize: '1rem', fontWeight: 800, color: '#10b981' }}>{fmt(inversionHoy)}</div>
+                    </div>
+                  ) : (
+                    <button onClick={() => { setItemCategoria('Inversión'); setItemMonto(String(sugerido10)) }} style={{
+                      padding: '0.45rem 0.75rem', borderRadius: '8px', border: '1px solid rgba(245,197,24,0.3)', background: 'rgba(245,197,24,0.1)', color: '#F5C518', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
+                    }}>{t('tablero.hoy.regla10_aplicar')}</button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Balance desglosado */}
             {(ingresosHoy > 0 || gastosHoy > 0) && (
-              <div style={{ marginBottom: '0.875rem' }}>
-                <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', background: (ingresosHoy - gastosHoy) >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${(ingresosHoy - gastosHoy) >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{t('tablero.hoy.resultado_dia')}</span>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 800, color: (ingresosHoy - gastosHoy) >= 0 ? '#10b981' : '#ef4444' }}>
-                    {(ingresosHoy - gastosHoy) >= 0 ? '+' : ''}{fmt(ingresosHoy - gastosHoy)}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {ingresosHoy > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', borderRadius: '7px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.12)' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{t('tablero.hoy.ingresos_balance')}</span>
+                    <span style={{ fontWeight: 700, color: '#10b981' }}>+{fmt(ingresosHoy)}</span>
+                  </div>
+                )}
+                {gastosNoInv > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', borderRadius: '7px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.12)' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{t('tablero.hoy.gastos_balance')}</span>
+                    <span style={{ fontWeight: 700, color: '#ef4444' }}>-{fmt(gastosNoInv)}</span>
+                  </div>
+                )}
+                {inversionHoy > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', borderRadius: '7px', background: 'rgba(245,197,24,0.06)', border: '1px solid rgba(245,197,24,0.15)' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{t('tablero.hoy.inversion_balance')}</span>
+                    <span style={{ fontWeight: 700, color: '#F5C518' }}>-{fmt(inversionHoy)}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.75rem', borderRadius: '8px', background: libreHoy >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${libreHoy >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`, marginTop: '0.1rem' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e5e7eb' }}>📊 {t('tablero.hoy.resultado_dia')}</span>
+                  <span style={{ fontSize: '1.1rem', fontWeight: 800, color: libreHoy >= 0 ? '#10b981' : '#ef4444' }}>
+                    {libreHoy >= 0 ? '+' : ''}{fmt(libreHoy)}
                   </span>
                 </div>
-                {(ingresosHoy - gastosHoy) < 0 && (
-                  <div style={{ marginTop: '0.4rem', fontSize: '0.72rem', color: '#6b7280', fontStyle: 'italic', textAlign: 'center' }}>
+                {libreHoy < 0 && (
+                  <div style={{ fontSize: '0.72rem', color: '#6b7280', fontStyle: 'italic', textAlign: 'center' }}>
                     {t('tablero.hoy.dia_rojo')}
                   </div>
                 )}
               </div>
             )}
 
-            <button onClick={saveFinanzas} disabled={finanzasSaving} style={{
-              width: '100%', padding: '0.75rem', borderRadius: '10px', border: 'none',
-              background: finanzasSaved ? '#10b981' : 'rgba(139,92,246,0.2)',
-              color: finanzasSaved ? '#fff' : '#a78bfa', fontSize: '0.85rem', fontWeight: 700,
-              cursor: finanzasSaving ? 'default' : 'pointer', transition: 'background 0.3s',
-            }}>
-              {finanzasSaving ? t('common.saving') : finanzasSaved ? t('common.saved') : t('tablero.hoy.guardar_mov')}
-            </button>
+            {/* Link al análisis completo */}
+            {(ingresosHoy > 0 || gastosHoy > 0) && (
+              <button onClick={() => setActiveTab('finanzas')} style={{
+                marginTop: '0.75rem', width: '100%', padding: '0.55rem', borderRadius: '8px',
+                border: '1px solid rgba(139,92,246,0.2)', background: 'rgba(139,92,246,0.06)',
+                color: '#a78bfa', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+              }}>
+                {t('tablero.hoy.ver_analisis')}
+              </button>
+            )}
           </div>
 
           <PushNotificationSetup />
+          <RatingPrompt racha={racha} />
         </div>
       )}
 
@@ -782,11 +1014,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                 ))}
               </div>
 
-              {/* Ahorro acumulado */}
+              {/* Inversión acumulada del mes */}
               {ahorroAcumulado > 0 && (
                 <div style={{ background: 'linear-gradient(135deg,rgba(245,197,24,0.08),rgba(16,185,129,0.05))', border: '1px solid rgba(245,197,24,0.25)', borderRadius: '12px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.2rem' }}>{t('tablero.mes.ahorro_acumulado')}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.2rem' }}>📈 {t('tablero.mes.ahorro_acumulado')}</div>
                     <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#F5C518' }}>{fmt(ahorroAcumulado)}</div>
                   </div>
                   <div style={{ fontSize: '2.5rem' }}>🐷</div>
@@ -868,12 +1100,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>{t('tablero.mes.gastos_label')}</span>
-                      <span style={{ fontWeight: 700, color: '#ef4444' }}>{fmt(totalGastos)}</span>
+                      <span style={{ fontWeight: 700, color: '#ef4444' }}>{fmt(totalGastos - inversionMes)}</span>
                     </div>
-                    {ahorroAcumulado > 0 && (
+                    {inversionMes > 0 && (
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>{t('tablero.mes.ahorro10')}</span>
-                        <span style={{ fontWeight: 700, color: '#F5C518' }}>{fmt(ahorroAcumulado)}</span>
+                        <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>📈 Inversión</span>
+                        <span style={{ fontWeight: 700, color: '#F5C518' }}>{fmt(inversionMes)}</span>
                       </div>
                     )}
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.625rem', display: 'flex', justifyContent: 'space-between' }}>
@@ -883,6 +1115,37 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   </div>
                 </div>
               )}
+
+              {/* Desglose por categoría */}
+              {monthItems.length > 0 && (() => {
+                const catTotals = finanzaCategorias
+                  .map(cat => ({
+                    ...cat,
+                    total: monthItems.filter(i => i.categoria === cat.nombre && i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0),
+                  }))
+                  .filter(c => c.total > 0)
+                  .sort((a, b) => b.total - a.total)
+                const maxTotal = Math.max(...catTotals.map(c => c.total), 1)
+                if (catTotals.length === 0) return null
+                return (
+                  <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
+                    <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>Desglose de gastos</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {catTotals.map(cat => (
+                        <div key={cat.id}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#d1d5db' }}>{cat.emoji} {cat.nombre}</span>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: cat.nombre === 'Inversión' ? '#F5C518' : '#ef4444' }}>{fmt(cat.total)}</span>
+                          </div>
+                          <div style={{ height: '5px', borderRadius: '99px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', borderRadius: '99px', width: `${Math.round(cat.total / maxTotal * 100)}%`, background: cat.nombre === 'Inversión' ? 'linear-gradient(90deg,#F5C518,#f59e0b)' : 'linear-gradient(90deg,#ef4444,#f87171)', transition: 'width 0.4s ease' }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
             </>
           )}
         </div>
@@ -1090,39 +1353,197 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               </div>
             )}
           </div>
+
+        </div>
+      )}
+
+      {/* ── FINANZAS ── */}
+      {activeTab === 'finanzas' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+          {/* Resumen del mes */}
+          {monthLoading ? (
+            <div style={{ textAlign: 'center', color: '#6b7280', padding: '1.5rem', fontSize: '0.85rem' }}>{t('common.loading')}</div>
+          ) : (totalIngresos > 0 || totalGastos > 0) ? (
+            <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
+              <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>
+                Este mes — {new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { month: 'long' }).format(new Date(year, month - 1, 1)).charAt(0).toUpperCase() + new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { month: 'long' }).format(new Date(year, month - 1, 1)).slice(1)} {year}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', borderRadius: '7px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.12)' }}>
+                  <span style={{ fontSize: '0.82rem', color: '#9ca3af' }}>{t('tablero.hoy.ingresos_balance')}</span>
+                  <span style={{ fontWeight: 700, color: '#10b981' }}>+{fmt(totalIngresos)}</span>
+                </div>
+                {(totalGastos - inversionMes) > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', borderRadius: '7px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.12)' }}>
+                    <span style={{ fontSize: '0.82rem', color: '#9ca3af' }}>{t('tablero.hoy.gastos_balance')}</span>
+                    <span style={{ fontWeight: 700, color: '#ef4444' }}>-{fmt(totalGastos - inversionMes)}</span>
+                  </div>
+                )}
+                {inversionMes > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', borderRadius: '7px', background: 'rgba(245,197,24,0.06)', border: '1px solid rgba(245,197,24,0.15)' }}>
+                    <span style={{ fontSize: '0.82rem', color: '#9ca3af' }}>{t('tablero.hoy.inversion_balance')}</span>
+                    <span style={{ fontWeight: 700, color: '#F5C518' }}>-{fmt(inversionMes)}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.75rem', borderRadius: '8px', background: profit >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${profit >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`, marginTop: '0.1rem' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e5e7eb' }}>📊 {t('tablero.finanzas.resultado')}</span>
+                  <span style={{ fontSize: '1.1rem', fontWeight: 800, color: profit >= 0 ? '#10b981' : '#ef4444' }}>{profit >= 0 ? '+' : ''}{fmt(profit)}</span>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Desglose por categoría */}
+          {!monthLoading && monthItems.length > 0 && (() => {
+            const catTotals = finanzaCategorias
+              .map(cat => ({
+                ...cat,
+                total: monthItems.filter(i => i.categoria === cat.nombre && i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0),
+              }))
+              .filter(c => c.total > 0)
+              .sort((a, b) => b.total - a.total)
+            const maxTotal = Math.max(...catTotals.map(c => c.total), 1)
+            if (catTotals.length === 0) return null
+            return (
+              <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
+                <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>Desglose de gastos</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {catTotals.map(cat => (
+                    <div key={cat.id}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                        <span style={{ fontSize: '0.8rem', color: '#d1d5db' }}>{cat.emoji} {cat.nombre}</span>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: cat.nombre === 'Inversión' ? '#F5C518' : '#ef4444' }}>{fmt(cat.total)}</span>
+                      </div>
+                      <div style={{ height: '5px', borderRadius: '99px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', borderRadius: '99px', width: `${Math.round(cat.total / maxTotal * 100)}%`, background: cat.nombre === 'Inversión' ? 'linear-gradient(90deg,#F5C518,#f59e0b)' : 'linear-gradient(90deg,#ef4444,#f87171)', transition: 'width 0.4s ease' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Categorías — gestión */}
+          <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
+              <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>Categorías</div>
+              <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{finanzaCategorias.filter(c => !c.es_base).length} personales</span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', marginBottom: '0.75rem' }}>
+              {finanzaCategorias.map(cat => (
+                <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.875rem', borderRadius: '8px', background: 'rgba(255,255,255,0.03)' }}>
+                  <span style={{ fontSize: '1rem', flexShrink: 0 }}>{cat.emoji}</span>
+                  <span style={{ fontSize: '0.875rem', color: cat.es_base ? '#9ca3af' : '#d1d5db', flex: 1 }}>{cat.nombre}</span>
+                  {cat.es_base ? (
+                    <span style={{ fontSize: '0.65rem', background: 'rgba(139,92,246,0.2)', color: '#a78bfa', borderRadius: '4px', padding: '0.1rem 0.4rem' }}>base</span>
+                  ) : (
+                    <button onClick={() => deleteCategoria(cat.id)} style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '1rem', padding: '0 4px' }}>×</button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {showAddCategoria ? (
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <input
+                  value={nuevaCatEmoji}
+                  onChange={e => setNuevaCatEmoji(e.target.value)}
+                  maxLength={2}
+                  style={{ width: '42px', padding: '0.55rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '1.1rem', outline: 'none', textAlign: 'center' }}
+                />
+                <input
+                  value={nuevaCatNombre}
+                  onChange={e => setNuevaCatNombre(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addCategoria()}
+                  placeholder="Nombre de categoría"
+                  style={{ flex: 1, minWidth: '120px', padding: '0.55rem 0.6rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none' }}
+                />
+                <button onClick={addCategoria} disabled={!nuevaCatNombre.trim() || catSaving} style={{ padding: '0.55rem 0.875rem', borderRadius: '8px', border: 'none', background: 'rgba(139,92,246,0.25)', color: '#a78bfa', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+                  {catSaving ? '...' : '✓'}
+                </button>
+                <button onClick={() => { setShowAddCategoria(false); setNuevaCatNombre(''); setNuevaCatEmoji('💰') }} style={{ padding: '0.55rem 0.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#6b7280', fontSize: '0.82rem', cursor: 'pointer' }}>✕</button>
+              </div>
+            ) : (
+              <button onClick={() => setShowAddCategoria(true)} style={{
+                width: '100%', padding: '0.625rem', borderRadius: '8px',
+                border: '1px dashed rgba(139,92,246,0.25)', background: 'transparent',
+                color: '#6b7280', fontSize: '0.8rem', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+              }}>
+                {t('tablero.hoy.agregar_cat')}
+              </button>
+            )}
+          </div>
         </div>
       )}
 
       {/* ── METAS ── */}
       {activeTab === 'metas' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '14px', padding: '1.25rem', textAlign: 'center' }}>
-            <p style={{ margin: 0, color: '#9ca3af', fontSize: '0.85rem', lineHeight: 1.6, fontStyle: 'italic' }}>
-              {t('tablero.metas_tab.quote')}<br />
-              <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>{t('tablero.metas_tab.quote_author')}</span>
-            </p>
+          {/* Racha actual como ancla de progreso */}
+          <div style={{ background: 'rgba(251,146,60,0.07)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '14px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ fontSize: '1.75rem' }}>🔥</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ color: '#fb923c', fontWeight: 700, fontSize: '0.95rem' }}>{racha} días activo</div>
+              <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.15rem' }}>
+                {racha === 0 ? t('tablero.hoy.racha_cero') : racha >= 30 ? t('tablero.hoy.racha_ciclo') : t('tablero.hoy.racha_building')}
+              </div>
+            </div>
           </div>
           {[
-            { key: 'meta30', label: t('metas.meta30_titulo'), emoji: '🌱', color: '#10b981', bg: 'rgba(16,185,129,0.06)', bdr: 'rgba(16,185,129,0.2)', value: metas?.meta30 },
-            { key: 'meta90', label: t('metas.meta90_titulo'), emoji: '🚀', color: '#a78bfa', bg: 'rgba(139,92,246,0.06)', bdr: 'rgba(139,92,246,0.2)', value: metas?.meta90 },
-            { key: 'meta180', label: t('metas.meta180_titulo'), emoji: '🏆', color: '#F5C518', bg: 'rgba(245,197,24,0.06)', bdr: 'rgba(245,197,24,0.2)', value: metas?.meta180 },
-          ].map(m => (
-            <div key={m.key} style={{ background: m.bg, border: `1px solid ${m.bdr}`, borderRadius: '14px', padding: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '1.25rem' }}>{m.emoji}</span>
-                <span style={{ color: m.color, fontWeight: 700, fontSize: '0.9rem' }}>{m.label}</span>
+            { key: 'meta30', label: t('metas.meta30_titulo'), emoji: '🌱', color: '#10b981', bg: 'rgba(16,185,129,0.06)', bdr: 'rgba(16,185,129,0.2)', value: metas?.meta30, dias: 30 },
+            { key: 'meta90', label: t('metas.meta90_titulo'), emoji: '🚀', color: '#a78bfa', bg: 'rgba(139,92,246,0.06)', bdr: 'rgba(139,92,246,0.2)', value: metas?.meta90, dias: 90 },
+            { key: 'meta180', label: t('metas.meta180_titulo'), emoji: '🏆', color: '#F5C518', bg: 'rgba(245,197,24,0.06)', bdr: 'rgba(245,197,24,0.2)', value: metas?.meta180, dias: 180 },
+          ].map(m => {
+            const progreso = Math.min(100, Math.round((racha / m.dias) * 100))
+            const diasRestantes = Math.max(0, m.dias - racha)
+            return (
+              <div key={m.key} style={{ background: m.bg, border: `1px solid ${m.bdr}`, borderRadius: '14px', padding: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.1rem' }}>{m.emoji}</span>
+                    <span style={{ color: m.color, fontWeight: 700, fontSize: '0.88rem' }}>{m.label}</span>
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: progreso === 100 ? m.color : '#6b7280', fontWeight: progreso === 100 ? 700 : 400 }}>
+                    {progreso === 100 ? '✓ Completado' : `${racha}/${m.dias} días · ${diasRestantes} restantes`}
+                  </span>
+                </div>
+                {/* Barra de progreso */}
+                <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', marginBottom: '0.75rem', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${progreso}%`, background: m.color, borderRadius: '4px', transition: 'width 0.5s ease' }} />
+                </div>
+                {m.value
+                  ? <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.88rem', lineHeight: 1.6 }}>{m.value}</p>
+                  : <p style={{ margin: 0, color: '#4b5563', fontSize: '0.82rem', fontStyle: 'italic' }}>{t('tablero.metas_tab.sin_meta')}</p>
+                }
               </div>
-              {m.value
-                ? <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem', lineHeight: 1.6 }}>{m.value}</p>
-                : <p style={{ margin: 0, color: '#4b5563', fontSize: '0.85rem', fontStyle: 'italic' }}>{t('tablero.metas_tab.sin_meta')}</p>
-              }
-            </div>
-          ))}
+            )
+          })}
           <Link href="/metas" style={{
             display: 'block', textAlign: 'center', padding: '0.875rem', borderRadius: '12px',
             border: '1px solid rgba(139,92,246,0.3)', background: 'rgba(139,92,246,0.08)',
             color: '#a78bfa', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none',
           }}>{t('tablero.metas_tab.editar')}</Link>
+
+          {/* CTA Amauta Cloud */}
+          <a href="https://amauta.cloud/landing" target="_blank" rel="noopener noreferrer" style={{
+            display: 'block', textDecoration: 'none',
+            background: 'linear-gradient(135deg, rgba(139,92,246,0.1), rgba(236,72,153,0.07))',
+            border: '1px solid rgba(139,92,246,0.22)', borderRadius: '12px', padding: '1rem 1.25rem',
+          }}>
+            <div style={{ fontSize: '0.65rem', color: '#a78bfa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.25rem' }}>
+              ¿Querés ir más lejos?
+            </div>
+            <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '0.88rem', marginBottom: '0.2rem' }}>
+              Amauta Cloud — Mentoría con IA 🚀
+            </div>
+            <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+              Acompañamiento personalizado para emprender y escalar tu negocio →
+            </div>
+          </a>
         </div>
       )}
 
@@ -1226,29 +1647,127 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
             <div style={{ marginBottom: '1rem' }}>
               <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.625rem' }}>{t('tablero.edit_day.movimientos')}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: parseFloat(editIngresosInput) > 0 ? '0.75rem' : 0 }}>
-                <div>
-                  <label style={{ fontSize: '0.72rem', color: '#10b981', display: 'block', marginBottom: '0.3rem' }}>{t('tablero.edit_day.ingresos_label')}</label>
-                  <input type="number" value={editIngresosInput} onChange={e => setEditIngresosInput(e.target.value)} placeholder="0"
-                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#10b981', fontSize: '0.9rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.72rem', color: '#ef4444', display: 'block', marginBottom: '0.3rem' }}>{t('tablero.edit_day.gastos_label')}</label>
-                  <input type="number" value={editGastosInput} onChange={e => setEditGastosInput(e.target.value)} placeholder="0"
-                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', fontSize: '0.9rem', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
-                </div>
-              </div>
-              {parseFloat(editIngresosInput) > 0 && (
-                <button onClick={() => setEditDayFin(prev => ({ ...prev, ahorro: !prev.ahorro }))}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none', background: editDayFin.ahorro ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.04)', cursor: 'pointer', borderLeft: `3px solid ${editDayFin.ahorro ? '#10b981' : 'transparent'}` }}>
-                  <div style={{ width: '20px', height: '20px', borderRadius: '5px', flexShrink: 0, border: editDayFin.ahorro ? 'none' : '2px solid rgba(255,255,255,0.2)', background: editDayFin.ahorro ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {editDayFin.ahorro && <span style={{ fontSize: '0.6rem', color: 'white' }}>✓</span>}
+
+              {/* Tipo buttons */}
+              <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '0.4rem' }}>
+                {editItemCategoria !== 'Inversión' && (
+                  <>
+                    <button onClick={() => setEditItemTipo('ingreso')} style={{
+                      padding: '0.4rem 0.7rem', borderRadius: '7px', border: 'none', cursor: 'pointer',
+                      background: editItemTipo === 'ingreso' ? 'rgba(16,185,129,0.25)' : 'rgba(16,185,129,0.06)',
+                      color: '#10b981', fontSize: '0.75rem', fontWeight: editItemTipo === 'ingreso' ? 700 : 400,
+                      outline: editItemTipo === 'ingreso' ? '1.5px solid rgba(16,185,129,0.5)' : '1px solid rgba(16,185,129,0.15)',
+                      transition: 'all 0.15s',
+                    }}>+ Ingreso</button>
+                    <button onClick={() => setEditItemTipo('gasto')} style={{
+                      padding: '0.4rem 0.7rem', borderRadius: '7px', border: 'none', cursor: 'pointer',
+                      background: editItemTipo === 'gasto' ? 'rgba(239,68,68,0.25)' : 'rgba(239,68,68,0.06)',
+                      color: '#ef4444', fontSize: '0.75rem', fontWeight: editItemTipo === 'gasto' ? 700 : 400,
+                      outline: editItemTipo === 'gasto' ? '1.5px solid rgba(239,68,68,0.5)' : '1px solid rgba(239,68,68,0.15)',
+                      transition: 'all 0.15s',
+                    }}>− Gasto</button>
+                  </>
+                )}
+                {editItemCategoria === 'Inversión' && (
+                  <div style={{ padding: '0.4rem 0.7rem', borderRadius: '7px', background: 'rgba(245,197,24,0.15)', border: '1px solid rgba(245,197,24,0.35)', color: '#F5C518', fontSize: '0.75rem', fontWeight: 700 }}>
+                    📈 Inversión (gasto)
                   </div>
-                  <span style={{ fontSize: '0.82rem', color: editDayFin.ahorro ? '#10b981' : '#9ca3af', fontWeight: editDayFin.ahorro ? 700 : 400 }}>
-                    🐷 {editDayFin.ahorro ? t('tablero.edit_day.ahorro_si', { amount: fmt(Math.round(parseFloat(editIngresosInput) * 0.1)) }) : t('tablero.edit_day.ahorro_no', { amount: fmt(Math.round(parseFloat(editIngresosInput) * 0.1)) })}
-                  </span>
-                </button>
+                )}
+              </div>
+
+              {/* Categoría chips */}
+              {finanzaCategorias.length > 0 && (
+                <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                  {finanzaCategorias.map(cat => (
+                    <button key={cat.id}
+                      onClick={() => {
+                        const next = editItemCategoria === cat.nombre ? null : cat.nombre
+                        setEditItemCategoria(next)
+                        if (next === 'Inversión') setEditItemTipo('gasto')
+                      }}
+                      style={{
+                        padding: '0.25rem 0.5rem', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '0.68rem',
+                        background: editItemCategoria === cat.nombre ? 'rgba(139,92,246,0.25)' : 'rgba(255,255,255,0.05)',
+                        color: editItemCategoria === cat.nombre ? '#a78bfa' : '#6b7280',
+                        outline: editItemCategoria === cat.nombre ? '1px solid rgba(139,92,246,0.4)' : 'none',
+                        fontWeight: editItemCategoria === cat.nombre ? 700 : 400,
+                      }}
+                    >{cat.emoji} {cat.nombre}</button>
+                  ))}
+                </div>
               )}
+
+              {/* Monto + desc + Agregar */}
+              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: '0.625rem', flexWrap: 'wrap' }}>
+                <input
+                  type="number" value={editItemMonto} onChange={e => setEditItemMonto(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addEditDayItem()}
+                  placeholder="Monto"
+                  style={{ width: '80px', padding: '0.45rem 0.5rem', borderRadius: '7px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${editItemCategoria === 'Inversión' ? 'rgba(245,197,24,0.3)' : editItemTipo === 'ingreso' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, color: '#f3f0ff', fontSize: '0.85rem', fontWeight: 700, outline: 'none', flexShrink: 0 }}
+                />
+                <input
+                  value={editItemDesc} onChange={e => setEditItemDesc(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addEditDayItem()}
+                  placeholder="Detalle (opcional)"
+                  style={{ flex: 1, minWidth: '70px', padding: '0.45rem 0.5rem', borderRadius: '7px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af', fontSize: '0.78rem', outline: 'none' }}
+                />
+                <button onClick={addEditDayItem} disabled={editItemAdding || !editItemMonto} style={{
+                  padding: '0.45rem 0.75rem', borderRadius: '7px', border: 'none', cursor: 'pointer',
+                  background: 'rgba(139,92,246,0.2)', color: '#a78bfa', fontSize: '0.78rem', fontWeight: 700, flexShrink: 0,
+                  opacity: !editItemMonto ? 0.5 : 1,
+                }}>
+                  {editItemAdding ? '...' : t('tablero.edit_day.agregar')}
+                </button>
+              </div>
+
+              {/* Lista de items */}
+              {editDayItems.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginBottom: '0.625rem' }}>
+                  {editDayItems.map(item => {
+                    const isInv = item.categoria === 'Inversión'
+                    const itemColor = item.tipo === 'ingreso' ? '#10b981' : isInv ? '#F5C518' : '#ef4444'
+                    const itemBg = item.tipo === 'ingreso' ? 'rgba(16,185,129,0.06)' : isInv ? 'rgba(245,197,24,0.06)' : 'rgba(239,68,68,0.06)'
+                    const itemBorder = item.tipo === 'ingreso' ? 'rgba(16,185,129,0.18)' : isInv ? 'rgba(245,197,24,0.25)' : 'rgba(239,68,68,0.18)'
+                    return (
+                      <div key={item.id} style={{
+                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        padding: '0.45rem 0.7rem', borderRadius: '7px',
+                        background: itemBg, border: `1px solid ${itemBorder}`,
+                      }}>
+                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: itemColor, flexShrink: 0 }}>
+                          {item.tipo === 'ingreso' ? '+' : '-'}{fmt(item.monto)}
+                        </span>
+                        {item.categoria && (
+                          <span style={{ fontSize: '0.65rem', color: '#6b7280', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '0.1rem 0.35rem', flexShrink: 0 }}>
+                            {finanzaCategorias.find(c => c.nombre === item.categoria)?.emoji} {item.categoria}
+                          </span>
+                        )}
+                        {item.descripcion && (
+                          <span style={{ fontSize: '0.75rem', color: '#9ca3af', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {item.descripcion}
+                          </span>
+                        )}
+                        <button onClick={() => deleteEditDayItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '0.95rem', padding: '0 2px', marginLeft: 'auto', flexShrink: 0 }}>×</button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Inversión del día en modal */}
+              {editDayFin.ingresos > 0 && (() => {
+                const invEdit = editDayItems.filter(i => i.categoria === 'Inversión').reduce((a, i) => a + i.monto, 0)
+                return (
+                  <div style={{ padding: '0.6rem 0.875rem', borderRadius: '8px', background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{t('tablero.edit_day.regla10', { amount: fmt(Math.round(editDayFin.ingresos * 0.1)) })}</span>
+                    {invEdit > 0 ? (
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#10b981' }}>✓ {fmt(invEdit)}</span>
+                    ) : (
+                      <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{t('tablero.edit_day.sin_registrar')}</span>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
 
             <button onClick={saveEditDay} disabled={editSaving} style={{
@@ -1308,21 +1827,21 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.625rem' }}>
                 <div style={{ padding: '0.75rem', borderRadius: '10px', background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.15)', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fb923c' }}>{racha30}</div>
-                  <div style={{ fontSize: '0.62rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Racha</div>
+                  <div style={{ fontSize: '0.62rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tablero.habitos.racha_label')}</div>
                 </div>
                 <div style={{ padding: '0.75rem', borderRadius: '10px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#a78bfa' }}>{completados30}</div>
-                  <div style={{ fontSize: '0.62rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Días</div>
+                  <div style={{ fontSize: '0.62rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tablero.habitos.dias_label')}</div>
                 </div>
                 <div style={{ padding: '0.75rem', borderRadius: '10px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#10b981' }}>{pct30}%</div>
-                  <div style={{ fontSize: '0.62rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cumplimiento</div>
+                  <div style={{ fontSize: '0.62rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tablero.habitos.cumplimiento_label')}</div>
                 </div>
               </div>
 
               {/* Calendar dots */}
               <div>
-                <div style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.625rem' }}>Historial</div>
+                <div style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.625rem' }}>{t('tablero.habitos.historial_label')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '0.3rem' }}>
                   {days30.map(({ fecha, done }) => {
                     const isToday = fecha === today
