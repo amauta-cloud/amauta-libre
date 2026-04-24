@@ -104,7 +104,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
         {/* Perfil */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           {avatar ? (
-            <img src={avatar} alt="" style={{ width: '44px', height: '44px', borderRadius: '50%' }} />
+            <img src={avatar} alt="" referrerPolicy="no-referrer" style={{ width: '44px', height: '44px', borderRadius: '50%' }} />
           ) : (
             <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.1rem', fontWeight: 700, flexShrink: 0 }}>
               {nombreInput?.[0]?.toUpperCase() || 'U'}
@@ -323,7 +323,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
       }}
     >
       {avatar ? (
-        <img src={avatar} alt="" style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', opacity: configOpen ? 1 : 0.85 }} />
+        <img src={avatar} alt="" referrerPolicy="no-referrer" style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', opacity: configOpen ? 1 : 0.85 }} />
       ) : (
         <div style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: mobile ? '0.65rem' : '0.85rem', flexShrink: 0 }}>
           {nombreInput?.[0]?.toUpperCase() || 'U'}
@@ -387,7 +387,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
             cursor: 'pointer', transition: 'all 0.15s',
           }}>
             {avatar ? (
-              <img src={avatar} alt="" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
+              <img src={avatar} alt="" referrerPolicy="no-referrer" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
             ) : (
               <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.8rem', fontWeight: 700 }}>
                 {nombreInput?.[0]?.toUpperCase() || 'U'}

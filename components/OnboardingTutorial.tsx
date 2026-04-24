@@ -31,10 +31,10 @@ export default function OnboardingTutorial() {
     { emoji: '👋', title: t('onboarding.step0_title'), desc: t('onboarding.step0_desc') },
     { emoji: '⚡', title: t('onboarding.step1_title'), desc: t('onboarding.step1_desc') },
     { emoji: '✅', title: t('onboarding.step2_title'), desc: t('onboarding.step2_desc') },
+    { emoji: '🎯', title: t('onboarding.step6_title'), desc: t('onboarding.step6_desc') },
     { emoji: '💰', title: t('onboarding.step3_title'), desc: t('onboarding.step3_desc') },
     { emoji: '📋', title: t('onboarding.step4_title'), desc: t('onboarding.step4_desc') },
     { emoji: '📚', title: t('onboarding.step5_title'), desc: t('onboarding.step5_desc') },
-    { emoji: '🎯', title: t('onboarding.step6_title'), desc: t('onboarding.step6_desc') },
   ]
 
   const current = steps[step]
