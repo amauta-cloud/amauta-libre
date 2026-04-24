@@ -43,9 +43,10 @@ export default function EducacionClient({
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
 
   const [loading, setLoading] = useState(true)
+  const [avisoDismissed, setAvisoDismissed] = useState(true)
   const [paso, setPaso] = useState(0)
   const [reflexionInicial, setReflexionInicial] = useState('')
   const [reflexiones, setReflexiones] = useState<Record<string, string>>({})
@@ -69,6 +70,13 @@ export default function EducacionClient({
         setLoading(false)
       })
   }, [userId])
+
+  useEffect(() => {
+    if (locale !== 'es') {
+      const dismissed = localStorage.getItem('amauta_edu_aviso_idioma')
+      setAvisoDismissed(dismissed === '1')
+    }
+  }, [locale])
 
   const totalPasos = 11
   const etapasPorOrden: Record<number, Etapa> = {}
@@ -115,6 +123,20 @@ export default function EducacionClient({
   const pasoIdx = paso - 1
   const hasTeaserProximo = paso >= 1 && paso < totalPasos
 
+  const TITULOS_BUSCAR = [
+    '"The Strangest Secret" · Earl Nightingale',
+    '"La Vaca" · Camilo Cruz',
+    '"Eat That Frog!" · Brian Tracy',
+    '"Financial Detox" · Fernando Palacio',
+    '"Breaking the Habit of Being Yourself" · Joe Dispenza',
+    '"Rewired" · Joe Dispenza',
+    '"The Untethered Soul" · Michael Singer',
+    '"Your Wish Is Your Command" · Kevin Trudeau',
+    '"Phoenix" · Brian Tracy',
+    '"The Silva Method" · José Silva',
+    '"Consciousness Development Library"',
+  ]
+
   if (loading) return (
     <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ color: '#a78bfa', fontSize: '0.9rem' }}>{t('common.loading')}</div>
@@ -131,6 +153,31 @@ export default function EducacionClient({
             {paso === 0 ? t('educacion.hola', { name: nombre }).trim() : t('educacion.paso_progreso', { paso, total: totalPasos, name: nombre }).trim()}
           </p>
         </div>
+
+        {/* ── AVISO IDIOMA ── */}
+        {locale !== 'es' && !avisoDismissed && (
+          <div style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '12px', padding: '1rem 1.125rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 700, color: '#fbbf24' }}>
+                {t('educacion.aviso_idioma_titulo')}
+              </p>
+              <button
+                onClick={() => { localStorage.setItem('amauta_edu_aviso_idioma', '1'); setAvisoDismissed(true) }}
+                style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.75rem', padding: 0, flexShrink: 0, fontWeight: 600 }}
+              >
+                {t('educacion.aviso_idioma_dismiss')} ✕
+              </button>
+            </div>
+            <p style={{ margin: '0 0 0.75rem', fontSize: '0.78rem', color: '#d1d5db', lineHeight: 1.55 }}>
+              {t('educacion.aviso_idioma_desc')}
+            </p>
+            <ul style={{ margin: 0, padding: '0 0 0 1rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              {TITULOS_BUSCAR.map((titulo, i) => (
+                <li key={i} style={{ fontSize: '0.74rem', color: '#9ca3af', lineHeight: 1.4 }}>{titulo}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* ── PASO 0 ── */}
         {paso === 0 && (
