@@ -79,6 +79,7 @@ export default async function AdminPage() {
     authUsersRes,
     registrosHoyRes,
     soporteRes,
+    finanzasRes,
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email'),
     admin.from('habito_registros').select('usuario_id').eq('fecha', today),
@@ -89,14 +90,17 @@ export default async function AdminPage() {
     admin.from('educacion_estado').select('usuario_id, etapa_actual'),
     admin.from('habito_registros').select('usuario_id, fecha').gte('fecha', hace90),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
-    admin.from('habito_registros').select('usuario_id, habito_id').eq('fecha', today).eq('completado', true).limit(500),
+    admin.from('habito_registros').select('usuario_id, habito_id').eq('fecha', today).limit(500),
     admin.from('soporte_mensajes').select('id, usuario_id, mensaje, categoria, creado_en').order('creado_en', { ascending: false }).limit(50).then(r => r.error ? { data: [] as { id: string; usuario_id: string; mensaje: string; categoria: string; creado_en: string }[] } : r),
+    admin.from('finanzas_items').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
   ])
 
   const usuarios = usuariosRes.data ?? []
   const totalUsuarios = usuarios.length
   const soporteMensajes = soporteRes.data ?? []
   const emailMap = Object.fromEntries(usuarios.map(u => [u.id, u.email || u.nombre || '?']))
+  const usuariosConFinanzas = new Set((finanzasRes.data ?? []).map(r => r.usuario_id)).size
+  const pctFinanzas = totalUsuarios > 0 ? Math.round((usuariosConFinanzas / totalUsuarios) * 100) : 0
 
   const activosHoy = new Set((activosHoyRes.data ?? []).map(r => r.usuario_id)).size
   const activos7 = new Set((activos7Res.data ?? []).map(r => r.usuario_id)).size
@@ -247,7 +251,7 @@ export default async function AdminPage() {
               Amauta Libre — Admin
             </p>
             <h1 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>Panel de control</h1>
-            <p style={{ color: '#4b5563', fontSize: '0.78rem', marginTop: '0.25rem' }}>{today}</p>
+            <p style={{ color: '#4b5563', fontSize: '0.78rem', marginTop: '0.25rem' }}>{today} · <span style={{ color: '#6b7280' }}>v1.5.0</span></p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem', flexShrink: 0 }}>
             <AdminPushButton totalSubs={pushSubs} />
@@ -264,6 +268,7 @@ export default async function AdminPage() {
           <StatCard label="Activos 7 días" value={fmt(activos7)} color="#34d399" sub={`${retencion7}% retención`} />
           <StatCard label="Nuevos 7 días" value={fmt(nuevos7)} color="#60a5fa" sub={`${fmt(nuevos30)} en 30 días`} trend={tendenciaNuevos} />
           <StatCard label="Push subs" value={fmt(pushSubs)} color="#f59e0b" sub="notificaciones activas" />
+          <StatCard label="Usan finanzas" value={`${pctFinanzas}%`} color="#10b981" sub={`${usuariosConFinanzas} de ${totalUsuarios} usuarios`} />
         </div>
 
         {/* Alerta dormidos */}
