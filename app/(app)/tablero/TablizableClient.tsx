@@ -642,7 +642,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const totalIngresos = monthFinanzas.reduce((a, f) => a + (f.ingresos || 0), 0)
   const totalGastos = monthFinanzas.reduce((a, f) => a + (f.gastos || 0), 0)
   const profit = totalIngresos - totalGastos
-  const inversionMes = monthItems.filter(i => i.categoria === 'Inversión').reduce((a, i) => a + i.monto, 0)
+  const inversionMes = monthItems.filter(i => i.categoria === 'Inversión' && i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
   const diasAhorro = monthFinanzas.filter(d => d.ahorro)
   const ahorroEstimado = diasAhorro.reduce((a, d) => a + Math.round((d.ingresos || 0) * 0.1), 0)
   const ahorroAcumulado = inversionMes > 0 ? inversionMes : ahorroEstimado
@@ -650,6 +650,15 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const ingresosHoy = finanzas.ingresos
   const gastosHoy = finanzas.gastos
   const inversionHoy = finanzaItems.filter(i => i.categoria === 'Inversión').reduce((a, i) => a + i.monto, 0)
+
+  // Locale-aware day abbreviations: index 0=Sun, 1=Mon, ..., 6=Sat
+  const localeCode = locale === 'es' ? 'es-AR' : locale
+  const diasNarrow = Array.from({ length: 7 }, (_, i) =>
+    new Intl.DateTimeFormat(localeCode, { weekday: 'narrow' }).format(new Date(2025, 0, 5 + i))
+  )
+  const diasShort = Array.from({ length: 7 }, (_, i) =>
+    new Intl.DateTimeFormat(localeCode, { weekday: 'short' }).format(new Date(2025, 0, 5 + i)).replace('.', '').slice(0, 2)
+  )
   const gastosNoInv = gastosHoy - inversionHoy
   const libreHoy = ingresosHoy - gastosHoy
   const sugerido10 = Math.round(ingresosHoy * 0.1)
@@ -849,7 +858,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           {/* Semana en revisión */}
           {(() => {
             const semana: { fecha: string; label: string; pct: number }[] = []
-            const diasCortos = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
+            const fmtDia = (d: Date) => new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { weekday: 'short' }).format(d).replace('.', '')
             for (let i = 6; i >= 0; i--) {
               const d = new Date(today + 'T12:00:00')
               d.setDate(d.getDate() - i)
@@ -858,7 +867,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               const hechos = regsDelDia.filter(r => r.valor_bool === true || (r.valor_numero != null && r.valor_numero > 0)).length
               const total = localHabitos.length
               const pct = total > 0 && regsDelDia.length > 0 ? Math.round((hechos / total) * 100) : (fecha === today ? Math.round((completados / total) * 100) : 0)
-              semana.push({ fecha, label: i === 0 ? 'Hoy' : diasCortos[d.getDay()], pct })
+              semana.push({ fecha, label: i === 0 ? t('tablero.tabs.hoy') : fmtDia(d), pct })
             }
             const semPct = Math.round(semana.reduce((a, d) => a + d.pct, 0) / 7)
             const mejorDia = semana.reduce((best, d) => d.pct > best.pct ? d : best, semana[0])
@@ -1119,15 +1128,15 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               {/* Stats cards */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 {[
-                  { label: t('tablero.mes.eficiencia'), value: `${eficienciaPromedio}%`, color: '#a78bfa', sub: t('tablero.mes.dias_registrados', { n: totalDias }) },
-                  { label: t('tablero.mes.racha_actual'), value: `${racha} días`, color: '#F5C518', sub: racha > 0 ? '🔥' : t('tablero.mes.sin_racha') },
-                  { label: t('tablero.mes.ingresos'), value: fmt(totalIngresos), color: '#10b981', sub: t('tablero.mes.total_mes') },
-                  { label: t('tablero.mes.resultado'), value: fmt(profit), color: profit >= 0 ? '#10b981' : '#ef4444', sub: profit >= 0 ? t('tablero.mes.ganancia') : t('tablero.mes.perdida') },
+                  { label: t('tablero.mes.eficiencia'), value: `${eficienciaPromedio}%`, color: '#a78bfa', sub: t('tablero.mes.dias_registrados', { n: totalDias }), subColor: '#4b5563' },
+                  { label: t('tablero.mes.racha_actual'), value: `${racha} días`, color: '#F5C518', sub: racha > 0 ? '🔥' : t('tablero.mes.sin_racha'), subColor: '#4b5563' },
+                  { label: t('tablero.mes.ingresos'), value: fmt(totalIngresos), color: '#10b981', sub: totalGastos > 0 ? `📉 ${fmt(totalGastos)}` : t('tablero.mes.total_mes'), subColor: totalGastos > 0 ? '#ef4444' : '#4b5563' },
+                  { label: t('tablero.mes.resultado'), value: (profit > 0 ? '+' : '') + fmt(profit), color: profit >= 0 ? '#10b981' : '#ef4444', sub: profit >= 0 ? t('tablero.mes.ganancia') : t('tablero.mes.perdida'), subColor: '#4b5563' },
                 ].map(s => (
                   <div key={s.label} style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '1rem 1.125rem' }}>
                     <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.3rem' }}>{s.label}</div>
                     <div style={{ fontSize: '1.2rem', fontWeight: 800, color: s.color }}>{s.value}</div>
-                    <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.15rem' }}>{s.sub}</div>
+                    <div style={{ fontSize: '0.68rem', color: s.subColor, marginTop: '0.15rem' }}>{s.sub}</div>
                   </div>
                 ))}
               </div>
@@ -1155,8 +1164,8 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   <div style={{ fontSize: '0.65rem', color: '#4b5563', fontStyle: 'italic' }}>{t('tablero.mes.mapa_hint')}</div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '3px', marginBottom: '3px' }}>
-                  {['D','L','M','X','J','V','S'].map(d => (
-                    <div key={d} style={{ textAlign: 'center', fontSize: '0.6rem', color: '#4b5563', padding: '2px 0' }}>{d}</div>
+                  {diasNarrow.map((d, i) => (
+                    <div key={i} style={{ textAlign: 'center', fontSize: '0.6rem', color: '#4b5563', padding: '2px 0' }}>{d}</div>
                   ))}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '3px' }}>
@@ -1354,7 +1363,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                         <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>{t('tablero.habitos.frecuencia')}</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
                           <button onClick={() => setNuevoDiasSemana(null)} style={{ padding: '0.3rem 0.625rem', borderRadius: '6px', border: 'none', fontSize: '0.75rem', background: nuevoDiasSemana === null ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.05)', color: nuevoDiasSemana === null ? '#a78bfa' : '#6b7280', fontWeight: nuevoDiasSemana === null ? 700 : 400, cursor: 'pointer' }}>{t('tablero.habitos.todos_dias')}</button>
-                          {DIAS_CORTOS.map((d, i) => {
+                          {diasNarrow.map((d, i) => {
                             const sel = nuevoDiasSemana?.includes(i) ?? false
                             return <button key={i} onClick={() => {
                               if (nuevoDiasSemana === null) { setNuevoDiasSemana([i]) }
@@ -1408,7 +1417,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       <span style={{ fontSize: '1.1rem' }}>{h.emoji}</span>
                       <span style={{ fontSize: '0.875rem', color: '#e5e7eb', flex: 1 }}>{h.nombre}</span>
                       {h.categoria && <span style={{ fontSize: '0.62rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: `${catColor(h.categoria)}22`, color: catColor(h.categoria), fontWeight: 600, flexShrink: 0 }}>{CATEGORIAS.find(c => c.id === h.categoria)?.label}</span>}
-                      {frecuenciaLabel(h.dias_semana) && <span style={{ fontSize: '0.6rem', color: '#6b7280', flexShrink: 0 }}>📅 {frecuenciaLabel(h.dias_semana)}</span>}
+                      {h.dias_semana && h.dias_semana.length > 0 && <span style={{ fontSize: '0.6rem', color: '#6b7280', flexShrink: 0 }}>📅 {[...h.dias_semana].sort((a, b) => a - b).map(d => diasShort[d]).join(' ')}</span>}
                       {h.tipo === 'numero' && h.unidad && <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{h.unidad}</span>}
                       <button onClick={() => { setEditingHabito(h); setNuevoNombre(h.nombre); setNuevoEmoji(h.emoji); setNuevoTipo(h.tipo as 'boolean' | 'numero'); setNuevoCategoria(h.categoria ?? null); setNuevoDiasSemana(h.dias_semana ?? null) }}
                         style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#6b7280', padding: '2px', fontSize: '0.9rem' }}>✏️</button>
@@ -1934,7 +1943,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                 )}
                 {editItemCategoria === 'Inversión' && (
                   <div style={{ padding: '0.4rem 0.7rem', borderRadius: '7px', background: 'rgba(245,197,24,0.15)', border: '1px solid rgba(245,197,24,0.35)', color: '#F5C518', fontSize: '0.75rem', fontWeight: 700 }}>
-                    📈 Inversión (gasto)
+                    {t('tablero.hoy.inversion_tipo')}
                   </div>
                 )}
               </div>
