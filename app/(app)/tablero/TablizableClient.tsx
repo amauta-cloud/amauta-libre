@@ -228,7 +228,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   useEffect(() => {
     const ahorroBase = habitos.find(h => h.obligatorio && h.nombre?.toLowerCase().includes('ahorro'))
     if (ahorroBase) {
-      supabase.from('habitos').delete().eq('id', ahorroBase.id)
+      supabase.from('habitos').delete().eq('id', ahorroBase.id).then(() => {})
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

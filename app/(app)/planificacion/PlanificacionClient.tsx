@@ -667,7 +667,7 @@ function TareaSection({ label, color, items, today, onToggle, onDelete, onEdit, 
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button onClick={() => saveEdit(tarea)} disabled={!editTexto.trim()} style={{ ...BTN_BASE, flex: 1, background: editTexto.trim() ? '#8b5cf6' : 'rgba(139,92,246,0.3)', color: '#fff' }}>
-                    {t('planificacion.guardando').replace('...', '') || 'Guardar'}
+                    {t('common.save')}
                   </button>
                   <button onClick={cancelEdit} style={{ ...BTN_BASE, background: 'transparent', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '0.55rem 0.75rem' }}>✕</button>
                 </div>

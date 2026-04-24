@@ -98,6 +98,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
           borderRadius: '20px 20px 0 0',
           padding: '1.5rem',
           display: 'flex', flexDirection: 'column', gap: '1.25rem',
+          maxHeight: '88vh', overflowY: 'auto',
         }}
       >
         {/* Handle */}
