@@ -156,6 +156,10 @@ export const en: typeof es = {
         Agua: 'Water', Ejercicio: 'Exercise', Lectura: 'Reading',
         Meditación: 'Meditation', 'Sin azúcar': 'No sugar', 'Dormir 8h': 'Sleep 8h',
         Gratitud: 'Gratitude', Idioma: 'Language', 'Sin redes sociales': 'No social media', Caminata: 'Walk',
+        Vitaminas: 'Vitamins', Correr: 'Running', Stretching: 'Stretching',
+        Escritura: 'Writing', Journaling: 'Journaling', Respiración: 'Breathing',
+        'Sin alcohol': 'No alcohol', 'Sin tabaco': 'No tobacco', 'Llamar familia': 'Call family',
+        Fruta: 'Fruit', Yoga: 'Yoga', Podcast: 'Podcast',
       },
     },
     metas_tab: {

@@ -156,6 +156,10 @@ export const hi: typeof es = {
         Agua: 'पानी', Ejercicio: 'व्यायाम', Lectura: 'पढ़ना',
         Meditación: 'ध्यान', 'Sin azúcar': 'चीनी-मुक्त', 'Dormir 8h': '8 घंटे सोना',
         Gratitud: 'कृतज्ञता', Idioma: 'भाषा', 'Sin redes sociales': 'बिना सोशल मीडिया', Caminata: 'सैर',
+        Vitaminas: 'विटामिन', Correr: 'दौड़ना', Stretching: 'स्ट्रेचिंग',
+        Escritura: 'लेखन', Journaling: 'जर्नलिंग', Respiración: 'श्वास',
+        'Sin alcohol': 'शराब नहीं', 'Sin tabaco': 'धूम्रपान नहीं', 'Llamar familia': 'परिवार को कॉल',
+        Fruta: 'फल', Yoga: 'योग', Podcast: 'पॉडकास्ट',
       },
     },
     metas_tab: {

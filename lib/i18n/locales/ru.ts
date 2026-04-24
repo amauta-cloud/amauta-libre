@@ -156,6 +156,10 @@ export const ru: typeof es = {
         Agua: 'Вода', Ejercicio: 'Упражнение', Lectura: 'Чтение',
         Meditación: 'Медитация', 'Sin azúcar': 'Без сахара', 'Dormir 8h': 'Сон 8 часов',
         Gratitud: 'Благодарность', Idioma: 'Язык', 'Sin redes sociales': 'Без соцсетей', Caminata: 'Прогулка',
+        Vitaminas: 'Витамины', Correr: 'Бег', Stretching: 'Растяжка',
+        Escritura: 'Письмо', Journaling: 'Дневник', Respiración: 'Дыхание',
+        'Sin alcohol': 'Без алкоголя', 'Sin tabaco': 'Без табака', 'Llamar familia': 'Позвонить семье',
+        Fruta: 'Фрукты', Yoga: 'Йога', Podcast: 'Подкаст',
       },
     },
     metas_tab: {

@@ -156,6 +156,10 @@ export const zh: typeof es = {
         Agua: '喝水', Ejercicio: '锻炼', Lectura: '阅读',
         Meditación: '冥想', 'Sin azúcar': '无糖', 'Dormir 8h': '睡眠8小时',
         Gratitud: '感恩', Idioma: '语言学习', 'Sin redes sociales': '远离社交媒体', Caminata: '散步',
+        Vitaminas: '补充维生素', Correr: '跑步', Stretching: '拉伸',
+        Escritura: '写作', Journaling: '写日记', Respiración: '呼吸练习',
+        'Sin alcohol': '不喝酒', 'Sin tabaco': '不吸烟', 'Llamar familia': '给家人打电话',
+        Fruta: '吃水果', Yoga: '瑜伽', Podcast: '播客',
       },
     },
     metas_tab: {

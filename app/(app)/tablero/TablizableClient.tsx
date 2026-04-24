@@ -46,6 +46,18 @@ const PLANTILLAS: Omit<Habito, 'id' | 'obligatorio' | 'orden'>[] = [
   { nombre: 'Idioma', emoji: '🗣️', tipo: 'numero', unidad: 'min', meta_numero: 15 },
   { nombre: 'Sin redes sociales', emoji: '📵', tipo: 'boolean', unidad: null, meta_numero: null },
   { nombre: 'Caminata', emoji: '🚶', tipo: 'numero', unidad: 'min', meta_numero: 30 },
+  { nombre: 'Vitaminas', emoji: '💊', tipo: 'boolean', unidad: null, meta_numero: null },
+  { nombre: 'Correr', emoji: '🏅', tipo: 'numero', unidad: 'km', meta_numero: 5 },
+  { nombre: 'Stretching', emoji: '🤸', tipo: 'numero', unidad: 'min', meta_numero: 10 },
+  { nombre: 'Escritura', emoji: '✍️', tipo: 'numero', unidad: 'min', meta_numero: 15 },
+  { nombre: 'Journaling', emoji: '📓', tipo: 'boolean', unidad: null, meta_numero: null },
+  { nombre: 'Respiración', emoji: '🌬️', tipo: 'numero', unidad: 'min', meta_numero: 5 },
+  { nombre: 'Sin alcohol', emoji: '🚫', tipo: 'boolean', unidad: null, meta_numero: null },
+  { nombre: 'Sin tabaco', emoji: '🚭', tipo: 'boolean', unidad: null, meta_numero: null },
+  { nombre: 'Llamar familia', emoji: '📞', tipo: 'boolean', unidad: null, meta_numero: null },
+  { nombre: 'Fruta', emoji: '🍎', tipo: 'numero', unidad: 'porciones', meta_numero: 2 },
+  { nombre: 'Yoga', emoji: '🧘‍♀️', tipo: 'numero', unidad: 'min', meta_numero: 20 },
+  { nombre: 'Podcast', emoji: '🎧', tipo: 'numero', unidad: 'min', meta_numero: 20 },
 ]
 
 type MetasData = {
@@ -577,31 +589,27 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   function reorderPersonal(fromIdx: number, toIdx: number) {
-    const personal = localHabitos.filter(h => !h.obligatorio)
-    const fixed = localHabitos.filter(h => h.obligatorio)
-    const reordered = [...personal]
+    const reordered = [...localHabitos]
     const [moved] = reordered.splice(fromIdx, 1)
     reordered.splice(toIdx, 0, moved)
     const updated = reordered.map((h, i) => ({ ...h, orden: i + 1 }))
-    setLocalHabitos([...fixed, ...updated])
+    setLocalHabitos(updated)
     Promise.all(updated.map((h, i) => supabase.from('habitos').update({ orden: i + 1 }).eq('id', h.id)))
   }
 
   function handleDragDrop(targetId: string) {
     if (!draggingId || draggingId === targetId) return
-    const personal = localHabitos.filter(h => !h.obligatorio)
-    const fromIdx = personal.findIndex(h => h.id === draggingId)
-    const toIdx = personal.findIndex(h => h.id === targetId)
+    const fromIdx = localHabitos.findIndex(h => h.id === draggingId)
+    const toIdx = localHabitos.findIndex(h => h.id === targetId)
     setDraggingId(null)
     setDragOverId(null)
     reorderPersonal(fromIdx, toIdx)
   }
 
   function moveHabito(id: string, dir: 'up' | 'down') {
-    const personal = localHabitos.filter(h => !h.obligatorio)
-    const idx = personal.findIndex(h => h.id === id)
+    const idx = localHabitos.findIndex(h => h.id === id)
     const newIdx = dir === 'up' ? idx - 1 : idx + 1
-    if (newIdx < 0 || newIdx >= personal.length) return
+    if (newIdx < 0 || newIdx >= localHabitos.length) return
     reorderPersonal(idx, newIdx)
   }
 
@@ -726,7 +734,6 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginBottom: h.tipo === 'numero' ? '0.5rem' : '0.25rem' }}>
                       <span style={{ color: done ? '#a78bfa' : '#d1d5db', fontWeight: 500, fontSize: '0.9rem' }}>{h.nombre}</span>
-                      {h.obligatorio && <span style={{ fontSize: '0.6rem', background: 'rgba(139,92,246,0.2)', color: '#a78bfa', borderRadius: '4px', padding: '0.1rem 0.35rem' }}>base</span>}
                       {rachaHabito(h.id) > 1 && (
                         <span style={{ fontSize: '0.6rem', color: '#fb923c', fontWeight: 700 }}>🔥{rachaHabito(h.id)}d</span>
                       )}
@@ -1218,33 +1225,21 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       {activeTab === 'habitos' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-          {/* Base */}
-          <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.875rem' }}>{t('tablero.habitos.base')}</div>
-            {localHabitos.filter(h => h.obligatorio).map(h => (
-              <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: '8px', marginBottom: '0.375rem', background: 'rgba(255,255,255,0.03)' }}>
-                <span style={{ fontSize: '1rem' }}>{h.emoji}</span>
-                <span style={{ fontSize: '0.875rem', color: '#9ca3af', flex: 1 }}>{h.nombre}</span>
-                <span style={{ fontSize: '0.65rem', background: 'rgba(139,92,246,0.2)', color: '#a78bfa', borderRadius: '4px', padding: '0.1rem 0.4rem' }}>base</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Custom */}
+          {/* Lista unificada de hábitos */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
               <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>{t('tablero.habitos.personales')}</div>
-              <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{t('tablero.habitos.contador').replace('{n}', String(localHabitos.filter(h => !h.obligatorio).length))}</span>
+              <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{t('tablero.habitos.contador').replace('{n}', String(localHabitos.length))}</span>
             </div>
 
-            {localHabitos.filter(h => !h.obligatorio).length === 0 && !showAddHabito && (
+            {localHabitos.length === 0 && !showAddHabito && (
               <div style={{ textAlign: 'center', padding: '1.5rem', color: '#4b5563', fontSize: '0.82rem' }}>
                 {t('tablero.habitos.sin_personales')}
               </div>
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.875rem' }}>
-              {localHabitos.filter(h => !h.obligatorio).map(h => (
+              {localHabitos.map(h => (
                 <div
                   key={h.id}
                   draggable={!editingHabito}

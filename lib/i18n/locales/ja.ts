@@ -156,6 +156,10 @@ export const ja: typeof es = {
         Agua: '水', Ejercicio: '運動', Lectura: '読書',
         Meditación: '瞑想', 'Sin azúcar': '砂糖なし', 'Dormir 8h': '8時間睡眠',
         Gratitud: '感謝', Idioma: '語学', 'Sin redes sociales': 'SNSなし', Caminata: '散歩',
+        Vitaminas: 'ビタミン', Correr: 'ランニング', Stretching: 'ストレッチ',
+        Escritura: '書く', Journaling: '日記', Respiración: '呼吸',
+        'Sin alcohol': 'お酒なし', 'Sin tabaco': 'タバコなし', 'Llamar familia': '家族に電話',
+        Fruta: '果物', Yoga: 'ヨガ', Podcast: 'ポッドキャスト',
       },
     },
     metas_tab: {

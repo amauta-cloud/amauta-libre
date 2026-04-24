@@ -154,6 +154,10 @@ export const es = {
         Agua: 'Agua', Ejercicio: 'Ejercicio', Lectura: 'Lectura',
         Meditación: 'Meditación', 'Sin azúcar': 'Sin azúcar', 'Dormir 8h': 'Dormir 8h',
         Gratitud: 'Gratitud', Idioma: 'Idioma', 'Sin redes sociales': 'Sin redes sociales', Caminata: 'Caminata',
+        Vitaminas: 'Vitaminas', Correr: 'Correr', Stretching: 'Stretching',
+        Escritura: 'Escritura', Journaling: 'Journaling', Respiración: 'Respiración',
+        'Sin alcohol': 'Sin alcohol', 'Sin tabaco': 'Sin tabaco', 'Llamar familia': 'Llamar familia',
+        Fruta: 'Fruta', Yoga: 'Yoga', Podcast: 'Podcast',
       },
     },
     metas_tab: {

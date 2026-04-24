@@ -156,6 +156,10 @@ export const ar: typeof es = {
         Agua: 'ماء', Ejercicio: 'تمرين', Lectura: 'قراءة',
         Meditación: 'تأمل', 'Sin azúcar': 'بلا سكر', 'Dormir 8h': 'نوم 8 ساعات',
         Gratitud: 'امتنان', Idioma: 'لغة', 'Sin redes sociales': 'بلا تواصل اجتماعي', Caminata: 'مشي',
+        Vitaminas: 'فيتامينات', Correr: 'جري', Stretching: 'تمطيط',
+        Escritura: 'كتابة', Journaling: 'يوميات', Respiración: 'تنفس',
+        'Sin alcohol': 'بلا كحول', 'Sin tabaco': 'بلا تبغ', 'Llamar familia': 'الاتصال بالعائلة',
+        Fruta: 'فاكهة', Yoga: 'يوغا', Podcast: 'بودكاست',
       },
     },
     metas_tab: {

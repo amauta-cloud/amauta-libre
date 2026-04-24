@@ -156,6 +156,10 @@ export const id: typeof es = {
         Agua: 'Air', Ejercicio: 'Olahraga', Lectura: 'Membaca',
         Meditación: 'Meditasi', 'Sin azúcar': 'Tanpa gula', 'Dormir 8h': 'Tidur 8 jam',
         Gratitud: 'Rasa syukur', Idioma: 'Bahasa', 'Sin redes sociales': 'Tanpa media sosial', Caminata: 'Jalan kaki',
+        Vitaminas: 'Vitamin', Correr: 'Berlari', Stretching: 'Peregangan',
+        Escritura: 'Menulis', Journaling: 'Jurnal', Respiración: 'Pernapasan',
+        'Sin alcohol': 'Tanpa alkohol', 'Sin tabaco': 'Tanpa rokok', 'Llamar familia': 'Telepon keluarga',
+        Fruta: 'Buah', Yoga: 'Yoga', Podcast: 'Podcast',
       },
     },
     metas_tab: {
