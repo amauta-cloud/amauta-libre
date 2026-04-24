@@ -135,7 +135,7 @@ export default async function TablizablePage() {
 
       {/* Mini stats — clickeable */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
-        <Link href="/planificacion" style={{ textDecoration: 'none' }}>
+        <Link href="/planificacion?tab=tareas" style={{ textDecoration: 'none' }}>
           <div style={{
             background: '#1a1730', borderRadius: '12px',
             border: `1px solid ${tareasVencidas > 0 ? 'rgba(239,68,68,0.2)' : 'rgba(139,92,246,0.1)'}`,

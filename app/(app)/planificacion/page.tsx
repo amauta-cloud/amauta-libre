@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import PlanificacionClient from './PlanificacionClient'
 
@@ -14,7 +15,9 @@ export default async function PlanificacionPage() {
 
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto', padding: '1.5rem 1rem' }}>
-      <PlanificacionClient userId={user!.id} today={todayStr()} nombre={nombre} />
+      <Suspense fallback={null}>
+        <PlanificacionClient userId={user!.id} today={todayStr()} nombre={nombre} />
+      </Suspense>
     </div>
   )
 }

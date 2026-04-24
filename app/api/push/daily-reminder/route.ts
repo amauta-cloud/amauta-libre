@@ -22,8 +22,15 @@ export async function GET(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
 
-  const { data: subscriptions } = await supabase.from('push_subscriptions').select('*')
-  if (!subscriptions?.length) return NextResponse.json({ sent: 0 })
+  const { data: rawSubscriptions } = await supabase.from('push_subscriptions').select('*')
+  if (!rawSubscriptions?.length) return NextResponse.json({ sent: 0 })
+
+  // Deduplicate by endpoint — keep only the most recent row per endpoint
+  const seen = new Map<string, typeof rawSubscriptions[0]>()
+  for (const sub of rawSubscriptions) {
+    if (!seen.has(sub.endpoint)) seen.set(sub.endpoint, sub)
+  }
+  const subscriptions = Array.from(seen.values())
 
   const payload = JSON.stringify({
     title: 'Amauta — pensamiento del día',

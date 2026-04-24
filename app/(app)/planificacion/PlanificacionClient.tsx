@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { useLocale } from '@/lib/i18n/LocaleContext'
 
@@ -62,8 +63,12 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
   const { t } = useLocale()
+  const searchParams = useSearchParams()
 
-  const [tab, setTab] = useState<Tab>('ideas')
+  const [tab, setTab] = useState<Tab>(() => {
+    const p = searchParams.get('tab')
+    return (p === 'tareas' || p === 'calendario') ? p : 'ideas'
+  })
 
   // ── IDEAS ──
   const [ideas, setIdeas] = useState<Idea[]>([])
@@ -186,6 +191,11 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
 
   async function deleteTarea(id: string) {
     await supabase.from('tareas').delete().eq('id', id)
+    loadTareas()
+  }
+
+  async function editTarea(id: string, texto: string, fecha: string | null, hora: string | null) {
+    await supabase.from('tareas').update({ texto, fecha_limite: fecha, hora_limite: hora }).eq('id', id)
     loadTareas()
   }
 
@@ -386,9 +396,9 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
 
           {!tareasLoading && (
             <>
-              {vencidas.length > 0 && <TareaSection label={t('planificacion.tarea_vencidas')} color="#ef4444" items={vencidas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} t={t} />}
-              {hoy.length > 0 && <TareaSection label={t('planificacion.tarea_hoy')} color="#f59e0b" items={hoy} today={today} onToggle={toggleTarea} onDelete={deleteTarea} t={t} />}
-              {proximas.length > 0 && <TareaSection label={t('planificacion.tarea_proximas')} color="#9ca3af" items={proximas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} t={t} />}
+              {vencidas.length > 0 && <TareaSection label={t('planificacion.tarea_vencidas')} color="#ef4444" items={vencidas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} onEdit={editTarea} t={t} />}
+              {hoy.length > 0 && <TareaSection label={t('planificacion.tarea_hoy')} color="#f59e0b" items={hoy} today={today} onToggle={toggleTarea} onDelete={deleteTarea} onEdit={editTarea} t={t} />}
+              {proximas.length > 0 && <TareaSection label={t('planificacion.tarea_proximas')} color="#9ca3af" items={proximas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} onEdit={editTarea} t={t} />}
 
               {completadas.length > 0 && (
                 <div>
@@ -396,7 +406,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                     style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
                     {showCompleted ? '▾' : '▸'} {t('planificacion.tarea_completadas')} ({completadas.length})
                   </button>
-                  {showCompleted && <TareaSection label={t('planificacion.tarea_completadas')} color="#10b981" items={completadas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} t={t} />}
+                  {showCompleted && <TareaSection label={t('planificacion.tarea_completadas')} color="#10b981" items={completadas} today={today} onToggle={toggleTarea} onDelete={deleteTarea} onEdit={editTarea} t={t} />}
                 </div>
               )}
 
@@ -605,11 +615,34 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
   )
 }
 
-function TareaSection({ label, color, items, today, onToggle, onDelete, t }: {
+function TareaSection({ label, color, items, today, onToggle, onDelete, onEdit, t }: {
   label: string; color: string; items: Tarea[]; today: string
   onToggle: (tarea: Tarea) => void; onDelete: (id: string) => void
+  onEdit: (id: string, texto: string, fecha: string | null, hora: string | null) => void
   t: (key: string, vars?: Record<string, string | number>) => string
 }) {
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTexto, setEditTexto] = useState('')
+  const [editFecha, setEditFecha] = useState('')
+  const [editHora, setEditHora] = useState('')
+
+  function startEdit(tarea: Tarea) {
+    setEditingId(tarea.id)
+    setEditTexto(tarea.texto)
+    setEditFecha(tarea.fecha_limite || '')
+    setEditHora(tarea.hora_limite || '')
+  }
+
+  function cancelEdit() {
+    setEditingId(null); setEditTexto(''); setEditFecha(''); setEditHora('')
+  }
+
+  function saveEdit(tarea: Tarea) {
+    if (!editTexto.trim()) return
+    onEdit(tarea.id, editTexto.trim(), editFecha || null, editFecha && editHora ? editHora : null)
+    cancelEdit()
+  }
+
   return (
     <div style={{ marginBottom: '0.75rem' }}>
       <p style={{ color, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>{label}</p>
@@ -617,6 +650,31 @@ function TareaSection({ label, color, items, today, onToggle, onDelete, t }: {
         {items.map(tarea => {
           const done = tarea.estado === 'completada'
           const vencida = tarea.fecha_limite && tarea.fecha_limite < today && !done
+
+          if (editingId === tarea.id) {
+            return (
+              <div key={tarea.id} style={{ padding: '0.875rem 1rem', borderRadius: '12px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <input
+                  value={editTexto}
+                  onChange={e => setEditTexto(e.target.value)}
+                  autoFocus
+                  onKeyDown={e => { if (e.key === 'Enter') saveEdit(tarea); if (e.key === 'Escape') cancelEdit() }}
+                  style={{ ...INPUT_STYLE }}
+                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  <input type="date" value={editFecha} onChange={e => setEditFecha(e.target.value)} style={{ ...INPUT_STYLE, colorScheme: 'dark', fontSize: '0.8rem' }} />
+                  <input type="time" value={editHora} onChange={e => setEditHora(e.target.value)} disabled={!editFecha} style={{ ...INPUT_STYLE, colorScheme: 'dark', fontSize: '0.8rem', opacity: editFecha ? 1 : 0.4 }} />
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={() => saveEdit(tarea)} disabled={!editTexto.trim()} style={{ ...BTN_BASE, flex: 1, background: editTexto.trim() ? '#8b5cf6' : 'rgba(139,92,246,0.3)', color: '#fff' }}>
+                    {t('planificacion.guardando').replace('...', '') || 'Guardar'}
+                  </button>
+                  <button onClick={cancelEdit} style={{ ...BTN_BASE, background: 'transparent', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '0.55rem 0.75rem' }}>✕</button>
+                </div>
+              </div>
+            )
+          }
+
           return (
             <div key={tarea.id} style={{
               display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
@@ -639,7 +697,12 @@ function TareaSection({ label, color, items, today, onToggle, onDelete, t }: {
                   </span>
                 )}
               </div>
-              <button onClick={() => onDelete(tarea.id)} style={{ background: 'transparent', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '1rem', padding: '0 0.25rem', flexShrink: 0 }}>×</button>
+              <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
+                {!done && (
+                  <button onClick={() => startEdit(tarea)} style={{ background: 'transparent', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '0.85rem', padding: '0 0.25rem' }}>✏️</button>
+                )}
+                <button onClick={() => onDelete(tarea.id)} style={{ background: 'transparent', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '1rem', padding: '0 0.25rem' }}>×</button>
+              </div>
             </div>
           )
         })}

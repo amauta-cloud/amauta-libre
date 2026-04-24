@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useLocale, LOCALES, type Locale } from '@/lib/i18n/LocaleContext'
 import { ONBOARDING_STORAGE_KEY } from '@/components/OnboardingTutorial'
+import PushNotificationSetup from '@/components/PushNotificationSetup'
 
 export default function NavBar({ nombre: initialNombre, avatar, userId }: { nombre?: string; avatar?: string; userId?: string }) {
   const pathname = usePathname()
@@ -19,6 +20,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
   const [nombreSaving, setNombreSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [avatarFailed, setAvatarFailed] = useState(false)
   const [soporteOpen, setSoporteOpen] = useState(false)
   const [soporteText, setSoporteText] = useState('')
   const [soporteCategoria, setSoporteCategoria] = useState<'bug' | 'sugerencia' | 'otro'>('otro')
@@ -78,7 +80,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
 
   const currentLocale = LOCALES.find(l => l.code === locale)
 
-  const ConfigPanel = () => (
+  const configPanelJSX = configOpen ? (
     <div
       onClick={() => setConfigOpen(false)}
       style={{
@@ -103,8 +105,8 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
 
         {/* Perfil */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          {avatar ? (
-            <img src={avatar} alt="" referrerPolicy="no-referrer" style={{ width: '44px', height: '44px', borderRadius: '50%' }} />
+          {avatar && !avatarFailed ? (
+            <img src={avatar} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} style={{ width: '44px', height: '44px', borderRadius: '50%' }} />
           ) : (
             <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.1rem', fontWeight: 700, flexShrink: 0 }}>
               {nombreInput?.[0]?.toUpperCase() || 'U'}
@@ -152,6 +154,9 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
             ))}
           </div>
         </div>
+
+        {/* Notificaciones push */}
+        <PushNotificationSetup />
 
         {/* Ver guía de nuevo */}
         <button
@@ -310,7 +315,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
         </div>
       </div>
     </div>
-  )
+  ) : null
 
   const AvatarBtn = ({ size = 32, mobile = false }: { size?: number; mobile?: boolean }) => (
     <button
@@ -322,8 +327,8 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
         ...(mobile ? { flex: 1, justifyContent: 'center', paddingTop: '0.5rem', paddingBottom: '0.5rem' } : {}),
       }}
     >
-      {avatar ? (
-        <img src={avatar} alt="" referrerPolicy="no-referrer" style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', opacity: configOpen ? 1 : 0.85 }} />
+      {avatar && !avatarFailed ? (
+        <img src={avatar} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', opacity: configOpen ? 1 : 0.85 }} />
       ) : (
         <div style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: mobile ? '0.65rem' : '0.85rem', flexShrink: 0 }}>
           {nombreInput?.[0]?.toUpperCase() || 'U'}
@@ -386,8 +391,8 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
             border: '1px solid rgba(255,255,255,0.07)',
             cursor: 'pointer', transition: 'all 0.15s',
           }}>
-            {avatar ? (
-              <img src={avatar} alt="" referrerPolicy="no-referrer" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
+            {avatar && !avatarFailed ? (
+              <img src={avatar} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
             ) : (
               <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.8rem', fontWeight: 700 }}>
                 {nombreInput?.[0]?.toUpperCase() || 'U'}
@@ -429,7 +434,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
       </nav>
 
       {/* Config panel */}
-      {configOpen && <ConfigPanel />}
+      {configPanelJSX}
 
       <style>{`
         @media (min-width: 768px) {

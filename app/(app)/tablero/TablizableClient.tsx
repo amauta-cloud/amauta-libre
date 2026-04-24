@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useLocale } from '@/lib/i18n/LocaleContext'
 import OnboardingTutorial from '@/components/OnboardingTutorial'
-import PushNotificationSetup from '@/components/PushNotificationSetup'
 import RatingPrompt from '@/components/RatingPrompt'
 
 type Habito = {
@@ -195,8 +194,10 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [editSaving, setEditSaving] = useState(false)
   const [editSaved, setEditSaved] = useState(false)
 
-  // Habitos management
-  const [localHabitos, setLocalHabitos] = useState<Habito[]>(habitos)
+  // Habitos management — filter out the legacy "Ahorro" base habit (replaced by finanzas section)
+  const [localHabitos, setLocalHabitos] = useState<Habito[]>(
+    habitos.filter(h => !(h.obligatorio && h.nombre?.toLowerCase().includes('ahorro')))
+  )
   const [showAddHabito, setShowAddHabito] = useState(false)
   const [editingHabito, setEditingHabito] = useState<Habito | null>(null)
   const [nuevoNombre, setNuevoNombre] = useState('')
@@ -222,6 +223,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     return false
   }).length
   const pct = habitosHoy.length > 0 ? Math.round((completados / habitosHoy.length) * 100) : 0
+
+  // One-time cleanup: delete the legacy "Ahorro" base habit from DB
+  useEffect(() => {
+    const ahorroBase = habitos.find(h => h.obligatorio && h.nombre?.toLowerCase().includes('ahorro'))
+    if (ahorroBase) {
+      supabase.from('habitos').delete().eq('id', ahorroBase.id)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load finance categories (create defaults if empty)
   useEffect(() => {
@@ -1031,7 +1040,6 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             )}
           </div>
 
-          <PushNotificationSetup />
           <RatingPrompt racha={racha} />
         </div>
       )}

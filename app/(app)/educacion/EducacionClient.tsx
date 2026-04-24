@@ -78,9 +78,17 @@ export default function EducacionClient({
     }
   }, [locale])
 
+  const TIPO_CORRECTO: Record<number, string> = {
+    1: 'Audiolibro', 2: 'Libro PDF', 3: 'Libro PDF', 4: 'Libro PDF',
+    5: 'Audiolibro', 6: 'Video', 7: 'Libro PDF', 8: 'Audiolibro',
+    9: 'Video', 10: 'Audiolibro', 11: 'Biblioteca',
+  }
+
   const totalPasos = 11
   const etapasPorOrden: Record<number, Etapa> = {}
-  for (const e of etapas) etapasPorOrden[e.orden] = e
+  for (const e of etapas) {
+    etapasPorOrden[e.orden] = { ...e, tipo: TIPO_CORRECTO[e.orden] ?? e.tipo }
+  }
 
   async function guardarEstado(patch: {
     etapa_actual?: number
