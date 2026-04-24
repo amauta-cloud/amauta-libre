@@ -121,8 +121,8 @@ export const ar: typeof es = {
     },
     habitos: {
       base: 'العادات الأساسية',
-      personales: 'عاداتي الشخصية',
-      sin_personales: 'لم تضف عادات شخصية بعد',
+      personales: 'عاداتي',
+      sin_personales: 'لا توجد عادات بعد. أضف واحدة أو استخدم النماذج.',
       nuevo: 'عادة جديدة',
       nombre_placeholder: 'اسم العادة...',
       tipo: 'النوع',

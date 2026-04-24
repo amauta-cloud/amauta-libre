@@ -121,8 +121,8 @@ export const zh: typeof es = {
     },
     habitos: {
       base: '基础习惯',
-      personales: '我的个人习惯',
-      sin_personales: '您还没有添加个人习惯',
+      personales: '我的习惯',
+      sin_personales: '还没有习惯。添加一个或使用模板。',
       nuevo: '新习惯',
       nombre_placeholder: '习惯名称...',
       tipo: '类型',

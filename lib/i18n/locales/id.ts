@@ -121,8 +121,8 @@ export const id: typeof es = {
     },
     habitos: {
       base: 'Kebiasaan dasar',
-      personales: 'Kebiasaan pribadiku',
-      sin_personales: 'Kamu belum menambahkan kebiasaan pribadi',
+      personales: 'Kebiasaanku',
+      sin_personales: 'Belum ada kebiasaan. Tambah satu atau gunakan template.',
       nuevo: 'Kebiasaan baru',
       nombre_placeholder: 'Nama kebiasaan...',
       tipo: 'Tipe',

@@ -121,8 +121,8 @@ export const ru: typeof es = {
     },
     habitos: {
       base: 'Базовые привычки',
-      personales: 'Мои личные привычки',
-      sin_personales: 'Личные привычки ещё не добавлены',
+      personales: 'Мои привычки',
+      sin_personales: 'Привычек пока нет. Добавьте или воспользуйтесь шаблонами.',
       nuevo: 'Новая привычка',
       nombre_placeholder: 'Название привычки...',
       tipo: 'Тип',

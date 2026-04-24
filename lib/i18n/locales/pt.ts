@@ -121,8 +121,8 @@ export const pt: typeof es = {
     },
     habitos: {
       base: 'Hábitos base',
-      personales: 'Meus hábitos pessoais',
-      sin_personales: 'Você ainda não adicionou hábitos pessoais',
+      personales: 'Meus hábitos',
+      sin_personales: 'Nenhum hábito ainda. Adicione um ou use os modelos.',
       nuevo: 'Novo hábito',
       nombre_placeholder: 'Nome do hábito...',
       tipo: 'Tipo',

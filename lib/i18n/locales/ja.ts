@@ -121,8 +121,8 @@ export const ja: typeof es = {
     },
     habitos: {
       base: '基本習慣',
-      personales: '私の個人習慣',
-      sin_personales: '個人習慣をまだ追加していません',
+      personales: '私の習慣',
+      sin_personales: 'まだ習慣がありません。追加するかテンプレートを使ってください。',
       nuevo: '新しい習慣',
       nombre_placeholder: '習慣名...',
       tipo: 'タイプ',

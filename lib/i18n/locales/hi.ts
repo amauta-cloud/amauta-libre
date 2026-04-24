@@ -121,8 +121,8 @@ export const hi: typeof es = {
     },
     habitos: {
       base: 'मूल आदतें',
-      personales: 'मेरी व्यक्तिगत आदतें',
-      sin_personales: 'आपने अभी तक व्यक्तिगत आदतें नहीं जोड़ी हैं',
+      personales: 'मेरी आदतें',
+      sin_personales: 'अभी कोई आदत नहीं। एक जोड़ें या टेम्पलेट उपयोग करें।',
       nuevo: 'नई आदत',
       nombre_placeholder: 'आदत का नाम...',
       tipo: 'प्रकार',
