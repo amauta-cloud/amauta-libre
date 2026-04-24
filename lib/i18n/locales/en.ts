@@ -109,6 +109,8 @@ export const en: typeof es = {
       ahorro_acumulado: '🐷 Accumulated savings (10%)',
       dia_ahorro_singular: 'day with savings',
       dias_ahorro: 'days with savings',
+      sin_categoria: 'Uncategorized',
+      total_gastos: 'Total monthly expenses',
       mapa: 'Habit map: tap a day to edit',
       mapa_hint: 'tap a day to edit',
       menos: 'Less',

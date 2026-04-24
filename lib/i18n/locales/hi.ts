@@ -109,6 +109,8 @@ export const hi: typeof es = {
       ahorro_acumulado: '🐷 जमा हुई बचत (10%)',
       dia_ahorro_singular: 'बचत वाला दिन',
       dias_ahorro: 'बचत वाले दिन',
+      sin_categoria: 'बिना श्रेणी',
+      total_gastos: 'माह के कुल खर्च',
       mapa: 'आदत मानचित्र: संपादित करने के लिए किसी दिन को छुएं',
       mapa_hint: 'संपादित करने के लिए किसी दिन पर टैप करें',
       menos: 'कम',

@@ -107,6 +107,8 @@ export const es = {
       ahorro_acumulado: '🐷 Ahorro acumulado (10%)',
       dia_ahorro_singular: 'día con ahorro',
       dias_ahorro: 'días con ahorro',
+      sin_categoria: 'Sin categoría',
+      total_gastos: 'Total gastos del mes',
       mapa: 'Mapa de hábitos',
       mapa_hint: 'tocá un día para editar',
       menos: 'Menos',

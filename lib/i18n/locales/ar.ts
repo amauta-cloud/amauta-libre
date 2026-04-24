@@ -109,6 +109,8 @@ export const ar: typeof es = {
       ahorro_acumulado: '🐷 الادخار المتراكم (10%)',
       dia_ahorro_singular: 'يوم مع ادخار',
       dias_ahorro: 'أيام مع ادخار',
+      sin_categoria: 'بدون فئة',
+      total_gastos: 'إجمالي مصاريف الشهر',
       mapa: 'خريطة العادات: اضغط على يوم للتعديل',
       mapa_hint: 'اضغط على يوم لتعديله',
       menos: 'أقل',

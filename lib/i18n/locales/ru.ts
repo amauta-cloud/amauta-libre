@@ -109,6 +109,8 @@ export const ru: typeof es = {
       ahorro_acumulado: '🐷 Накопленные сбережения (10%)',
       dia_ahorro_singular: 'день со сбережениями',
       dias_ahorro: 'дней со сбережениями',
+      sin_categoria: 'Без категории',
+      total_gastos: 'Всего расходов за месяц',
       mapa: 'Карта привычек: нажми на день для редактирования',
       mapa_hint: 'нажмите на день для редактирования',
       menos: 'Меньше',

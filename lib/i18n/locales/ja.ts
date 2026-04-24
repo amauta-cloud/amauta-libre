@@ -109,6 +109,8 @@ export const ja: typeof es = {
       ahorro_acumulado: '🐷 累計貯蓄 (10%)',
       dia_ahorro_singular: '貯蓄した日',
       dias_ahorro: '貯蓄した日数',
+      sin_categoria: 'カテゴリなし',
+      total_gastos: '今月の合計支出',
       mapa: '習慣マップ: 日付をタップして編集',
       mapa_hint: '日付をタップして編集',
       menos: '少ない',

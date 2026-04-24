@@ -1240,31 +1240,51 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               )}
 
               {/* Desglose por categoría */}
-              {monthItems.length > 0 && (() => {
+              {monthItems.some(i => i.tipo === 'gasto') && (() => {
+                const gastosMes = monthItems.filter(i => i.tipo === 'gasto')
+                const totalGastosMes = gastosMes.reduce((a, i) => a + i.monto, 0)
                 const catTotals = finanzaCategorias
                   .map(cat => ({
-                    ...cat,
-                    total: monthItems.filter(i => i.categoria === cat.nombre && i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0),
+                    id: cat.id, nombre: cat.nombre, emoji: cat.emoji,
+                    total: gastosMes.filter(i => i.categoria === cat.nombre).reduce((a, i) => a + i.monto, 0),
                   }))
                   .filter(c => c.total > 0)
                   .sort((a, b) => b.total - a.total)
-                const maxTotal = Math.max(...catTotals.map(c => c.total), 1)
-                if (catTotals.length === 0) return null
+                const sinCategoria = gastosMes.filter(i => !i.categoria || !finanzaCategorias.some(c => c.nombre === i.categoria)).reduce((a, i) => a + i.monto, 0)
+                const filas = sinCategoria > 0
+                  ? [...catTotals, { id: '__otros__', nombre: t('tablero.mes.sin_categoria'), emoji: '❓', total: sinCategoria }]
+                  : catTotals
+                if (filas.length === 0) return null
+                const maxTotal = Math.max(...filas.map(c => c.total), 1)
                 return (
                   <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
                     <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.mes.desglose_gastos')}</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {catTotals.map(cat => (
-                        <div key={cat.id}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                            <span style={{ fontSize: '0.8rem', color: '#d1d5db' }}>{cat.emoji} {cat.nombre}</span>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: cat.nombre === 'Inversión' ? '#F5C518' : '#ef4444' }}>{fmt(cat.total)}</span>
+                      {filas.map(cat => {
+                        const pct = totalGastosMes > 0 ? Math.round(cat.total / totalGastosMes * 100) : 0
+                        const isInv = cat.nombre === 'Inversión'
+                        const isSin = cat.id === '__otros__'
+                        const barColor = isInv ? 'linear-gradient(90deg,#F5C518,#f59e0b)' : isSin ? 'linear-gradient(90deg,#6b7280,#9ca3af)' : 'linear-gradient(90deg,#ef4444,#f87171)'
+                        const textColor = isInv ? '#F5C518' : isSin ? '#9ca3af' : '#ef4444'
+                        return (
+                          <div key={cat.id}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.8rem', color: isSin ? '#6b7280' : '#d1d5db' }}>{cat.emoji} {cat.nombre}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.68rem', color: '#4b5563', fontWeight: 600 }}>{pct}%</span>
+                                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: textColor }}>{fmt(cat.total)}</span>
+                              </div>
+                            </div>
+                            <div style={{ height: '5px', borderRadius: '99px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                              <div style={{ height: '100%', borderRadius: '99px', width: `${Math.round(cat.total / maxTotal * 100)}%`, background: barColor, transition: 'width 0.4s ease' }} />
+                            </div>
                           </div>
-                          <div style={{ height: '5px', borderRadius: '99px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', borderRadius: '99px', width: `${Math.round(cat.total / maxTotal * 100)}%`, background: cat.nombre === 'Inversión' ? 'linear-gradient(90deg,#F5C518,#f59e0b)' : 'linear-gradient(90deg,#ef4444,#f87171)', transition: 'width 0.4s ease' }} />
-                          </div>
-                        </div>
-                      ))}
+                        )
+                      })}
+                    </div>
+                    <div style={{ marginTop: '0.875rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{t('tablero.mes.total_gastos')}</span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#ef4444' }}>{fmt(totalGastosMes)}</span>
                     </div>
                   </div>
                 )
@@ -1506,31 +1526,51 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           ) : null}
 
           {/* Desglose por categoría */}
-          {!monthLoading && monthItems.length > 0 && (() => {
+          {!monthLoading && monthItems.some(i => i.tipo === 'gasto') && (() => {
+            const gastosMes = monthItems.filter(i => i.tipo === 'gasto')
+            const totalGastosMes = gastosMes.reduce((a, i) => a + i.monto, 0)
             const catTotals = finanzaCategorias
               .map(cat => ({
-                ...cat,
-                total: monthItems.filter(i => i.categoria === cat.nombre && i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0),
+                id: cat.id, nombre: cat.nombre, emoji: cat.emoji,
+                total: gastosMes.filter(i => i.categoria === cat.nombre).reduce((a, i) => a + i.monto, 0),
               }))
               .filter(c => c.total > 0)
               .sort((a, b) => b.total - a.total)
-            const maxTotal = Math.max(...catTotals.map(c => c.total), 1)
-            if (catTotals.length === 0) return null
+            const sinCategoria = gastosMes.filter(i => !i.categoria || !finanzaCategorias.some(c => c.nombre === i.categoria)).reduce((a, i) => a + i.monto, 0)
+            const filas = sinCategoria > 0
+              ? [...catTotals, { id: '__otros__', nombre: t('tablero.mes.sin_categoria'), emoji: '❓', total: sinCategoria }]
+              : catTotals
+            if (filas.length === 0) return null
+            const maxTotal = Math.max(...filas.map(c => c.total), 1)
             return (
               <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
                 <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.finanzas.desglose_gastos')}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {catTotals.map(cat => (
-                    <div key={cat.id}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#d1d5db' }}>{cat.emoji} {cat.nombre}</span>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: cat.nombre === 'Inversión' ? '#F5C518' : '#ef4444' }}>{fmt(cat.total)}</span>
+                  {filas.map(cat => {
+                    const pct = totalGastosMes > 0 ? Math.round(cat.total / totalGastosMes * 100) : 0
+                    const isInv = cat.nombre === 'Inversión'
+                    const isSin = cat.id === '__otros__'
+                    const barColor = isInv ? 'linear-gradient(90deg,#F5C518,#f59e0b)' : isSin ? 'linear-gradient(90deg,#6b7280,#9ca3af)' : 'linear-gradient(90deg,#ef4444,#f87171)'
+                    const textColor = isInv ? '#F5C518' : isSin ? '#9ca3af' : '#ef4444'
+                    return (
+                      <div key={cat.id}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.8rem', color: isSin ? '#6b7280' : '#d1d5db' }}>{cat.emoji} {cat.nombre}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.68rem', color: '#4b5563', fontWeight: 600 }}>{pct}%</span>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: textColor }}>{fmt(cat.total)}</span>
+                          </div>
+                        </div>
+                        <div style={{ height: '5px', borderRadius: '99px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', borderRadius: '99px', width: `${Math.round(cat.total / maxTotal * 100)}%`, background: barColor, transition: 'width 0.4s ease' }} />
+                        </div>
                       </div>
-                      <div style={{ height: '5px', borderRadius: '99px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', borderRadius: '99px', width: `${Math.round(cat.total / maxTotal * 100)}%`, background: cat.nombre === 'Inversión' ? 'linear-gradient(90deg,#F5C518,#f59e0b)' : 'linear-gradient(90deg,#ef4444,#f87171)', transition: 'width 0.4s ease' }} />
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
+                </div>
+                <div style={{ marginTop: '0.875rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{t('tablero.mes.total_gastos')}</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#ef4444' }}>{fmt(totalGastosMes)}</span>
                 </div>
               </div>
             )

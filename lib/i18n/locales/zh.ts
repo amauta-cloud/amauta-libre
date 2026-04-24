@@ -109,6 +109,8 @@ export const zh: typeof es = {
       ahorro_acumulado: '🐷 累计储蓄 (10%)',
       dia_ahorro_singular: '储蓄日',
       dias_ahorro: '储蓄天数',
+      sin_categoria: '未分类',
+      total_gastos: '本月总支出',
       mapa: '习惯地图: 点击某天编辑',
       mapa_hint: '点击某天进行编辑',
       menos: '少',

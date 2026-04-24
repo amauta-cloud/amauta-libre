@@ -109,6 +109,8 @@ export const id: typeof es = {
       ahorro_acumulado: '🐷 Tabungan terkumpul (10%)',
       dia_ahorro_singular: 'hari dengan tabungan',
       dias_ahorro: 'hari dengan tabungan',
+      sin_categoria: 'Tanpa kategori',
+      total_gastos: 'Total pengeluaran bulan ini',
       mapa: 'Peta kebiasaan: ketuk hari untuk mengedit',
       mapa_hint: 'ketuk hari untuk mengedit',
       menos: 'Lebih sedikit',

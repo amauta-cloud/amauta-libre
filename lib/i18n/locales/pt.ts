@@ -109,6 +109,8 @@ export const pt: typeof es = {
       ahorro_acumulado: '🐷 Economia acumulada (10%)',
       dia_ahorro_singular: 'dia com poupança',
       dias_ahorro: 'dias com poupança',
+      sin_categoria: 'Sem categoria',
+      total_gastos: 'Total de gastos do mês',
       mapa: 'Mapa de hábitos: toque em um dia para editar',
       mapa_hint: 'toque em um dia para editar',
       menos: 'Menos',
