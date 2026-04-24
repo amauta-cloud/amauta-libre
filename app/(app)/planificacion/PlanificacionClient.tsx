@@ -414,6 +414,8 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
       {/* ══ CALENDARIO ══ */}
       {tab === 'calendario' && (() => {
         const tareasConFecha = tareas.filter(t => t.fecha_limite && t.estado !== 'completada')
+        const tareasCompletadas = tareas.filter(t => t.fecha_limite && t.estado === 'completada')
+          .sort((a, b) => b.fecha_limite! < a.fecha_limite! ? -1 : 1)
         type CalItem =
           | { kind: 'evento'; data: Evento }
           | { kind: 'tarea'; data: Tarea }
@@ -469,7 +471,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
             </div>
           )}
 
-          {merged.map(item => {
+          {merged.map((item) => {
             if (item.kind === 'evento') {
               const ev = item.data
               return (
@@ -565,6 +567,37 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
               </div>
             )
           })}
+
+          {tareasCompletadas.length > 0 && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+                <span style={{ fontSize: '0.65rem', color: '#4b5563', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Historial</span>
+                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+              </div>
+              {tareasCompletadas.map(tarea => (
+                <div key={`th-${tarea.id}`} style={{
+                  background: 'rgba(16,185,129,0.04)',
+                  border: '1px solid rgba(16,185,129,0.12)',
+                  borderRadius: '12px', padding: '0.75rem 1rem',
+                  opacity: 0.7,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.15rem' }}>
+                    <span style={{ fontSize: '0.65rem', background: 'rgba(16,185,129,0.15)', color: '#10b981', borderRadius: '4px', padding: '1px 5px', fontWeight: 600 }}>TAREA</span>
+                    <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 600 }}>✓ Completada</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 500, color: '#6b7280', textDecoration: 'line-through', wordBreak: 'break-word' }}>{tarea.texto}</p>
+                      <span style={{ fontSize: '0.72rem', color: '#4b5563' }}>📅 {formatFecha(tarea.fecha_limite!)}</span>
+                    </div>
+                    <button onClick={() => toggleTarea(tarea)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#10b981', fontSize: '0.85rem', padding: '2px 4px', flexShrink: 0 }}>↩</button>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       )
     })()}
