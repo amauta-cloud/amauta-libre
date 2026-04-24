@@ -54,6 +54,12 @@ export const zh: typeof es = {
     add: '+ 添加',
   },
   tablero: {
+    saludo: {
+      buenos_dias: '早上好，{nombre}',
+      buenas_tardes: '下午好，{nombre}',
+      buenas_noches: '晚上好，{nombre}',
+      fallback: '今日看板',
+    },
     tabs: { hoy: '今天', mes: '本月', habitos: '习惯', metas: '目标', finanzas: '财务' },
     hoy: {
       habitos: '个习惯',

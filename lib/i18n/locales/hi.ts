@@ -54,6 +54,12 @@ export const hi: typeof es = {
     add: '+ जोड़ें',
   },
   tablero: {
+    saludo: {
+      buenos_dias: 'सुप्रभात, {nombre}',
+      buenas_tardes: 'नमस्ते, {nombre}',
+      buenas_noches: 'शुभ संध्या, {nombre}',
+      fallback: 'आज का डैशबोर्ड',
+    },
     tabs: { hoy: 'आज', mes: 'महीना', habitos: 'आदतें', metas: 'लक्ष्य', finanzas: 'वित्त' },
     hoy: {
       habitos: 'आदतें',

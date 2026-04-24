@@ -54,6 +54,12 @@ export const en: typeof es = {
     add: '+ Add',
   },
   tablero: {
+    saludo: {
+      buenos_dias: 'Good morning, {nombre}',
+      buenas_tardes: 'Good afternoon, {nombre}',
+      buenas_noches: 'Good evening, {nombre}',
+      fallback: "Today's dashboard",
+    },
     tabs: { hoy: 'Today', mes: 'Month', habitos: 'Habits', metas: 'Goals', finanzas: 'Finances' },
     hoy: {
       habitos: 'habits',

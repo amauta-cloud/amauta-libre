@@ -54,6 +54,12 @@ export const fr: typeof es = {
     add: '+ Ajouter',
   },
   tablero: {
+    saludo: {
+      buenos_dias: 'Bonjour, {nombre}',
+      buenas_tardes: 'Bon après-midi, {nombre}',
+      buenas_noches: 'Bonsoir, {nombre}',
+      fallback: 'Tableau de bord',
+    },
     tabs: { hoy: "Aujourd'hui", mes: 'Mois', habitos: 'Habitudes', metas: 'Objectifs', finanzas: 'Finances' },
     hoy: {
       habitos: 'habitudes',

@@ -52,6 +52,12 @@ export const es = {
     add: '+ Agregar',
   },
   tablero: {
+    saludo: {
+      buenos_dias: 'Buenos días, {nombre}',
+      buenas_tardes: 'Buenas tardes, {nombre}',
+      buenas_noches: 'Buenas noches, {nombre}',
+      fallback: 'Tablero del día',
+    },
     tabs: { hoy: 'Hoy', mes: 'Mes', habitos: 'Hábitos', metas: 'Metas', finanzas: 'Finanzas' },
     hoy: {
       habitos: 'hábitos',

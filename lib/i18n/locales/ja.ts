@@ -54,6 +54,12 @@ export const ja: typeof es = {
     add: '+ 追加',
   },
   tablero: {
+    saludo: {
+      buenos_dias: 'おはようございます、{nombre}さん',
+      buenas_tardes: 'こんにちは、{nombre}さん',
+      buenas_noches: 'こんばんは、{nombre}さん',
+      fallback: '今日のダッシュボード',
+    },
     tabs: { hoy: '今日', mes: '今月', habitos: '習慣', metas: '目標', finanzas: '財務' },
     hoy: {
       habitos: '習慣',

@@ -54,6 +54,12 @@ export const ru: typeof es = {
     add: '+ Добавить',
   },
   tablero: {
+    saludo: {
+      buenos_dias: 'Доброе утро, {nombre}',
+      buenas_tardes: 'Добрый день, {nombre}',
+      buenas_noches: 'Добрый вечер, {nombre}',
+      fallback: 'Панель дня',
+    },
     tabs: { hoy: 'Сегодня', mes: 'Месяц', habitos: 'Привычки', metas: 'Цели', finanzas: 'Финансы' },
     hoy: {
       habitos: 'привычки',

@@ -54,6 +54,12 @@ export const ar: typeof es = {
     add: '+ إضافة',
   },
   tablero: {
+    saludo: {
+      buenos_dias: 'صباح الخير، {nombre}',
+      buenas_tardes: 'مساء الخير، {nombre}',
+      buenas_noches: 'مساء النور، {nombre}',
+      fallback: 'لوحة اليوم',
+    },
     tabs: { hoy: 'اليوم', mes: 'الشهر', habitos: 'العادات', metas: 'الأهداف', finanzas: 'المالية' },
     hoy: {
       habitos: 'عادات',

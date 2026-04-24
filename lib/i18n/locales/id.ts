@@ -54,6 +54,12 @@ export const id: typeof es = {
     add: '+ Tambah',
   },
   tablero: {
+    saludo: {
+      buenos_dias: 'Selamat pagi, {nombre}',
+      buenas_tardes: 'Selamat siang, {nombre}',
+      buenas_noches: 'Selamat malam, {nombre}',
+      fallback: 'Dasbor hari ini',
+    },
     tabs: { hoy: 'Hari ini', mes: 'Bulan', habitos: 'Kebiasaan', metas: 'Tujuan', finanzas: 'Keuangan' },
     hoy: {
       habitos: 'kebiasaan',

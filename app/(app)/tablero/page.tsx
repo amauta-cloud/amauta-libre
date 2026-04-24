@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import TablizableClient from './TablizableClient'
+import SaludoHeader from '@/components/SaludoHeader'
 
 type Habito = {
   id: string
@@ -53,12 +54,6 @@ function getDiaLabel() {
   return `${dias[d.getDay()]}, ${d.getDate()} ${meses[d.getMonth()]}`
 }
 
-function getSaludoPrefix(nombre: string): string {
-  const hora = new Date().getHours()
-  if (hora >= 5 && hora < 12) return `Buenos días, ${nombre}`
-  if (hora >= 12 && hora < 19) return `Buenas tardes, ${nombre}`
-  return `Buenas noches, ${nombre}`
-}
 
 function calcularRacha(historial: RegistroHistorial[], habitos: Habito[], today: string): number {
   if (habitos.length === 0) return 0
@@ -128,9 +123,7 @@ export default async function TablizablePage() {
         <p style={{ color: '#7c3aed', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
           {getDiaLabel()}
         </p>
-        <h1 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 700 }}>
-          {nombre ? getSaludoPrefix(nombre) : 'Tablero del día'}
-        </h1>
+        <SaludoHeader nombre={nombre} />
       </div>
 
       {/* Mini stats — clickeable */}
