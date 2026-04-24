@@ -262,15 +262,17 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   // Load today's finanzas
   useEffect(() => {
-    supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', today).order('creado_en')
-      .then(({ data }) => {
-        const items = (data || []) as FinanzaItem[]
-        setFinanzaItems(items)
-        const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
-        const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
-        const ahorro = items.some(i => i.categoria === 'Inversión')
-        setFinanzas({ ingresos, gastos, ahorro })
-      })
+    Promise.all([
+      supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', today).order('creado_en'),
+      supabase.from('finanzas_diarias').select('ahorro').eq('usuario_id', userId).eq('fecha', today).maybeSingle(),
+    ]).then(([{ data: itemsData }, { data: dailyRec }]) => {
+      const items = (itemsData || []) as FinanzaItem[]
+      setFinanzaItems(items)
+      const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
+      const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
+      const ahorro = (dailyRec as { ahorro: boolean } | null)?.ahorro ?? false
+      setFinanzas({ ingresos, gastos, ahorro })
+    })
   }, [userId, today]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load month data
@@ -381,10 +383,18 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   async function syncFinanzasDiarias(items: FinanzaItem[]) {
     const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
     const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
-    const ahorro = items.some(i => i.categoria === 'Inversión')
-    setFinanzas({ ingresos, gastos, ahorro })
+    setFinanzas(prev => ({ ...prev, ingresos, gastos }))
     await supabase.from('finanzas_diarias').upsert({
-      usuario_id: userId, fecha: today, ingresos, gastos, ahorro,
+      usuario_id: userId, fecha: today, ingresos, gastos, ahorro: finanzas.ahorro,
+    }, { onConflict: 'usuario_id,fecha' })
+  }
+
+  async function toggleAhorro() {
+    const newAhorro = !finanzas.ahorro
+    setFinanzas(prev => ({ ...prev, ahorro: newAhorro }))
+    await supabase.from('finanzas_diarias').upsert({
+      usuario_id: userId, fecha: today,
+      ingresos: finanzas.ingresos, gastos: finanzas.gastos, ahorro: newAhorro,
     }, { onConflict: 'usuario_id,fecha' })
   }
 
@@ -494,7 +504,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     setEditDayItems(loadedItems)
     const ingresos = loadedItems.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
     const gastos = loadedItems.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
-    const ahorro = loadedItems.some(i => i.categoria === 'Inversión')
+    const ahorro = (fin as { ahorro: boolean } | null)?.ahorro ?? false
     setEditDayFin({ ingresos, gastos, ahorro })
     setEditItemTipo('ingreso'); setEditItemMonto(''); setEditItemDesc(''); setEditItemCategoria(null)
     setEditingDay(dateStr)
@@ -505,10 +515,19 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     if (!editingDay) return
     const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
     const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
-    const ahorro = items.some(i => i.categoria === 'Inversión')
-    setEditDayFin({ ingresos, gastos, ahorro })
+    setEditDayFin(prev => ({ ...prev, ingresos, gastos }))
     await supabase.from('finanzas_diarias').upsert({
-      usuario_id: userId, fecha: editingDay, ingresos, gastos, ahorro,
+      usuario_id: userId, fecha: editingDay, ingresos, gastos, ahorro: editDayFin.ahorro,
+    }, { onConflict: 'usuario_id,fecha' })
+  }
+
+  async function toggleEditDayAhorro() {
+    if (!editingDay) return
+    const newAhorro = !editDayFin.ahorro
+    setEditDayFin(prev => ({ ...prev, ahorro: newAhorro }))
+    await supabase.from('finanzas_diarias').upsert({
+      usuario_id: userId, fecha: editingDay,
+      ingresos: editDayFin.ingresos, gastos: editDayFin.gastos, ahorro: newAhorro,
     }, { onConflict: 'usuario_id,fecha' })
   }
 
@@ -999,6 +1018,27 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                 </div>
               </div>
             )}
+
+            {/* Ahorro del día — toggle explícito */}
+            <button onClick={toggleAhorro} style={{
+              display: 'flex', alignItems: 'center', gap: '0.75rem',
+              width: '100%', padding: '0.75rem 1rem', borderRadius: '10px',
+              background: finanzas.ahorro ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${finanzas.ahorro ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.1)'}`,
+              cursor: 'pointer', textAlign: 'left', marginBottom: '0.5rem',
+            }}>
+              <div style={{
+                width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
+                background: finanzas.ahorro ? '#10b981' : 'transparent',
+                border: `2px solid ${finanzas.ahorro ? '#10b981' : '#4b5563'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {finanzas.ahorro && <span style={{ color: 'white', fontSize: '0.7rem', fontWeight: 900, lineHeight: 1 }}>✓</span>}
+              </div>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: finanzas.ahorro ? '#10b981' : '#9ca3af' }}>
+                🐷 {finanzas.ahorro ? t('tablero.hoy.ahorro_si') : t('tablero.hoy.ahorro_no')}
+              </span>
+            </button>
 
             {/* Balance desglosado */}
             {(ingresosHoy > 0 || gastosHoy > 0) && (
@@ -1895,6 +1935,27 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   </div>
                 )
               })()}
+
+              {/* Ahorro toggle en modal de edición */}
+              <button onClick={toggleEditDayAhorro} style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                width: '100%', padding: '0.65rem 0.875rem', borderRadius: '8px',
+                background: editDayFin.ahorro ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${editDayFin.ahorro ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                cursor: 'pointer', textAlign: 'left',
+              }}>
+                <div style={{
+                  width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
+                  background: editDayFin.ahorro ? '#10b981' : 'transparent',
+                  border: `2px solid ${editDayFin.ahorro ? '#10b981' : '#4b5563'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {editDayFin.ahorro && <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 900, lineHeight: 1 }}>✓</span>}
+                </div>
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: editDayFin.ahorro ? '#10b981' : '#9ca3af' }}>
+                  🐷 {editDayFin.ahorro ? t('tablero.hoy.ahorro_si') : t('tablero.hoy.ahorro_no')}
+                </span>
+              </button>
             </div>
 
             <button onClick={saveEditDay} disabled={editSaving} style={{
