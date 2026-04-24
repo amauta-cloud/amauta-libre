@@ -107,6 +107,8 @@ export const id: typeof es = {
       ganancia: 'Keuntungan',
       perdida: 'Kerugian',
       ahorro_acumulado: '🐷 Tabungan terkumpul (10%)',
+      dia_ahorro_singular: 'hari dengan tabungan',
+      dias_ahorro: 'hari dengan tabungan',
       mapa: 'Peta kebiasaan: ketuk hari untuk mengedit',
       mapa_hint: 'ketuk hari untuk mengedit',
       menos: 'Lebih sedikit',

@@ -107,6 +107,8 @@ export const ar: typeof es = {
       ganancia: 'الربح',
       perdida: 'الخسارة',
       ahorro_acumulado: '🐷 الادخار المتراكم (10%)',
+      dia_ahorro_singular: 'يوم مع ادخار',
+      dias_ahorro: 'أيام مع ادخار',
       mapa: 'خريطة العادات: اضغط على يوم للتعديل',
       mapa_hint: 'اضغط على يوم لتعديله',
       menos: 'أقل',

@@ -107,6 +107,8 @@ export const zh: typeof es = {
       ganancia: '盈利',
       perdida: '亏损',
       ahorro_acumulado: '🐷 累计储蓄 (10%)',
+      dia_ahorro_singular: '储蓄日',
+      dias_ahorro: '储蓄天数',
       mapa: '习惯地图: 点击某天编辑',
       mapa_hint: '点击某天进行编辑',
       menos: '少',

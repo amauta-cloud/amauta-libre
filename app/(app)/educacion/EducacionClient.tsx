@@ -80,7 +80,7 @@ export default function EducacionClient({
 
   const TIPO_CORRECTO: Record<number, string> = {
     1: 'Audiolibro', 2: 'Libro PDF', 3: 'Libro PDF', 4: 'Libro PDF',
-    5: 'Audiolibro', 6: 'Video', 7: 'Libro PDF', 8: 'Audiolibro',
+    5: 'Libro PDF', 6: 'Video', 7: 'Libro PDF', 8: 'Audiolibro',
     9: 'Video', 10: 'Audiolibro', 11: 'Biblioteca',
   }
 

@@ -107,6 +107,8 @@ export const pt: typeof es = {
       ganancia: 'Lucro',
       perdida: 'Perda',
       ahorro_acumulado: '🐷 Economia acumulada (10%)',
+      dia_ahorro_singular: 'dia com poupança',
+      dias_ahorro: 'dias com poupança',
       mapa: 'Mapa de hábitos: toque em um dia para editar',
       mapa_hint: 'toque em um dia para editar',
       menos: 'Menos',

@@ -643,7 +643,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const totalGastos = monthFinanzas.reduce((a, f) => a + (f.gastos || 0), 0)
   const profit = totalIngresos - totalGastos
   const inversionMes = monthItems.filter(i => i.categoria === 'Inversión').reduce((a, i) => a + i.monto, 0)
-  const ahorroAcumulado = inversionMes
+  const diasAhorro = monthFinanzas.filter(d => d.ahorro)
+  const ahorroEstimado = diasAhorro.reduce((a, d) => a + Math.round((d.ingresos || 0) * 0.1), 0)
+  const ahorroAcumulado = inversionMes > 0 ? inversionMes : ahorroEstimado
 
   const ingresosHoy = finanzas.ingresos
   const gastosHoy = finanzas.gastos
@@ -1061,6 +1063,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     <span style={{ fontWeight: 700, color: '#F5C518' }}>-{fmt(inversionHoy)}</span>
                   </div>
                 )}
+                {finanzas.ahorro && inversionHoy === 0 && sugerido10 > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', borderRadius: '7px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.18)' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>🐷 {t('tablero.mes.ahorro10')}</span>
+                    <span style={{ fontWeight: 700, color: '#10b981' }}>{fmt(sugerido10)}</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.75rem', borderRadius: '8px', background: libreHoy >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${libreHoy >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`, marginTop: '0.1rem' }}>
                   <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e5e7eb' }}>📊 {t('tablero.hoy.resultado_dia')}</span>
                   <span style={{ fontSize: '1.1rem', fontWeight: 800, color: libreHoy >= 0 ? '#10b981' : '#ef4444' }}>
@@ -1124,12 +1132,17 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                 ))}
               </div>
 
-              {/* Inversión acumulada del mes */}
-              {ahorroAcumulado > 0 && (
-                <div style={{ background: 'linear-gradient(135deg,rgba(245,197,24,0.08),rgba(16,185,129,0.05))', border: '1px solid rgba(245,197,24,0.25)', borderRadius: '12px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {/* Ahorro acumulado del mes */}
+              {(ahorroAcumulado > 0 || diasAhorro.length > 0) && (
+                <div style={{ background: 'linear-gradient(135deg,rgba(16,185,129,0.08),rgba(245,197,24,0.05))', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '12px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.2rem' }}>📈 {t('tablero.mes.ahorro_acumulado')}</div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#F5C518' }}>{fmt(ahorroAcumulado)}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.2rem' }}>{t('tablero.mes.ahorro_acumulado')}</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#10b981' }}>{fmt(ahorroAcumulado)}</div>
+                    {diasAhorro.length > 0 && (
+                      <div style={{ fontSize: '0.68rem', color: '#6b7280', marginTop: '0.2rem' }}>
+                        {diasAhorro.length} {diasAhorro.length === 1 ? t('tablero.mes.dia_ahorro_singular') : t('tablero.mes.dias_ahorro')}
+                      </div>
+                    )}
                   </div>
                   <div style={{ fontSize: '2.5rem' }}>🐷</div>
                 </div>

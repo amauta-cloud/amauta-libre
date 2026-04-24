@@ -107,6 +107,8 @@ export const hi: typeof es = {
       ganancia: 'मुनाफा',
       perdida: 'नुकसान',
       ahorro_acumulado: '🐷 जमा हुई बचत (10%)',
+      dia_ahorro_singular: 'बचत वाला दिन',
+      dias_ahorro: 'बचत वाले दिन',
       mapa: 'आदत मानचित्र: संपादित करने के लिए किसी दिन को छुएं',
       mapa_hint: 'संपादित करने के लिए किसी दिन पर टैप करें',
       menos: 'कम',
