@@ -111,6 +111,8 @@ export const zh: typeof es = {
       dias_ahorro: '储蓄天数',
       sin_categoria: '未分类',
       total_gastos: '本月总支出',
+      desglose_titulo: '按类别细分',
+      total_ingresos_mes: '本月总收入',
       mapa: '习惯地图: 点击某天编辑',
       mapa_hint: '点击某天进行编辑',
       menos: '少',

@@ -111,6 +111,8 @@ export const hi: typeof es = {
       dias_ahorro: 'बचत वाले दिन',
       sin_categoria: 'बिना श्रेणी',
       total_gastos: 'माह के कुल खर्च',
+      desglose_titulo: 'श्रेणी के अनुसार विवरण',
+      total_ingresos_mes: 'माह की कुल आय',
       mapa: 'आदत मानचित्र: संपादित करने के लिए किसी दिन को छुएं',
       mapa_hint: 'संपादित करने के लिए किसी दिन पर टैप करें',
       menos: 'कम',

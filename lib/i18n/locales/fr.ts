@@ -111,6 +111,8 @@ export const fr: typeof es = {
       dias_ahorro: 'jours avec épargne',
       sin_categoria: 'Sans catégorie',
       total_gastos: 'Total des dépenses du mois',
+      desglose_titulo: 'Répartition par catégorie',
+      total_ingresos_mes: 'Total des revenus du mois',
       mapa: "Carte des habitudes : touchez un jour pour modifier",
       mapa_hint: 'touchez un jour pour modifier',
       menos: 'Moins',

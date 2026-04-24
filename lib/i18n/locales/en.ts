@@ -111,6 +111,8 @@ export const en: typeof es = {
       dias_ahorro: 'days with savings',
       sin_categoria: 'Uncategorized',
       total_gastos: 'Total monthly expenses',
+      desglose_titulo: 'Breakdown by category',
+      total_ingresos_mes: 'Total monthly income',
       mapa: 'Habit map: tap a day to edit',
       mapa_hint: 'tap a day to edit',
       menos: 'Less',

@@ -111,6 +111,8 @@ export const ja: typeof es = {
       dias_ahorro: '貯蓄した日数',
       sin_categoria: 'カテゴリなし',
       total_gastos: '今月の合計支出',
+      desglose_titulo: 'カテゴリ別内訳',
+      total_ingresos_mes: '今月の合計収入',
       mapa: '習慣マップ: 日付をタップして編集',
       mapa_hint: '日付をタップして編集',
       menos: '少ない',

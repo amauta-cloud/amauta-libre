@@ -111,6 +111,8 @@ export const id: typeof es = {
       dias_ahorro: 'hari dengan tabungan',
       sin_categoria: 'Tanpa kategori',
       total_gastos: 'Total pengeluaran bulan ini',
+      desglose_titulo: 'Rincian per kategori',
+      total_ingresos_mes: 'Total pendapatan bulan ini',
       mapa: 'Peta kebiasaan: ketuk hari untuk mengedit',
       mapa_hint: 'ketuk hari untuk mengedit',
       menos: 'Lebih sedikit',

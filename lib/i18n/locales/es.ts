@@ -109,6 +109,8 @@ export const es = {
       dias_ahorro: 'días con ahorro',
       sin_categoria: 'Sin categoría',
       total_gastos: 'Total gastos del mes',
+      desglose_titulo: 'Desglose por categoría',
+      total_ingresos_mes: 'Total ingresos del mes',
       mapa: 'Mapa de hábitos',
       mapa_hint: 'tocá un día para editar',
       menos: 'Menos',

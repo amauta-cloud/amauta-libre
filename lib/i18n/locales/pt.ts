@@ -111,6 +111,8 @@ export const pt: typeof es = {
       dias_ahorro: 'dias com poupança',
       sin_categoria: 'Sem categoria',
       total_gastos: 'Total de gastos do mês',
+      desglose_titulo: 'Distribuição por categoria',
+      total_ingresos_mes: 'Total de receitas do mês',
       mapa: 'Mapa de hábitos: toque em um dia para editar',
       mapa_hint: 'toque em um dia para editar',
       menos: 'Menos',

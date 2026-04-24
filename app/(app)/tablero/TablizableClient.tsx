@@ -1239,53 +1239,75 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                 </div>
               )}
 
-              {/* Desglose por categoría */}
-              {monthItems.some(i => i.tipo === 'gasto') && (() => {
-                const gastosMes = monthItems.filter(i => i.tipo === 'gasto')
-                const totalGastosMes = gastosMes.reduce((a, i) => a + i.monto, 0)
-                const catTotals = finanzaCategorias
-                  .map(cat => ({
+              {/* Desglose ingresos + gastos por categoría */}
+              {monthItems.length > 0 && (() => {
+                const buildFilas = (items: typeof monthItems, prefix: string) => {
+                  const cats = finanzaCategorias.map(cat => ({
                     id: cat.id, nombre: cat.nombre, emoji: cat.emoji,
-                    total: gastosMes.filter(i => i.categoria === cat.nombre).reduce((a, i) => a + i.monto, 0),
-                  }))
-                  .filter(c => c.total > 0)
-                  .sort((a, b) => b.total - a.total)
-                const sinCategoria = gastosMes.filter(i => !i.categoria || !finanzaCategorias.some(c => c.nombre === i.categoria)).reduce((a, i) => a + i.monto, 0)
-                const filas = sinCategoria > 0
-                  ? [...catTotals, { id: '__otros__', nombre: t('tablero.mes.sin_categoria'), emoji: '❓', total: sinCategoria }]
-                  : catTotals
-                if (filas.length === 0) return null
-                const maxTotal = Math.max(...filas.map(c => c.total), 1)
+                    total: items.filter(i => i.categoria === cat.nombre).reduce((a, i) => a + i.monto, 0),
+                  })).filter(c => c.total > 0).sort((a, b) => b.total - a.total)
+                  const sinCat = items.filter(i => !i.categoria || !finanzaCategorias.some(c => c.nombre === i.categoria)).reduce((a, i) => a + i.monto, 0)
+                  return sinCat > 0 ? [...cats, { id: `__otros_${prefix}__`, nombre: t('tablero.mes.sin_categoria'), emoji: '❓', total: sinCat }] : cats
+                }
+                const ingresosMes = monthItems.filter(i => i.tipo === 'ingreso')
+                const gastosMes = monthItems.filter(i => i.tipo === 'gasto')
+                const filasIng = buildFilas(ingresosMes, 'ing')
+                const filasGas = buildFilas(gastosMes, 'gas')
+                if (filasIng.length === 0 && filasGas.length === 0) return null
+                const totalIngMes = ingresosMes.reduce((a, i) => a + i.monto, 0)
+                const totalGasMes = gastosMes.reduce((a, i) => a + i.monto, 0)
+                const maxIng = Math.max(...filasIng.map(c => c.total), 1)
+                const maxGas = Math.max(...filasGas.map(c => c.total), 1)
+                const renderFilas = (filas: typeof filasGas, total: number, max: number, tipo: 'ingreso' | 'gasto') =>
+                  filas.map(cat => {
+                    const pct = total > 0 ? Math.round(cat.total / total * 100) : 0
+                    const isInv = cat.nombre === 'Inversión'
+                    const isSin = cat.id.startsWith('__otros_')
+                    const barColor = tipo === 'ingreso' ? 'linear-gradient(90deg,#10b981,#34d399)' : isInv ? 'linear-gradient(90deg,#F5C518,#f59e0b)' : isSin ? 'linear-gradient(90deg,#6b7280,#9ca3af)' : 'linear-gradient(90deg,#ef4444,#f87171)'
+                    const textColor = tipo === 'ingreso' ? '#10b981' : isInv ? '#F5C518' : isSin ? '#9ca3af' : '#ef4444'
+                    return (
+                      <div key={cat.id}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.8rem', color: isSin ? '#6b7280' : '#d1d5db' }}>{cat.emoji} {cat.nombre}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.68rem', color: '#4b5563', fontWeight: 600 }}>{pct}%</span>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: textColor }}>{tipo === 'ingreso' ? '+' : '-'}{fmt(cat.total)}</span>
+                          </div>
+                        </div>
+                        <div style={{ height: '5px', borderRadius: '99px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', borderRadius: '99px', width: `${Math.round(cat.total / max * 100)}%`, background: barColor, transition: 'width 0.4s ease' }} />
+                        </div>
+                      </div>
+                    )
+                  })
                 return (
                   <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-                    <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.mes.desglose_gastos')}</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {filas.map(cat => {
-                        const pct = totalGastosMes > 0 ? Math.round(cat.total / totalGastosMes * 100) : 0
-                        const isInv = cat.nombre === 'Inversión'
-                        const isSin = cat.id === '__otros__'
-                        const barColor = isInv ? 'linear-gradient(90deg,#F5C518,#f59e0b)' : isSin ? 'linear-gradient(90deg,#6b7280,#9ca3af)' : 'linear-gradient(90deg,#ef4444,#f87171)'
-                        const textColor = isInv ? '#F5C518' : isSin ? '#9ca3af' : '#ef4444'
-                        return (
-                          <div key={cat.id}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem', alignItems: 'center' }}>
-                              <span style={{ fontSize: '0.8rem', color: isSin ? '#6b7280' : '#d1d5db' }}>{cat.emoji} {cat.nombre}</span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span style={{ fontSize: '0.68rem', color: '#4b5563', fontWeight: 600 }}>{pct}%</span>
-                                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: textColor }}>{fmt(cat.total)}</span>
-                              </div>
-                            </div>
-                            <div style={{ height: '5px', borderRadius: '99px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-                              <div style={{ height: '100%', borderRadius: '99px', width: `${Math.round(cat.total / maxTotal * 100)}%`, background: barColor, transition: 'width 0.4s ease' }} />
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                    <div style={{ marginTop: '0.875rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{t('tablero.mes.total_gastos')}</span>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#ef4444' }}>{fmt(totalGastosMes)}</span>
-                    </div>
+                    <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.mes.desglose_titulo')}</div>
+                    {filasIng.length > 0 && (
+                      <>
+                        <div style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.625rem' }}>💚 {t('tablero.mes.ingresos')}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '0.625rem' }}>
+                          {renderFilas(filasIng, totalIngMes, maxIng, 'ingreso')}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: filasGas.length > 0 ? '0.875rem' : 0 }}>
+                          <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{t('tablero.mes.total_ingresos_mes')}</span>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#10b981' }}>+{fmt(totalIngMes)}</span>
+                        </div>
+                      </>
+                    )}
+                    {filasGas.length > 0 && (
+                      <>
+                        {filasIng.length > 0 && <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginBottom: '0.875rem' }} />}
+                        <div style={{ fontSize: '0.7rem', color: '#ef4444', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.625rem' }}>🔴 {t('tablero.mes.gastos_label')}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {renderFilas(filasGas, totalGasMes, maxGas, 'gasto')}
+                        </div>
+                        <div style={{ marginTop: '0.875rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{t('tablero.mes.total_gastos')}</span>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#ef4444' }}>{fmt(totalGasMes)}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )
               })()}
@@ -1525,53 +1547,75 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             </div>
           ) : null}
 
-          {/* Desglose por categoría */}
-          {!monthLoading && monthItems.some(i => i.tipo === 'gasto') && (() => {
-            const gastosMes = monthItems.filter(i => i.tipo === 'gasto')
-            const totalGastosMes = gastosMes.reduce((a, i) => a + i.monto, 0)
-            const catTotals = finanzaCategorias
-              .map(cat => ({
+          {/* Desglose ingresos + gastos por categoría */}
+          {!monthLoading && monthItems.length > 0 && (() => {
+            const buildFilas = (items: typeof monthItems, prefix: string) => {
+              const cats = finanzaCategorias.map(cat => ({
                 id: cat.id, nombre: cat.nombre, emoji: cat.emoji,
-                total: gastosMes.filter(i => i.categoria === cat.nombre).reduce((a, i) => a + i.monto, 0),
-              }))
-              .filter(c => c.total > 0)
-              .sort((a, b) => b.total - a.total)
-            const sinCategoria = gastosMes.filter(i => !i.categoria || !finanzaCategorias.some(c => c.nombre === i.categoria)).reduce((a, i) => a + i.monto, 0)
-            const filas = sinCategoria > 0
-              ? [...catTotals, { id: '__otros__', nombre: t('tablero.mes.sin_categoria'), emoji: '❓', total: sinCategoria }]
-              : catTotals
-            if (filas.length === 0) return null
-            const maxTotal = Math.max(...filas.map(c => c.total), 1)
+                total: items.filter(i => i.categoria === cat.nombre).reduce((a, i) => a + i.monto, 0),
+              })).filter(c => c.total > 0).sort((a, b) => b.total - a.total)
+              const sinCat = items.filter(i => !i.categoria || !finanzaCategorias.some(c => c.nombre === i.categoria)).reduce((a, i) => a + i.monto, 0)
+              return sinCat > 0 ? [...cats, { id: `__otros_${prefix}__`, nombre: t('tablero.mes.sin_categoria'), emoji: '❓', total: sinCat }] : cats
+            }
+            const ingresosMes = monthItems.filter(i => i.tipo === 'ingreso')
+            const gastosMes = monthItems.filter(i => i.tipo === 'gasto')
+            const filasIng = buildFilas(ingresosMes, 'ing')
+            const filasGas = buildFilas(gastosMes, 'gas')
+            if (filasIng.length === 0 && filasGas.length === 0) return null
+            const totalIngMes = ingresosMes.reduce((a, i) => a + i.monto, 0)
+            const totalGasMes = gastosMes.reduce((a, i) => a + i.monto, 0)
+            const maxIng = Math.max(...filasIng.map(c => c.total), 1)
+            const maxGas = Math.max(...filasGas.map(c => c.total), 1)
+            const renderFilas = (filas: typeof filasGas, total: number, max: number, tipo: 'ingreso' | 'gasto') =>
+              filas.map(cat => {
+                const pct = total > 0 ? Math.round(cat.total / total * 100) : 0
+                const isInv = cat.nombre === 'Inversión'
+                const isSin = cat.id.startsWith('__otros_')
+                const barColor = tipo === 'ingreso' ? 'linear-gradient(90deg,#10b981,#34d399)' : isInv ? 'linear-gradient(90deg,#F5C518,#f59e0b)' : isSin ? 'linear-gradient(90deg,#6b7280,#9ca3af)' : 'linear-gradient(90deg,#ef4444,#f87171)'
+                const textColor = tipo === 'ingreso' ? '#10b981' : isInv ? '#F5C518' : isSin ? '#9ca3af' : '#ef4444'
+                return (
+                  <div key={cat.id}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', color: isSin ? '#6b7280' : '#d1d5db' }}>{cat.emoji} {cat.nombre}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.68rem', color: '#4b5563', fontWeight: 600 }}>{pct}%</span>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: textColor }}>{tipo === 'ingreso' ? '+' : '-'}{fmt(cat.total)}</span>
+                      </div>
+                    </div>
+                    <div style={{ height: '5px', borderRadius: '99px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', borderRadius: '99px', width: `${Math.round(cat.total / max * 100)}%`, background: barColor, transition: 'width 0.4s ease' }} />
+                    </div>
+                  </div>
+                )
+              })
             return (
               <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-                <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.finanzas.desglose_gastos')}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {filas.map(cat => {
-                    const pct = totalGastosMes > 0 ? Math.round(cat.total / totalGastosMes * 100) : 0
-                    const isInv = cat.nombre === 'Inversión'
-                    const isSin = cat.id === '__otros__'
-                    const barColor = isInv ? 'linear-gradient(90deg,#F5C518,#f59e0b)' : isSin ? 'linear-gradient(90deg,#6b7280,#9ca3af)' : 'linear-gradient(90deg,#ef4444,#f87171)'
-                    const textColor = isInv ? '#F5C518' : isSin ? '#9ca3af' : '#ef4444'
-                    return (
-                      <div key={cat.id}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.8rem', color: isSin ? '#6b7280' : '#d1d5db' }}>{cat.emoji} {cat.nombre}</span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '0.68rem', color: '#4b5563', fontWeight: 600 }}>{pct}%</span>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: textColor }}>{fmt(cat.total)}</span>
-                          </div>
-                        </div>
-                        <div style={{ height: '5px', borderRadius: '99px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', borderRadius: '99px', width: `${Math.round(cat.total / maxTotal * 100)}%`, background: barColor, transition: 'width 0.4s ease' }} />
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-                <div style={{ marginTop: '0.875rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{t('tablero.mes.total_gastos')}</span>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#ef4444' }}>{fmt(totalGastosMes)}</span>
-                </div>
+                <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.mes.desglose_titulo')}</div>
+                {filasIng.length > 0 && (
+                  <>
+                    <div style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.625rem' }}>💚 {t('tablero.mes.ingresos')}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '0.625rem' }}>
+                      {renderFilas(filasIng, totalIngMes, maxIng, 'ingreso')}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: filasGas.length > 0 ? '0.875rem' : 0 }}>
+                      <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{t('tablero.mes.total_ingresos_mes')}</span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#10b981' }}>+{fmt(totalIngMes)}</span>
+                    </div>
+                  </>
+                )}
+                {filasGas.length > 0 && (
+                  <>
+                    {filasIng.length > 0 && <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginBottom: '0.875rem' }} />}
+                    <div style={{ fontSize: '0.7rem', color: '#ef4444', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.625rem' }}>🔴 {t('tablero.mes.gastos_label')}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {renderFilas(filasGas, totalGasMes, maxGas, 'gasto')}
+                    </div>
+                    <div style={{ marginTop: '0.875rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{t('tablero.mes.total_gastos')}</span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#ef4444' }}>{fmt(totalGasMes)}</span>
+                    </div>
+                  </>
+                )}
               </div>
             )
           })()}

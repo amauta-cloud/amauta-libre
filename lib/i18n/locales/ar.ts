@@ -111,6 +111,8 @@ export const ar: typeof es = {
       dias_ahorro: 'أيام مع ادخار',
       sin_categoria: 'بدون فئة',
       total_gastos: 'إجمالي مصاريف الشهر',
+      desglose_titulo: 'التفصيل حسب الفئة',
+      total_ingresos_mes: 'إجمالي دخل الشهر',
       mapa: 'خريطة العادات: اضغط على يوم للتعديل',
       mapa_hint: 'اضغط على يوم لتعديله',
       menos: 'أقل',

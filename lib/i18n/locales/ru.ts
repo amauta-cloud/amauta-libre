@@ -111,6 +111,8 @@ export const ru: typeof es = {
       dias_ahorro: 'дней со сбережениями',
       sin_categoria: 'Без категории',
       total_gastos: 'Всего расходов за месяц',
+      desglose_titulo: 'Разбивка по категориям',
+      total_ingresos_mes: 'Всего доходов за месяц',
       mapa: 'Карта привычек: нажми на день для редактирования',
       mapa_hint: 'нажмите на день для редактирования',
       menos: 'Меньше',
