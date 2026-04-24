@@ -251,7 +251,7 @@ export default async function AdminPage() {
               Amauta Libre — Admin
             </p>
             <h1 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>Panel de control</h1>
-            <p style={{ color: '#4b5563', fontSize: '0.78rem', marginTop: '0.25rem' }}>{today} · <span style={{ color: '#6b7280' }}>v1.5.0</span></p>
+            <p style={{ color: '#4b5563', fontSize: '0.78rem', marginTop: '0.25rem' }}>{today} · <span style={{ color: '#6b7280' }}>v1.9.0</span></p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem', flexShrink: 0 }}>
             <AdminPushButton totalSubs={pushSubs} />
@@ -338,8 +338,9 @@ export default async function AdminPage() {
                 const activo = !!regs && regs.length > 0
                 const emojis = regs?.slice(0, 4).map(r => habitosMap[r.habito_id]?.emoji ?? '').filter(Boolean).join('') ?? ''
                 return (
-                  <div
+                  <Link
                     key={u.id}
+                    href={`/admin/usuario/${u.id}`}
                     title={`${u.nombre || u.email}: ${regs?.length ?? 0} hábitos hoy`}
                     style={{
                       padding: '0.3rem 0.55rem',
@@ -347,6 +348,7 @@ export default async function AdminPage() {
                       background: activo ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${activo ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)'}`,
                       display: 'flex', alignItems: 'center', gap: '0.35rem',
+                      textDecoration: 'none', cursor: 'pointer',
                     }}
                   >
                     <span style={{ fontSize: '0.6rem', color: activo ? '#10b981' : '#374151', flexShrink: 0 }}>
@@ -358,7 +360,7 @@ export default async function AdminPage() {
                     {activo && emojis && (
                       <span style={{ fontSize: '0.65rem', flexShrink: 0 }}>{emojis}</span>
                     )}
-                  </div>
+                  </Link>
                 )
               })}
               {usuarios.length === 0 && (

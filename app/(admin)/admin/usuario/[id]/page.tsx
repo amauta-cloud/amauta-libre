@@ -52,42 +52,49 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
     registros90Res,
     educacionRes,
     metasRes,
-    financiasRes,
+    finanzasItemsRes,
     authUserRes,
+    tareasRes,
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email').eq('id', id).single(),
-    admin.from('habitos').select('id, nombre, emoji, categoria, activo').eq('usuario_id', id),
-    admin.from('habito_registros').select('habito_id, fecha, completado').eq('usuario_id', id).gte('fecha', hace90),
+    admin.from('habitos').select('id, nombre, emoji, categoria, activo, tipo').eq('usuario_id', id),
+    admin.from('habito_registros').select('habito_id, fecha, valor_bool, valor_numero').eq('usuario_id', id).gte('fecha', hace90),
     admin.from('educacion_estado').select('etapa_actual, reflexion_inicial').eq('usuario_id', id).single(),
     admin.from('metas').select('meta30, meta90, meta180').eq('usuario_id', id).single(),
-    admin.from('finanzas_diarias').select('fecha, ingresos, gastos').eq('usuario_id', id).gte('fecha', hace30),
+    admin.from('finanzas_items').select('fecha, tipo, monto, categoria').eq('usuario_id', id).gte('fecha', hace30),
     admin.auth.admin.getUserById(id),
+    admin.from('tareas').select('estado, fecha_limite').eq('usuario_id', id).neq('estado', 'completada'),
   ])
 
   if (!usuarioRes.data) redirect('/admin')
 
   const u = usuarioRes.data
   const habitos = habitosRes.data ?? []
-  const registros90 = (registros90Res.data ?? []) as { habito_id: string; fecha: string; completado: boolean }[]
+  type RegistroRow = { habito_id: string; fecha: string; valor_bool: boolean | null; valor_numero: number | null }
+  const registros90 = (registros90Res.data ?? []) as RegistroRow[]
   const educacion = educacionRes.data
   const metas = metasRes.data
-  const finanzas = (financiasRes.data ?? []) as { fecha: string; ingresos: number; gastos: number }[]
+  type FinanzaItem = { fecha: string; tipo: string; monto: number; categoria: string | null }
+  const finanzasItems = (finanzasItemsRes.data ?? []) as FinanzaItem[]
   const authUser = authUserRes.data?.user
+  type TareaRow = { estado: string; fecha_limite: string | null }
+  const tareas = (tareasRes.data ?? []) as TareaRow[]
 
-  // Streak
-  const userDates = new Set(registros90.map(r => r.fecha))
+  const isCompletado = (r: RegistroRow) => r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)
+
+  // Streak (días consecutivos con al menos 1 hábito completado)
+  const completadosPorFecha = new Set(registros90.filter(isCompletado).map(r => r.fecha))
   let streak = 0
   const streakD = new Date()
   while (true) {
     const f = dateStr(streakD)
-    if (!userDates.has(f)) break
+    if (!completadosPorFecha.has(f)) break
     streak++
     streakD.setDate(streakD.getDate() - 1)
   }
 
   // Días activos en 90 días (al menos 1 hábito completado)
-  const diasActivosSet = new Set(registros90.filter(r => r.completado).map(r => r.fecha))
-  const diasActivos90 = diasActivosSet.size
+  const diasActivos90 = completadosPorFecha.size
 
   // Actividad diaria (30 días) - para el chart
   const dauArray: { fecha: string; label: string; completado: number; total: number }[] = []
@@ -96,7 +103,7 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
     if (r.fecha >= hace30) {
       if (!regPorFecha[r.fecha]) regPorFecha[r.fecha] = { completado: 0, total: 0 }
       regPorFecha[r.fecha].total++
-      if (r.completado) regPorFecha[r.fecha].completado++
+      if (isCompletado(r)) regPorFecha[r.fecha].completado++
     }
   }
   for (let i = 29; i >= 0; i--) {
@@ -113,15 +120,25 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
     if (r.fecha >= hace30) {
       if (!habitoStats[r.habito_id]) habitoStats[r.habito_id] = { completado: 0, total: 0 }
       habitoStats[r.habito_id].total++
-      if (r.completado) habitoStats[r.habito_id].completado++
+      if (isCompletado(r)) habitoStats[r.habito_id].completado++
     }
   }
 
-  // Finanzas
-  const totalIngresos = finanzas.reduce((a, f) => a + (f.ingresos ?? 0), 0)
-  const totalGastos = finanzas.reduce((a, f) => a + (f.gastos ?? 0), 0)
-  const resultado = totalIngresos - totalGastos
-  const diasConFinanzas = finanzas.filter(f => f.ingresos > 0 || f.gastos > 0).length
+  // Finanzas desde items
+  const ingresosItems = finanzasItems.filter(i => i.tipo === 'ingreso')
+  const gastosItems = finanzasItems.filter(i => i.tipo === 'gasto' && i.categoria !== 'Inversión')
+  const inversionItems = finanzasItems.filter(i => i.tipo === 'gasto' && i.categoria === 'Inversión')
+  const totalIngresos = ingresosItems.reduce((a, i) => a + i.monto, 0)
+  const totalGastos = gastosItems.reduce((a, i) => a + i.monto, 0)
+  const totalInversion = inversionItems.reduce((a, i) => a + i.monto, 0)
+  const resultado = totalIngresos - totalGastos - totalInversion
+  const diasConFinanzas = new Set(finanzasItems.map(i => i.fecha)).size
+
+  // Tareas
+  const today2 = today
+  const tareasVencidas = tareas.filter(t => t.fecha_limite && t.fecha_limite < today2).length
+  const tareasHoy = tareas.filter(t => t.fecha_limite === today2).length
+  const tareasTotales = tareas.length
 
   const registrado = authUser?.created_at
     ? new Date(authUser.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -147,12 +164,18 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
           <MiniCard label="Racha actual" value={streak > 0 ? `${streak}d` : '0'} color={streak >= 30 ? '#f59e0b' : streak >= 7 ? '#a78bfa' : '#6b7280'} sub={streak >= 7 ? '🔥 activo' : streak > 0 ? '⚡ activo' : 'sin racha'} />
           <MiniCard label="Días activo (90d)" value={String(diasActivos90)} color="#10b981" sub="con al menos 1 hábito" />
           <MiniCard label="Hábitos activos" value={String(habitosActivos.length)} color="#60a5fa" sub={`${habitos.length} total`} />
           <MiniCard label="Educación" value={`${educacion?.etapa_actual ?? 0}/11`} color={educacion?.etapa_actual === 11 ? '#10b981' : '#F5C518'} sub={educacion?.etapa_actual === 11 ? 'Completado ✓' : 'en progreso'} />
           <MiniCard label="Metas escritas" value={metas ? '✓' : '—'} color={metas?.meta30 ? '#10b981' : '#374151'} sub={metas?.meta30 ? 'tiene metas' : 'sin metas aún'} />
+          <MiniCard
+            label="Tareas pendientes"
+            value={tareasTotales === 0 ? '✓' : String(tareasTotales)}
+            color={tareasVencidas > 0 ? '#ef4444' : tareasHoy > 0 ? '#f59e0b' : tareasTotales === 0 ? '#10b981' : '#6b7280'}
+            sub={tareasVencidas > 0 ? `${tareasVencidas} vencida${tareasVencidas > 1 ? 's' : ''}` : tareasHoy > 0 ? `${tareasHoy} para hoy` : tareasTotales === 0 ? 'al día ✓' : 'sin vencer'}
+          />
         </div>
 
         {/* Activity chart */}
@@ -301,24 +324,30 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
             {diasConFinanzas === 0 ? (
               <p style={{ color: '#4b5563', fontSize: '0.78rem', margin: 0 }}>Sin registros financieros</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>📈 Ingresos</span>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#10b981' }}>${fmt(totalIngresos)}</span>
+                  <span style={{ fontSize: '1rem', fontWeight: 700, color: '#10b981' }}>${fmt(totalIngresos)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>📉 Gastos</span>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ef4444' }}>${fmt(totalGastos)}</span>
+                  <span style={{ fontSize: '1rem', fontWeight: 700, color: '#ef4444' }}>${fmt(totalGastos)}</span>
                 </div>
-                <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '0.25rem 0' }} />
+                {totalInversion > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>📈 Inversión</span>
+                    <span style={{ fontSize: '1rem', fontWeight: 700, color: '#F5C518' }}>${fmt(totalInversion)}</span>
+                  </div>
+                )}
+                <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '0.15rem 0' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>Resultado</span>
-                  <span style={{ fontSize: '1.25rem', fontWeight: 800, color: resultado >= 0 ? '#10b981' : '#ef4444' }}>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 800, color: resultado >= 0 ? '#10b981' : '#ef4444' }}>
                     {resultado >= 0 ? '+' : ''}{fmt(resultado)}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.65rem', color: '#374151', marginTop: '0.25rem' }}>
-                  {diasConFinanzas} días con registros · Ahorro sugerido (10%): ${fmt(totalIngresos * 0.1)}
+                <div style={{ fontSize: '0.65rem', color: '#374151', marginTop: '0.15rem' }}>
+                  {diasConFinanzas} días con registros · {finanzasItems.length} movimientos
                 </div>
               </div>
             )}
