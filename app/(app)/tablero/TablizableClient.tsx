@@ -1646,21 +1646,23 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               {[...finanzaCategorias].sort((a, b) => a.orden - b.orden).map((cat, idx, arr) => (
                 <div key={cat.id}>
                   {editingCategoria?.id === cat.id ? (
-                    <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center', flexWrap: 'wrap', padding: '0.5rem 0.625rem', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '10px' }}>
-                      <input
-                        value={editCatEmoji}
-                        onChange={e => setEditCatEmoji(e.target.value)}
-                        maxLength={2}
-                        style={{ width: '40px', padding: '0.45rem', borderRadius: '7px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.3)', color: '#f3f0ff', fontSize: '1rem', outline: 'none', textAlign: 'center', flexShrink: 0 }}
-                      />
-                      <input
-                        value={editCatNombre}
-                        onChange={e => setEditCatNombre(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && saveEditCategoria()}
-                        style={{ flex: 1, minWidth: '80px', padding: '0.45rem 0.6rem', borderRadius: '7px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none' }}
-                      />
-                      <button onClick={saveEditCategoria} disabled={!editCatNombre.trim() || catSaving} style={{ padding: '0.45rem 0.7rem', borderRadius: '7px', border: 'none', background: 'rgba(139,92,246,0.3)', color: '#a78bfa', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>{catSaving ? '...' : '✓'}</button>
-                      <button onClick={() => setEditingCategoria(null)} style={{ padding: '0.45rem 0.5rem', borderRadius: '7px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#6b7280', fontSize: '0.8rem', cursor: 'pointer' }}>✕</button>
+                    <div style={{ padding: '0.5rem 0.625rem', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '10px' }}>
+                      <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <span style={{ fontSize: '1.4rem', flexShrink: 0, width: '36px', textAlign: 'center' }}>{editCatEmoji || '?'}</span>
+                        <input
+                          value={editCatNombre}
+                          onChange={e => setEditCatNombre(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && saveEditCategoria()}
+                          style={{ flex: 1, minWidth: '80px', padding: '0.45rem 0.6rem', borderRadius: '7px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none' }}
+                        />
+                        <button onClick={saveEditCategoria} disabled={!editCatNombre.trim() || catSaving} style={{ padding: '0.45rem 0.7rem', borderRadius: '7px', border: 'none', background: 'rgba(139,92,246,0.3)', color: '#a78bfa', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>{catSaving ? '...' : '✓'}</button>
+                        <button onClick={() => setEditingCategoria(null)} style={{ padding: '0.45rem 0.5rem', borderRadius: '7px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#6b7280', fontSize: '0.8rem', cursor: 'pointer' }}>✕</button>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                        {CAT_FIN_EMOJIS.map(e => (
+                          <button key={e} onClick={() => setEditCatEmoji(e)} style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', fontSize: '1rem', background: editCatEmoji === e ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.06)', cursor: 'pointer' }}>{e}</button>
+                        ))}
+                      </div>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid transparent' }}>
@@ -1682,24 +1684,27 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             </div>
 
             {showAddCategoria ? (
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <input
-                  value={nuevaCatEmoji}
-                  onChange={e => setNuevaCatEmoji(e.target.value)}
-                  maxLength={2}
-                  style={{ width: '42px', padding: '0.55rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '1.1rem', outline: 'none', textAlign: 'center' }}
-                />
-                <input
-                  value={nuevaCatNombre}
-                  onChange={e => setNuevaCatNombre(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addCategoria()}
-                  placeholder={t('tablero.finanzas.cat_placeholder')}
-                  style={{ flex: 1, minWidth: '120px', padding: '0.55rem 0.6rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none' }}
-                />
-                <button onClick={addCategoria} disabled={!nuevaCatNombre.trim() || catSaving} style={{ padding: '0.55rem 0.875rem', borderRadius: '8px', border: 'none', background: 'rgba(139,92,246,0.25)', color: '#a78bfa', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
-                  {catSaving ? '...' : '✓'}
-                </button>
-                <button onClick={() => { setShowAddCategoria(false); setNuevaCatNombre(''); setNuevaCatEmoji('💰') }} style={{ padding: '0.55rem 0.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#6b7280', fontSize: '0.82rem', cursor: 'pointer' }}>✕</button>
+              <div style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '10px', padding: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.6rem' }}>
+                  <span style={{ fontSize: '1.4rem', flexShrink: 0, width: '36px', textAlign: 'center' }}>{nuevaCatEmoji}</span>
+                  <input
+                    value={nuevaCatNombre}
+                    onChange={e => setNuevaCatNombre(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addCategoria()}
+                    placeholder={t('tablero.finanzas.cat_placeholder')}
+                    autoFocus
+                    style={{ flex: 1, minWidth: '120px', padding: '0.55rem 0.6rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none' }}
+                  />
+                  <button onClick={addCategoria} disabled={!nuevaCatNombre.trim() || catSaving} style={{ padding: '0.55rem 0.875rem', borderRadius: '8px', border: 'none', background: 'rgba(139,92,246,0.25)', color: '#a78bfa', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+                    {catSaving ? '...' : '✓'}
+                  </button>
+                  <button onClick={() => { setShowAddCategoria(false); setNuevaCatNombre(''); setNuevaCatEmoji('💰') }} style={{ padding: '0.55rem 0.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#6b7280', fontSize: '0.82rem', cursor: 'pointer' }}>✕</button>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                  {CAT_FIN_EMOJIS.map(e => (
+                    <button key={e} onClick={() => setNuevaCatEmoji(e)} style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', fontSize: '1rem', background: nuevaCatEmoji === e ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.06)', cursor: 'pointer' }}>{e}</button>
+                  ))}
+                </div>
               </div>
             ) : (
               <button onClick={() => setShowAddCategoria(true)} style={{
