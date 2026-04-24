@@ -72,6 +72,21 @@ const DEFAULT_CATS_FIN = [
 
 const CAT_FIN_EMOJIS = ['💰','🏠','🚗','🍔','💊','🎉','📚','🎮','🐕','👗','💡','🛒','✈️','⚽','🎨','🔧','🌿','💻','🎵','🍕']
 
+const PLANTILLAS_CATEGORIAS: { nombre: string; emoji: string }[] = [
+  { nombre: 'Educación',     emoji: '🎓' },
+  { nombre: 'Entretenimiento', emoji: '🎮' },
+  { nombre: 'Ropa',          emoji: '👗' },
+  { nombre: 'Mascotas',      emoji: '🐕' },
+  { nombre: 'Viajes',        emoji: '✈️' },
+  { nombre: 'Tecnología',    emoji: '💻' },
+  { nombre: 'Cuidado personal', emoji: '🌿' },
+  { nombre: 'Regalos',       emoji: '🎁' },
+  { nombre: 'Gimnasio',      emoji: '🏋️' },
+  { nombre: 'Suscripciones', emoji: '📱' },
+  { nombre: 'Ahorro',        emoji: '🐷' },
+  { nombre: 'Deudas',        emoji: '📉' },
+]
+
 const EMOJIS = ['⭐','🎯','📚','🏃','🧠','💧','🥗','🛌','✍️','🎨','🎵','💼','🌿','🙏','📞','💊','🚴','🏋️','🧘','🍎','🔥','💪','🎧','📖','⚽','🎸','🖥️','🌅','🎭','🦁']
 
 const CATEGORIAS = [
@@ -152,6 +167,10 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [nuevaCatNombre, setNuevaCatNombre] = useState('')
   const [nuevaCatEmoji, setNuevaCatEmoji] = useState('💰')
   const [catSaving, setCatSaving] = useState(false)
+  const [editingCategoria, setEditingCategoria] = useState<FinanzaCategoria | null>(null)
+  const [editCatNombre, setEditCatNombre] = useState('')
+  const [editCatEmoji, setEditCatEmoji] = useState('')
+  const [showPlantillasCat, setShowPlantillasCat] = useState(false)
 
   // Mes tab
   const now = new Date()
@@ -386,6 +405,42 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   async function deleteCategoria(id: string) {
     await supabase.from('finanzas_categorias').update({ activo: false }).eq('id', id)
     setFinanzaCategorias(prev => prev.filter(c => c.id !== id))
+  }
+
+  async function saveEditCategoria() {
+    if (!editingCategoria || !editCatNombre.trim()) return
+    setCatSaving(true)
+    await supabase.from('finanzas_categorias').update({ nombre: editCatNombre.trim(), emoji: editCatEmoji }).eq('id', editingCategoria.id)
+    setFinanzaCategorias(prev => prev.map(c => c.id === editingCategoria.id ? { ...c, nombre: editCatNombre.trim(), emoji: editCatEmoji } : c))
+    setEditingCategoria(null)
+    setCatSaving(false)
+  }
+
+  async function moveCategoria(id: string, dir: -1 | 1) {
+    const sorted = [...finanzaCategorias].sort((a, b) => a.orden - b.orden)
+    const idx = sorted.findIndex(c => c.id === id)
+    const swapIdx = idx + dir
+    if (swapIdx < 0 || swapIdx >= sorted.length) return
+    const a = sorted[idx], b = sorted[swapIdx]
+    await Promise.all([
+      supabase.from('finanzas_categorias').update({ orden: b.orden }).eq('id', a.id),
+      supabase.from('finanzas_categorias').update({ orden: a.orden }).eq('id', b.id),
+    ])
+    setFinanzaCategorias(prev => prev.map(c => {
+      if (c.id === a.id) return { ...c, orden: b.orden }
+      if (c.id === b.id) return { ...c, orden: a.orden }
+      return c
+    }).sort((x, y) => x.orden - y.orden))
+  }
+
+  async function addFromPlantillaCat(p: { nombre: string; emoji: string }) {
+    const yaExiste = finanzaCategorias.some(c => c.nombre === p.nombre)
+    if (yaExiste) return
+    const maxOrden = Math.max(...finanzaCategorias.map(c => c.orden), 0)
+    const { data } = await supabase.from('finanzas_categorias').insert({
+      usuario_id: userId, nombre: p.nombre, emoji: p.emoji, es_base: false, orden: maxOrden + 1,
+    }).select().single()
+    if (data) setFinanzaCategorias(prev => [...prev, data as FinanzaCategoria])
   }
 
   // Month calculations
@@ -1425,22 +1480,49 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             )
           })()}
 
-          {/* Categorías — gestión */}
+          {/* Categorías — gestión completa */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
               <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>Categorías</div>
-              <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{finanzaCategorias.filter(c => !c.es_base).length} personales</span>
+              <button onClick={() => setShowPlantillasCat(true)} style={{ fontSize: '0.72rem', color: '#a78bfa', background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '6px', padding: '0.25rem 0.625rem', cursor: 'pointer', fontWeight: 600 }}>
+                📋 Plantillas
+              </button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', marginBottom: '0.75rem' }}>
-              {finanzaCategorias.map(cat => (
-                <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.875rem', borderRadius: '8px', background: 'rgba(255,255,255,0.03)' }}>
-                  <span style={{ fontSize: '1rem', flexShrink: 0 }}>{cat.emoji}</span>
-                  <span style={{ fontSize: '0.875rem', color: cat.es_base ? '#9ca3af' : '#d1d5db', flex: 1 }}>{cat.nombre}</span>
-                  {cat.es_base ? (
-                    <span style={{ fontSize: '0.65rem', background: 'rgba(139,92,246,0.2)', color: '#a78bfa', borderRadius: '4px', padding: '0.1rem 0.4rem' }}>base</span>
+              {[...finanzaCategorias].sort((a, b) => a.orden - b.orden).map((cat, idx, arr) => (
+                <div key={cat.id}>
+                  {editingCategoria?.id === cat.id ? (
+                    <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center', flexWrap: 'wrap', padding: '0.5rem 0.625rem', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '10px' }}>
+                      <input
+                        value={editCatEmoji}
+                        onChange={e => setEditCatEmoji(e.target.value)}
+                        maxLength={2}
+                        style={{ width: '40px', padding: '0.45rem', borderRadius: '7px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.3)', color: '#f3f0ff', fontSize: '1rem', outline: 'none', textAlign: 'center', flexShrink: 0 }}
+                      />
+                      <input
+                        value={editCatNombre}
+                        onChange={e => setEditCatNombre(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && saveEditCategoria()}
+                        style={{ flex: 1, minWidth: '80px', padding: '0.45rem 0.6rem', borderRadius: '7px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none' }}
+                      />
+                      <button onClick={saveEditCategoria} disabled={!editCatNombre.trim() || catSaving} style={{ padding: '0.45rem 0.7rem', borderRadius: '7px', border: 'none', background: 'rgba(139,92,246,0.3)', color: '#a78bfa', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>{catSaving ? '...' : '✓'}</button>
+                      <button onClick={() => setEditingCategoria(null)} style={{ padding: '0.45rem 0.5rem', borderRadius: '7px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#6b7280', fontSize: '0.8rem', cursor: 'pointer' }}>✕</button>
+                    </div>
                   ) : (
-                    <button onClick={() => deleteCategoria(cat.id)} style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '1rem', padding: '0 4px' }}>×</button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid transparent' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', marginRight: '2px', flexShrink: 0 }}>
+                        <button onClick={() => moveCategoria(cat.id, -1)} disabled={idx === 0} style={{ background: 'none', border: 'none', color: idx === 0 ? '#374151' : '#6b7280', cursor: idx === 0 ? 'default' : 'pointer', fontSize: '0.6rem', padding: '0 2px', lineHeight: 1 }}>▲</button>
+                        <button onClick={() => moveCategoria(cat.id, 1)} disabled={idx === arr.length - 1} style={{ background: 'none', border: 'none', color: idx === arr.length - 1 ? '#374151' : '#6b7280', cursor: idx === arr.length - 1 ? 'default' : 'pointer', fontSize: '0.6rem', padding: '0 2px', lineHeight: 1 }}>▼</button>
+                      </div>
+                      <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{cat.emoji}</span>
+                      <span style={{ fontSize: '0.875rem', color: '#d1d5db', flex: 1 }}>{cat.nombre}</span>
+                      <button
+                        onClick={() => { setEditingCategoria(cat); setEditCatNombre(cat.nombre); setEditCatEmoji(cat.emoji) }}
+                        style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '0.75rem', padding: '0 4px' }}
+                      >✏️</button>
+                      <button onClick={() => { if (confirm('¿Eliminar esta categoría?')) deleteCategoria(cat.id) }} style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '1rem', padding: '0 4px' }}>×</button>
+                    </div>
                   )}
                 </div>
               ))}
@@ -1584,6 +1666,48 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     </div>
                     {yaExiste
                       ? <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('tablero.habitos.ya_tenes')}</span>
+                      : <span style={{ fontSize: '0.8rem', color: '#a78bfa' }}>+</span>
+                    }
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal plantillas categorías */}
+      {showPlantillasCat && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '1rem' }}
+          onClick={() => setShowPlantillasCat(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            width: '100%', maxWidth: '500px', maxHeight: '70vh', overflowY: 'auto',
+            background: '#0f0a2e', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '16px 16px 12px 12px', padding: '1.25rem',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#e5e7eb' }}>📋 Plantillas de categorías</div>
+              <button onClick={() => setShowPlantillasCat(false)} style={{ border: 'none', background: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: '#4b5563', margin: '0 0 1rem' }}>
+              Tocá una para agregarla. Las que ya tenés no se duplican.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {PLANTILLAS_CATEGORIAS.map(p => {
+                const yaExiste = finanzaCategorias.some(c => c.nombre === p.nombre)
+                return (
+                  <button key={p.nombre} onClick={async () => { if (!yaExiste) { await addFromPlantillaCat(p); setShowPlantillasCat(false) } }}
+                    disabled={yaExiste}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.875rem', padding: '0.75rem 1rem',
+                      borderRadius: '10px', border: `1px solid ${yaExiste ? 'rgba(255,255,255,0.04)' : 'rgba(139,92,246,0.2)'}`,
+                      background: yaExiste ? 'rgba(255,255,255,0.02)' : 'rgba(139,92,246,0.06)',
+                      cursor: yaExiste ? 'default' : 'pointer', textAlign: 'left', width: '100%',
+                      opacity: yaExiste ? 0.5 : 1,
+                    }}>
+                    <span style={{ fontSize: '1.4rem' }}>{p.emoji}</span>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: yaExiste ? '#4b5563' : '#e5e7eb', flex: 1 }}>{p.nombre}</span>
+                    {yaExiste
+                      ? <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>ya tenés</span>
                       : <span style={{ fontSize: '0.8rem', color: '#a78bfa' }}>+</span>
                     }
                   </button>
