@@ -179,8 +179,8 @@ export default function LoginPage() {
         <p style={{ color: '#4b5563', fontSize: '0.7rem', marginTop: '1.5rem' }}>
           {t('login.privacy')}{' '}
           <a href="/privacidad" style={{ color: '#7c3aed', textDecoration: 'none' }}>{t('login.privacy_link')}</a>
-          {' y los '}
-          <a href="/terminos" style={{ color: '#7c3aed', textDecoration: 'none' }}>términos de uso</a>.
+          {' '}{t('login.terms_connector')}{' '}
+          <a href="/terminos" style={{ color: '#7c3aed', textDecoration: 'none' }}>{t('login.terms_link')}</a>.
         </p>
       </div>
     </div>

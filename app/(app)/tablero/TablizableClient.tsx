@@ -838,7 +838,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '1rem 1.125rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
                   <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>{t('tablero.hoy.semana_revision')}</span>
-                  <span style={{ fontSize: '0.75rem', color: semPct >= 70 ? '#10b981' : semPct >= 40 ? '#a78bfa' : '#6b7280', fontWeight: 700 }}>{semPct}% promedio</span>
+                  <span style={{ fontSize: '0.75rem', color: semPct >= 70 ? '#10b981' : semPct >= 40 ? '#a78bfa' : '#6b7280', fontWeight: 700 }}>{semPct}{t('tablero.hoy.semana_promedio')}</span>
                 </div>
                 <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'flex-end', height: '48px', marginBottom: '0.625rem' }}>
                   {semana.map(({ fecha, label, pct }) => {
@@ -1167,7 +1167,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     </div>
                     {inversionMes > 0 && (
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>📈 Inversión</span>
+                        <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>{t('tablero.mes.inversion_label')}</span>
                         <span style={{ fontWeight: 700, color: '#F5C518' }}>{fmt(inversionMes)}</span>
                       </div>
                     )}
@@ -1192,7 +1192,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                 if (catTotals.length === 0) return null
                 return (
                   <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-                    <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>Desglose de gastos</div>
+                    <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.mes.desglose_gastos')}</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       {catTotals.map(cat => (
                         <div key={cat.id}>
@@ -1234,7 +1234,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
               <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>{t('tablero.habitos.personales')}</div>
-              <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{localHabitos.filter(h => !h.obligatorio).length} hábitos</span>
+              <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{t('tablero.habitos.contador').replace('{n}', String(localHabitos.filter(h => !h.obligatorio).length))}</span>
             </div>
 
             {localHabitos.filter(h => !h.obligatorio).length === 0 && !showAddHabito && (
@@ -1261,9 +1261,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       <input value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} placeholder={t('tablero.habitos.nombre_placeholder')}
                         style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box', marginBottom: '0.75rem' }} />
                       <div style={{ marginBottom: '0.75rem' }}>
-                        <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Frecuencia</div>
+                        <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>{t('tablero.habitos.frecuencia')}</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
-                          <button onClick={() => setNuevoDiasSemana(null)} style={{ padding: '0.3rem 0.625rem', borderRadius: '6px', border: 'none', fontSize: '0.75rem', background: nuevoDiasSemana === null ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.05)', color: nuevoDiasSemana === null ? '#a78bfa' : '#6b7280', fontWeight: nuevoDiasSemana === null ? 700 : 400, cursor: 'pointer' }}>Todos los días</button>
+                          <button onClick={() => setNuevoDiasSemana(null)} style={{ padding: '0.3rem 0.625rem', borderRadius: '6px', border: 'none', fontSize: '0.75rem', background: nuevoDiasSemana === null ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.05)', color: nuevoDiasSemana === null ? '#a78bfa' : '#6b7280', fontWeight: nuevoDiasSemana === null ? 700 : 400, cursor: 'pointer' }}>{t('tablero.habitos.todos_dias')}</button>
                           {DIAS_CORTOS.map((d, i) => {
                             const sel = nuevoDiasSemana?.includes(i) ?? false
                             return <button key={i} onClick={() => {
@@ -1275,7 +1275,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                         </div>
                       </div>
                       <div style={{ marginBottom: '0.75rem' }}>
-                        <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Categoría</div>
+                        <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>{t('tablero.habitos.categoria_label')}</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
                           {CATEGORIAS.map(c => (
                             <button key={String(c.id)} onClick={() => setNuevoCategoria(c.id)} style={{
@@ -1354,9 +1354,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   </div>
                 )}
                 <div style={{ marginBottom: '0.75rem' }}>
-                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Frecuencia</div>
+                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>{t('tablero.habitos.frecuencia')}</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
-                    <button onClick={() => setNuevoDiasSemana(null)} style={{ padding: '0.3rem 0.625rem', borderRadius: '6px', border: 'none', fontSize: '0.75rem', background: nuevoDiasSemana === null ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.05)', color: nuevoDiasSemana === null ? '#a78bfa' : '#6b7280', fontWeight: nuevoDiasSemana === null ? 700 : 400, cursor: 'pointer' }}>Todos los días</button>
+                    <button onClick={() => setNuevoDiasSemana(null)} style={{ padding: '0.3rem 0.625rem', borderRadius: '6px', border: 'none', fontSize: '0.75rem', background: nuevoDiasSemana === null ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.05)', color: nuevoDiasSemana === null ? '#a78bfa' : '#6b7280', fontWeight: nuevoDiasSemana === null ? 700 : 400, cursor: 'pointer' }}>{t('tablero.habitos.todos_dias')}</button>
                     {DIAS_CORTOS.map((d, i) => {
                       const sel = nuevoDiasSemana?.includes(i) ?? false
                       return <button key={i} onClick={() => {
@@ -1368,7 +1368,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   </div>
                 </div>
                 <div style={{ marginBottom: '0.75rem' }}>
-                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>Categoría</div>
+                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>{t('tablero.habitos.categoria_label')}</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
                     {CATEGORIAS.map(c => (
                       <button key={String(c.id)} onClick={() => setNuevoCategoria(c.id)} style={{
@@ -1430,7 +1430,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           ) : (totalIngresos > 0 || totalGastos > 0) ? (
             <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
               <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>
-                Este mes — {new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { month: 'long' }).format(new Date(year, month - 1, 1)).charAt(0).toUpperCase() + new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { month: 'long' }).format(new Date(year, month - 1, 1)).slice(1)} {year}
+                {t('tablero.finanzas.este_mes')} — {new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { month: 'long' }).format(new Date(year, month - 1, 1)).charAt(0).toUpperCase() + new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { month: 'long' }).format(new Date(year, month - 1, 1)).slice(1)} {year}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', borderRadius: '7px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.12)' }}>
@@ -1470,7 +1470,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             if (catTotals.length === 0) return null
             return (
               <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
-                <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>Desglose de gastos</div>
+                <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.finanzas.desglose_gastos')}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {catTotals.map(cat => (
                     <div key={cat.id}>
@@ -1491,9 +1491,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           {/* Categorías — gestión completa */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
-              <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>Categorías</div>
+              <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>{t('tablero.finanzas.categorias_titulo')}</div>
               <button onClick={() => setShowPlantillasCat(true)} style={{ fontSize: '0.72rem', color: '#a78bfa', background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '6px', padding: '0.25rem 0.625rem', cursor: 'pointer', fontWeight: 600 }}>
-                📋 Plantillas
+                {t('tablero.finanzas.plantillas_cat_btn')}
               </button>
             </div>
 
@@ -1577,7 +1577,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           <div style={{ background: 'rgba(251,146,60,0.07)', border: '1px solid rgba(251,146,60,0.2)', borderRadius: '14px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span style={{ fontSize: '1.75rem' }}>🔥</span>
             <div style={{ flex: 1 }}>
-              <div style={{ color: '#fb923c', fontWeight: 700, fontSize: '0.95rem' }}>{racha} días activo</div>
+              <div style={{ color: '#fb923c', fontWeight: 700, fontSize: '0.95rem' }}>{racha} {t('tablero.metas_tab.dias_activo')}</div>
               <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.15rem' }}>
                 {racha === 0 ? t('tablero.hoy.racha_cero') : racha >= 30 ? t('tablero.hoy.racha_ciclo') : t('tablero.hoy.racha_building')}
               </div>
@@ -1598,7 +1598,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     <span style={{ color: m.color, fontWeight: 700, fontSize: '0.88rem' }}>{m.label}</span>
                   </div>
                   <span style={{ fontSize: '0.72rem', color: progreso === 100 ? m.color : '#6b7280', fontWeight: progreso === 100 ? 700 : 400 }}>
-                    {progreso === 100 ? '✓ Completado' : `${racha}/${m.dias} días · ${diasRestantes} restantes`}
+                    {progreso === 100 ? t('tablero.metas_tab.completado') : t('tablero.metas_tab.progreso').replace('{actual}', String(racha)).replace('{total}', String(m.dias)).replace('{restantes}', String(diasRestantes))}
                   </span>
                 </div>
                 {/* Barra de progreso */}
@@ -1625,13 +1625,13 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             border: '1px solid rgba(139,92,246,0.22)', borderRadius: '12px', padding: '1rem 1.25rem',
           }}>
             <div style={{ fontSize: '0.65rem', color: '#a78bfa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.25rem' }}>
-              ¿Querés ir más lejos?
+              {t('tablero.metas_tab.cta_label')}
             </div>
             <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '0.88rem', marginBottom: '0.2rem' }}>
-              Amauta Cloud — Mentoría con IA 🚀
+              {t('tablero.metas_tab.cta_titulo')}
             </div>
             <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-              Acompañamiento personalizado para emprender y escalar tu negocio →
+              {t('tablero.metas_tab.cta_desc')}
             </div>
           </a>
         </div>
@@ -1693,11 +1693,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             background: '#0f0a2e', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '16px 16px 12px 12px', padding: '1.25rem',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#e5e7eb' }}>📋 Plantillas de categorías</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#e5e7eb' }}>{t('tablero.finanzas.cat_plantillas_titulo')}</div>
               <button onClick={() => setShowPlantillasCat(false)} style={{ border: 'none', background: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
             </div>
             <p style={{ fontSize: '0.75rem', color: '#4b5563', margin: '0 0 1rem' }}>
-              Tocá una para agregarla. Las que ya tenés no se duplican.
+              {t('tablero.finanzas.cat_plantillas_desc')}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {PLANTILLAS_CATEGORIAS.map(p => {
@@ -1715,7 +1715,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     <span style={{ fontSize: '1.4rem' }}>{p.emoji}</span>
                     <span style={{ fontSize: '0.875rem', fontWeight: 600, color: yaExiste ? '#4b5563' : '#e5e7eb', flex: 1 }}>{p.nombre}</span>
                     {yaExiste
-                      ? <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>ya tenés</span>
+                      ? <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('tablero.finanzas.cat_ya_tenes')}</span>
                       : <span style={{ fontSize: '0.8rem', color: '#a78bfa' }}>+</span>
                     }
                   </button>
@@ -1949,7 +1949,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   <span style={{ fontSize: '1.5rem' }}>{h.emoji}</span>
                   <div>
                     <div style={{ color: '#f3f0ff', fontWeight: 700, fontSize: '1rem' }}>{h.nombre}</div>
-                    <div style={{ color: '#6b7280', fontSize: '0.72rem' }}>Últimos 30 días</div>
+                    <div style={{ color: '#6b7280', fontSize: '0.72rem' }}>{t('tablero.habitos.ultimos_30d')}</div>
                   </div>
                 </div>
                 <button onClick={() => setHistorialOpen(null)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1 }}>✕</button>
@@ -1990,9 +1990,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
                   <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#8B5CF6' }} />
-                  <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>Completado</span>
+                  <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('tablero.habitos.completado_legend')}</span>
                   <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} />
-                  <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>Sin registro</span>
+                  <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('tablero.habitos.sin_registro_legend')}</span>
                 </div>
               </div>
             </div>

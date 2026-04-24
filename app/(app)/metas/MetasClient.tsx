@@ -126,6 +126,12 @@ export default function MetasClient({ userId }: { userId: string }) {
           >
             {t('metas.intro_btn')}
           </button>
+          <Link href="/tablero" style={{
+            display: 'block', textAlign: 'center', marginTop: '1rem',
+            color: '#6b7280', fontSize: '0.8rem', textDecoration: 'none',
+          }}>
+            {t('metas.back_tablero')}
+          </Link>
         </div>
       </div>
     )
