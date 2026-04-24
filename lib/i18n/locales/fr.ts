@@ -412,4 +412,13 @@ export const fr: typeof es = {
     step6_title: "Ce qui t'a amené ici",
     step6_desc: "L'objectif que tu as écrit en entrant apparaît ici chaque jour. Dans les jours difficiles, c'est ce qui te rappelle le pourquoi.",
   },
+  rating: {
+    racha: '{n} jours de série',
+    titulo: 'Amauta t\'aide-t-il ?',
+    desc: 'Ta note aide d\'autres personnes à la découvrir.',
+    calificar: 'Évaluer sur {store}',
+    proximamente: 'Bientôt sur {store}',
+    mas_tarde: 'Plus tard',
+    no_gracias: 'Non merci',
+  },
 }

@@ -412,4 +412,13 @@ export const zh: typeof es = {
     step6_title: '是什么把你带到这里',
     step6_desc: '你当初写下的目标每天都显示在这里。在艰难的日子里，它让你记得为什么开始。',
   },
+  rating: {
+    racha: '{n}天连续',
+    titulo: 'Amauta对你有帮助吗？',
+    desc: '你的评分帮助更多人发现它。',
+    calificar: '在{store}上评分',
+    proximamente: '即将登陆{store}',
+    mas_tarde: '稍后',
+    no_gracias: '不，谢谢',
+  },
 }

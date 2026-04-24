@@ -412,4 +412,13 @@ export const pt: typeof es = {
     step6_title: 'O que te trouxe até aqui',
     step6_desc: 'A meta que você escreveu ao entrar aparece aqui todos os dias. Nos dias difíceis, é isso que te lembra o porquê.',
   },
+  rating: {
+    racha: '{n} dias de sequência',
+    titulo: 'O Amauta está te ajudando?',
+    desc: 'Sua avaliação ajuda mais pessoas a descobri-lo.',
+    calificar: 'Avaliar na {store}',
+    proximamente: 'Em breve na {store}',
+    mas_tarde: 'Depois',
+    no_gracias: 'Não, obrigado',
+  },
 }

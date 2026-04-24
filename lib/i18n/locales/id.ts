@@ -412,4 +412,13 @@ export const id: typeof es = {
     step6_title: 'Yang membawamu sampai sini',
     step6_desc: 'Tujuan yang kamu tulis saat masuk muncul di sini setiap hari. Di hari-hari berat, itu yang mengingatkanmu kenapa kamu mulai.',
   },
+  rating: {
+    racha: '{n} hari beruntun',
+    titulo: 'Apakah Amauta membantumu?',
+    desc: 'Penilaianmu membantu lebih banyak orang menemukannya.',
+    calificar: 'Beri nilai di {store}',
+    proximamente: 'Segera hadir di {store}',
+    mas_tarde: 'Nanti',
+    no_gracias: 'Tidak, terima kasih',
+  },
 }

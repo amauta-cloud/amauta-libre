@@ -412,4 +412,13 @@ export const ja: typeof es = {
     step6_title: 'ここまで連れてきたもの',
     step6_desc: '最初に書いた目標が毎日ここに表示される。つらい日も、なぜ始めたかを思い出させてくれる。',
   },
+  rating: {
+    racha: '{n}日連続',
+    titulo: 'Amautaは役に立っていますか？',
+    desc: 'あなたの評価が、より多くの人の発見につながります。',
+    calificar: '{store}でレビュー',
+    proximamente: '{store}で近日公開',
+    mas_tarde: 'あとで',
+    no_gracias: 'いいえ、結構です',
+  },
 }

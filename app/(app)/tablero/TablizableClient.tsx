@@ -478,8 +478,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   function getDayPct(dateStr: string): number {
     const dayRegs = monthRegistros.filter(r => r.fecha === dateStr)
     if (dayRegs.length === 0 || localHabitos.length === 0) return 0
+    const dow = new Date(dateStr + 'T12:00:00').getDay()
+    const habitosDia = localHabitos.filter(h => isHoy(h, dow))
+    if (habitosDia.length === 0) return 0
     const done = dayRegs.filter(r => r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)).length
-    return Math.round((done / localHabitos.length) * 100)
+    return Math.round((done / habitosDia.length) * 100)
   }
 
   function getDayBg(p: number): string {
@@ -729,7 +732,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               </div>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.95rem' }}>{completados}/{localHabitos.length} {t('tablero.hoy.habitos')}</div>
+              <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.95rem' }}>{completados}/{habitosHoy.length} {t('tablero.hoy.habitos')}</div>
               <div style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: '0.2rem' }}>
                 {pct === 100 ? t('tablero.hoy.perfect') : pct >= 50 ? t('tablero.hoy.going_well') : t('tablero.hoy.start_one')}
               </div>
@@ -865,7 +868,8 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               const fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
               const regsDelDia = historial.filter(r => r.fecha === fecha)
               const hechos = regsDelDia.filter(r => r.valor_bool === true || (r.valor_numero != null && r.valor_numero > 0)).length
-              const total = localHabitos.length
+              const habitosDia = localHabitos.filter(h => isHoy(h, d.getDay()))
+              const total = habitosDia.length
               const pct = total > 0 && regsDelDia.length > 0 ? Math.round((hechos / total) * 100) : (fecha === today ? Math.round((completados / total) * 100) : 0)
               semana.push({ fecha, label: i === 0 ? t('tablero.tabs.hoy') : fmtDia(d), pct })
             }

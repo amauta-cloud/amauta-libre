@@ -412,4 +412,13 @@ export const en: typeof es = {
     step6_title: 'What brought you here',
     step6_desc: 'The goal you wrote when you started shows up here every day. On the hard days, it\'s what reminds you why.',
   },
+  rating: {
+    racha: '{n}-day streak',
+    titulo: 'Is Amauta helping you?',
+    desc: 'Your rating helps more people discover it.',
+    calificar: 'Rate on {store}',
+    proximamente: 'Coming soon on {store}',
+    mas_tarde: 'Later',
+    no_gracias: 'No thanks',
+  },
 }

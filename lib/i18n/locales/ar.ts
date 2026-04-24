@@ -412,4 +412,13 @@ export const ar: typeof es = {
     step6_title: 'ما أوصلك إلى هنا',
     step6_desc: 'الهدف الذي كتبته عند الدخول يظهر هنا كل يوم. في الأيام الصعبة، هو ما يذكرك بالسبب.',
   },
+  rating: {
+    racha: 'سلسلة {n} أيام',
+    titulo: 'هل يساعدك Amauta؟',
+    desc: 'تقييمك يساعد المزيد من الناس على اكتشافه.',
+    calificar: 'تقييم على {store}',
+    proximamente: 'قريباً على {store}',
+    mas_tarde: 'لاحقاً',
+    no_gracias: 'لا، شكراً',
+  },
 }

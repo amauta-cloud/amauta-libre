@@ -410,4 +410,13 @@ export const es = {
     step6_title: 'Lo que te trajo hasta acá',
     step6_desc: 'La meta que escribiste al entrar aparece acá todos los días. En los días que cuesta, es lo que te recuerda el por qué.',
   },
+  rating: {
+    racha: '{n} días de racha',
+    titulo: '¿Te está ayudando Amauta?',
+    desc: 'Tu calificación ayuda a más personas a descubrirla.',
+    calificar: 'Calificar en {store}',
+    proximamente: 'Próximamente en {store}',
+    mas_tarde: 'Más tarde',
+    no_gracias: 'No, gracias',
+  },
 }
