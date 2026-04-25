@@ -285,6 +285,7 @@ export const ru: typeof es = {
     meta180_placeholder: 'Напр.: Эксперт в своей нише, жить на цифровой доход, 2 недели отпуска...',
     quote_final: '"Лучшее время посадить дерево было 20 лет назад. Второе лучшее время, сейчас."',
     guardar: 'Сохранить мои цели →',
+    guardar_hint: 'Напишите хотя бы одну цель для сохранения.',
     guardado_toast: 'Цели сохранены. Вперёд.',
   },
   educacion: {
@@ -328,6 +329,7 @@ export const ru: typeof es = {
     cta_video: 'Смотреть',
     cta_libro: 'Читать',
     cta_biblioteca: 'Войти в библиотеку',
+    paso_step: 'Шаг {n}',
     paso_listo: 'Шаг {n} выполнен. Вперёд.',
     pasos: [
       {

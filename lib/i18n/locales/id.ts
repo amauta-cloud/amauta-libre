@@ -285,6 +285,7 @@ export const id: typeof es = {
     meta180_placeholder: 'Mis: Ahli di niche-ku, hidup dari penghasilan digital, 2 minggu liburan...',
     quote_final: '"Waktu terbaik untuk menanam pohon adalah 20 tahun lalu. Waktu terbaik kedua adalah sekarang."',
     guardar: 'Simpan tujuanku →',
+    guardar_hint: 'Tulis setidaknya satu tujuan untuk disimpan.',
     guardado_toast: 'Tujuan tersimpan. Ayo.',
   },
   educacion: {
@@ -328,6 +329,7 @@ export const id: typeof es = {
     cta_video: 'Tonton',
     cta_libro: 'Baca',
     cta_biblioteca: 'Masuk ke perpustakaan',
+    paso_step: 'Langkah {n}',
     paso_listo: 'Langkah {n} selesai. Lanjutkan.',
     pasos: [
       {

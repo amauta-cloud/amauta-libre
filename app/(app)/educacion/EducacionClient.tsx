@@ -446,7 +446,7 @@ function ContentCard({ etapa, mensajeIntro, paso, t }: {
         <div style={{ fontSize: '2rem', flexShrink: 0 }}>{emoji}</div>
         <div>
           <div style={{ fontSize: '0.65rem', color: col.text, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
-            Paso {paso} · {etapa.tipo}
+            {t('educacion.paso_step', { n: paso })} · {etapa.tipo}
           </div>
           <div style={{ fontSize: '1rem', fontWeight: 700, color: '#e5e7eb', lineHeight: 1.3 }}>{etapa.titulo}</div>
         </div>

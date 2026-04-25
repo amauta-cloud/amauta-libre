@@ -43,10 +43,15 @@ const BTN_BASE: React.CSSProperties = {
   fontSize: '0.82rem', fontWeight: 600, padding: '0.55rem 1rem', transition: 'all 0.15s',
 }
 
-function formatFecha(f: string) {
+function formatFecha(f: string, locale?: string) {
   if (!f) return ''
-  const [y, m, d] = f.split('-')
-  return `${d}/${m}/${y}`
+  const date = new Date(f + 'T12:00:00')
+  try {
+    return new Intl.DateTimeFormat(locale || 'es-AR', { day: 'numeric', month: 'short', year: 'numeric' }).format(date)
+  } catch {
+    const [y, m, d] = f.split('-')
+    return `${d}/${m}/${y}`
+  }
 }
 
 function diasRestantes(fecha: string, today: string, t: (key: string, vars?: Record<string, string | number>) => string) {
@@ -62,7 +67,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const searchParams = useSearchParams()
 
   const [tab, setTab] = useState<Tab>(() => {
@@ -526,7 +531,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                             {ev.titulo}
                           </p>
                           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
-                            {ev.fecha && <span style={{ fontSize: '0.72rem', color: '#a78bfa' }}>📅 {formatFecha(ev.fecha)}</span>}
+                            {ev.fecha && <span style={{ fontSize: '0.72rem', color: '#a78bfa' }}>📅 {formatFecha(ev.fecha, locale)}</span>}
                             {ev.hora && <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>⏰ {ev.hora}</span>}
                             {ev.realizado && <span style={{ fontSize: '0.68rem', color: '#10b981', fontWeight: 600 }}>{t('planificacion.evento_realizado')}</span>}
                           </div>
@@ -565,7 +570,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                     <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: '#e5e7eb', wordBreak: 'break-word' }}>{tarea.texto}</p>
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '0.72rem', color: vencida ? '#ef4444' : tarea.fecha_limite === today ? '#f59e0b' : '#a78bfa' }}>
-                        ✅ {formatFecha(tarea.fecha_limite!)}
+                        ✅ {formatFecha(tarea.fecha_limite!, locale)}
                       </span>
                       {tarea.hora_limite && <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>⏰ {tarea.hora_limite}</span>}
                       {vencida && <span style={{ fontSize: '0.68rem', color: '#ef4444', fontWeight: 600 }}>{diasRestantes(tarea.fecha_limite!, today, t)}</span>}
@@ -599,7 +604,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
                     <div style={{ flex: 1 }}>
                       <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 500, color: '#6b7280', textDecoration: 'line-through', wordBreak: 'break-word' }}>{tarea.texto}</p>
-                      <span style={{ fontSize: '0.72rem', color: '#4b5563' }}>📅 {formatFecha(tarea.fecha_limite!)}</span>
+                      <span style={{ fontSize: '0.72rem', color: '#4b5563' }}>📅 {formatFecha(tarea.fecha_limite!, locale)}</span>
                     </div>
                     <button onClick={() => toggleTarea(tarea)}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#10b981', fontSize: '0.85rem', padding: '2px 4px', flexShrink: 0 }}>↩</button>

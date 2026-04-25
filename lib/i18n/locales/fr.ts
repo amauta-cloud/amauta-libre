@@ -285,6 +285,7 @@ export const fr: typeof es = {
     meta180_placeholder: 'Ex : Référence dans mon domaine, vivre de mes revenus numériques, 2 semaines de vacances...',
     quote_final: '"Le meilleur moment pour planter un arbre était il y a 20 ans. Le deuxième meilleur moment, c\'est maintenant."',
     guardar: 'Enregistrer mes objectifs →',
+    guardar_hint: 'Écrivez au moins un objectif pour enregistrer.',
     guardado_toast: 'Objectifs enregistrés. Allons-y.',
   },
   educacion: {
@@ -328,6 +329,7 @@ export const fr: typeof es = {
     cta_video: 'Regarder',
     cta_libro: 'Lire',
     cta_biblioteca: 'Entrer dans la bibliothèque',
+    paso_step: 'Étape {n}',
     paso_listo: 'Étape {n} terminée. Allons-y.',
     pasos: [
       {

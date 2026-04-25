@@ -285,6 +285,7 @@ export const zh: typeof es = {
     meta180_placeholder: '例如：行业标杆，靠数字收入生活，两周假期...',
     quote_final: '"种树的最好时间是20年前。第二好的时间是现在。"',
     guardar: '保存我的目标 →',
+    guardar_hint: '至少写一个目标才能保存。',
     guardado_toast: '目标已保存。出发吧。',
   },
   educacion: {
@@ -328,6 +329,7 @@ export const zh: typeof es = {
     cta_video: '观看',
     cta_libro: '阅读',
     cta_biblioteca: '进入图书馆',
+    paso_step: '第{n}步',
     paso_listo: '第 {n} 步完成。继续前进。',
     pasos: [
       {

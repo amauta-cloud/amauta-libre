@@ -283,6 +283,7 @@ export const es = {
     meta180_placeholder: 'Ej: Referente en mi nicho, vivir de mis ingresos digitales, 2 semanas de vacaciones...',
     quote_final: '"El momento de plantar un árbol fue hace 20 años. El segundo mejor momento es ahora."',
     guardar: 'Guardar mis metas →',
+    guardar_hint: 'Escribí al menos una meta para guardar.',
     guardado_toast: 'Metas guardadas. Vamos.',
   },
   educacion: {
@@ -326,6 +327,7 @@ export const es = {
     cta_video: 'Miralo',
     cta_libro: 'Leelo',
     cta_biblioteca: 'Entrar a la biblioteca',
+    paso_step: 'Paso {n}',
     paso_listo: 'Paso {n} listo. Vamos.',
     pasos: [
       {

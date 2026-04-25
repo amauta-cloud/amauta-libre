@@ -245,6 +245,11 @@ export default function MetasClient({ userId }: { userId: string }) {
           >
             {saving ? t('common.saving') : t('metas.guardar')}
           </button>
+          {!saving && !meta30.trim() && !meta90.trim() && !meta180.trim() && (
+            <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
+              {t('metas.guardar_hint')}
+            </p>
+          )}
         </div>
       </div>
 

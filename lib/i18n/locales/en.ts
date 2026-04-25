@@ -285,6 +285,7 @@ export const en: typeof es = {
     meta180_placeholder: 'e.g. Leader in my niche, living off digital income, 2 weeks vacation...',
     quote_final: '"The best time to plant a tree was 20 years ago. The second best time is now."',
     guardar: 'Save my goals →',
+    guardar_hint: 'Write at least one goal to save.',
     guardado_toast: 'Goals saved. Let\'s go.',
   },
   educacion: {
@@ -328,6 +329,7 @@ export const en: typeof es = {
     cta_video: 'Watch',
     cta_libro: 'Read',
     cta_biblioteca: 'Enter the library',
+    paso_step: 'Step {n}',
     paso_listo: 'Step {n} done. Keep going.',
     pasos: [
       {

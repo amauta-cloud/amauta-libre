@@ -285,6 +285,7 @@ export const pt: typeof es = {
     meta180_placeholder: 'Ex: Referência no meu nicho, viver da renda digital, 2 semanas de férias...',
     quote_final: '"O melhor momento para plantar uma árvore foi há 20 anos. O segundo melhor momento é agora."',
     guardar: 'Salvar minhas metas →',
+    guardar_hint: 'Escreva pelo menos uma meta para salvar.',
     guardado_toast: 'Metas salvas. Vamos.',
   },
   educacion: {
@@ -328,6 +329,7 @@ export const pt: typeof es = {
     cta_video: 'Assistir',
     cta_libro: 'Ler',
     cta_biblioteca: 'Entrar na biblioteca',
+    paso_step: 'Passo {n}',
     paso_listo: 'Passo {n} concluído. Vamos.',
     pasos: [
       {

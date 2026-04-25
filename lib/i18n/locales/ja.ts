@@ -285,6 +285,7 @@ export const ja: typeof es = {
     meta180_placeholder: '例: 自分のニッチでの専門家、デジタル収入で生活、2週間の休暇...',
     quote_final: '"木を植える最善の時は20年前だった。次に最善の時は今だ。"',
     guardar: '目標を保存する →',
+    guardar_hint: '少なくとも一つの目標を入力してください。',
     guardado_toast: '目標を保存しました。さあ行こう。',
   },
   educacion: {
@@ -328,6 +329,7 @@ export const ja: typeof es = {
     cta_video: '見る',
     cta_libro: '読む',
     cta_biblioteca: 'ライブラリに入る',
+    paso_step: 'ステップ{n}',
     paso_listo: 'ステップ{n}完了。続けましょう。',
     pasos: [
       {

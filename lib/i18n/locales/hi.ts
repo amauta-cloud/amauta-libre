@@ -285,6 +285,7 @@ export const hi: typeof es = {
     meta180_placeholder: 'उदा: अपने क्षेत्र में विशेषज्ञ, डिजिटल आय से जीना, 2 हफ्ते की छुट्टी...',
     quote_final: '"पेड़ लगाने का सबसे अच्छा समय 20 साल पहले था। दूसरा सबसे अच्छा समय अभी है।"',
     guardar: 'मेरे लक्ष्य सहेजें →',
+    guardar_hint: 'सहेजने के लिए कम से कम एक लक्ष्य लिखें।',
     guardado_toast: 'लक्ष्य सहेजे गए। चलते हैं।',
   },
   educacion: {
@@ -328,6 +329,7 @@ export const hi: typeof es = {
     cta_video: 'देखें',
     cta_libro: 'पढ़ें',
     cta_biblioteca: 'पुस्तकालय में जाएं',
+    paso_step: 'चरण {n}',
     paso_listo: 'चरण {n} पूरा। आगे बढ़ते हैं।',
     pasos: [
       {

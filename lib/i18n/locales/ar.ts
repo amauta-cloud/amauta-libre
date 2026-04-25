@@ -285,6 +285,7 @@ export const ar: typeof es = {
     meta180_placeholder: 'مثال: مرجع في مجالي، أعيش من الدخل الرقمي، إجازتان في العام...',
     quote_final: '"أفضل وقت لزراعة شجرة كان قبل 20 عاماً. ثاني أفضل وقت هو الآن."',
     guardar: 'حفظ أهدافي →',
+    guardar_hint: 'اكتب هدفاً واحداً على الأقل للحفظ.',
     guardado_toast: 'تم حفظ الأهداف. هيّا نبدأ.',
   },
   educacion: {
@@ -328,6 +329,7 @@ export const ar: typeof es = {
     cta_video: 'شاهد',
     cta_libro: 'اقرأ',
     cta_biblioteca: 'ادخل إلى المكتبة',
+    paso_step: 'الخطوة {n}',
     paso_listo: 'الخطوة {n} مكتملة. هيّا.',
     pasos: [
       {
