@@ -925,9 +925,13 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                 </>
               )}
               {itemCategoria === 'Inversión' && (
-                <div style={{ padding: '0.5rem 0.875rem', borderRadius: '8px', background: 'rgba(245,197,24,0.15)', border: '1px solid rgba(245,197,24,0.35)', color: '#F5C518', fontSize: '0.78rem', fontWeight: 700 }}>
+                <button
+                  onClick={() => { setItemCategoria(null); setItemTipo('ingreso'); setItemMonto('') }}
+                  style={{ padding: '0.5rem 0.875rem', borderRadius: '8px', background: 'rgba(245,197,24,0.15)', border: '1px solid rgba(245,197,24,0.35)', color: '#F5C518', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                >
                   {t('tablero.hoy.inversion_tipo')}
-                </div>
+                  <span style={{ fontSize: '1rem', lineHeight: 1, opacity: 0.7 }}>×</span>
+                </button>
               )}
             </div>
 
