@@ -1,8 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
+import { useLocale } from '@/lib/i18n/LocaleContext'
 
 const purple = '#8B5CF6'
-const pink = '#EC4899'
 const gold = '#F5C518'
 const green = '#10b981'
 const bgApp = '#0f0d1a'
@@ -14,6 +16,71 @@ const borderSubtle = 'rgba(255,255,255,0.07)'
 const borderPurple = 'rgba(139,92,246,0.2)'
 
 export default function LandingPage() {
+  const { t } = useLocale()
+
+  const screenshots = [
+    { src: '/screenshots/screenshot_1_habitos.png', label: t('landing.screenshot_1_label'), desc: t('landing.screenshot_1_desc') },
+    { src: '/screenshots/screenshot_2_metas.png', label: t('landing.screenshot_2_label'), desc: t('landing.screenshot_2_desc') },
+    { src: '/screenshots/screenshot_3_tablero.png', label: t('landing.screenshot_3_label'), desc: t('landing.screenshot_3_desc') },
+    { src: '/screenshots/screenshot_4_finanzas.png', label: t('landing.screenshot_4_label'), desc: t('landing.screenshot_4_desc') },
+  ]
+
+  const problemas = [
+    { icon: '🔄', title: t('landing.problema_1_title'), desc: t('landing.problema_1_desc') },
+    { icon: '💸', title: t('landing.problema_2_title'), desc: t('landing.problema_2_desc') },
+    { icon: '🎯', title: t('landing.problema_3_title'), desc: t('landing.problema_3_desc') },
+  ]
+
+  const modulos = [
+    {
+      emoji: '⚡',
+      title: t('landing.mod_habitos_title'),
+      color: purple,
+      items: [t('landing.mod_habitos_1'), t('landing.mod_habitos_2'), t('landing.mod_habitos_3'), t('landing.mod_habitos_4')],
+    },
+    {
+      emoji: '💰',
+      title: t('landing.mod_finanzas_title'),
+      color: gold,
+      items: [t('landing.mod_finanzas_1'), t('landing.mod_finanzas_2'), t('landing.mod_finanzas_3'), t('landing.mod_finanzas_4')],
+    },
+    {
+      emoji: '🎯',
+      title: t('landing.mod_metas_title'),
+      color: green,
+      items: [t('landing.mod_metas_1'), t('landing.mod_metas_2'), t('landing.mod_metas_3'), t('landing.mod_metas_4')],
+    },
+  ]
+
+  const metas = [
+    { emoji: '🌱', label: t('landing.meta_30_label'), question: t('landing.meta_30_q'), color: green, bg: `${green}12` },
+    { emoji: '🚀', label: t('landing.meta_90_label'), question: t('landing.meta_90_q'), color: purple, bg: `${purple}12` },
+    { emoji: '🏆', label: t('landing.meta_180_label'), question: t('landing.meta_180_q'), color: gold, bg: `${gold}12` },
+  ]
+
+  const gratisItems = [
+    { icon: '✅', text: t('landing.gratis_1') },
+    { icon: '🚫', text: t('landing.gratis_2') },
+    { icon: '💳', text: t('landing.gratis_3') },
+    { icon: '♾️', text: t('landing.gratis_4') },
+    { icon: '🔒', text: t('landing.gratis_5') },
+    { icon: '🌍', text: t('landing.gratis_6') },
+  ]
+
+  const androidSteps = [
+    t('landing.instalar_android_1'),
+    t('landing.instalar_android_2'),
+    t('landing.instalar_android_3'),
+    t('landing.instalar_android_4'),
+  ]
+
+  const iosSteps = [
+    t('landing.instalar_ios_1'),
+    t('landing.instalar_ios_2'),
+    t('landing.instalar_ios_3'),
+    t('landing.instalar_ios_4'),
+  ]
+
   return (
     <div style={{ background: bgApp, color: textPrimary, fontFamily: "'Inter', sans-serif", minHeight: '100vh' }}>
 
@@ -57,7 +124,7 @@ export default function LandingPage() {
             <span style={{ fontWeight: 700, fontSize: '1rem', color: textPrimary }}>Amauta Libre</span>
           </div>
           <Link href="/login" className="btn-cta" style={{ padding: '8px 20px', fontSize: '0.875rem' }}>
-            Entrar
+            {t('landing.nav_entrar')}
           </Link>
         </div>
       </nav>
@@ -65,25 +132,25 @@ export default function LandingPage() {
       {/* ── HERO ── */}
       <section style={{ padding: '100px 24px 80px', maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
         <div style={{ display: 'inline-block', background: 'rgba(139,92,246,0.08)', border: `1px solid rgba(139,92,246,0.25)`, borderRadius: 999, padding: '5px 16px', fontSize: '0.78rem', fontWeight: 600, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 28 }}>
-          Gratis para siempre · Sin tarjeta · Sin trampa
+          {t('landing.hero_pill')}
         </div>
 
         <h1 className="hero-title" style={{ fontSize: 'clamp(2.4rem, 6vw, 3.8rem)', fontWeight: 800, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 20 }}>
-          Tus hábitos, tus tareas,<br />
-          <span style={{ background: gradientCTA, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>tu crecimiento.</span>
+          {t('landing.hero_h1_1')}<br />
+          <span style={{ background: gradientCTA, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t('landing.hero_h1_2')}</span>
         </h1>
 
         <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', color: textMuted, maxWidth: 520, margin: '0 auto 40px', lineHeight: 1.6 }}>
-          Hábitos, finanzas y metas en un solo lugar. Todo gratis, todo abierto. Entrás desde el navegador del celular, sin instalar nada.
+          {t('landing.hero_sub')}
         </p>
 
         <Link href="/login" className="btn-cta" style={{ padding: '16px 36px', fontSize: '1.05rem', borderRadius: 14, boxShadow: '0 8px 32px rgba(139,92,246,0.3)' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-          Entrar con Google
+          {t('landing.hero_cta')}
         </Link>
 
         <p style={{ marginTop: 16, fontSize: '0.82rem', color: '#6b7280' }}>
-          Tardás 2 minutos · Sin contraseña
+          {t('landing.hero_note')}
         </p>
 
         {/* Ring mockup visual */}
@@ -132,20 +199,15 @@ export default function LandingPage() {
       {/* ── CAPTURAS REALES ── */}
       <section style={{ padding: '80px 24px', background: 'radial-gradient(ellipse at center, #130b28 0%, #0b0520 70%)', borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
         <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
-          <div className="tag">La app real</div>
+          <div className="tag">{t('landing.screenshots_tag')}</div>
           <h2 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: 12 }}>
-            Sin filtros. Esto es lo que vas a ver.
+            {t('landing.screenshots_h2')}
           </h2>
           <p style={{ color: textMuted, marginBottom: 48, fontSize: '1rem' }}>
-            Capturas reales tomadas desde el celular.
+            {t('landing.screenshots_sub')}
           </p>
           <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, alignItems: 'start' }}>
-            {[
-              { src: '/screenshots/screenshot_1_habitos.png', label: '✏️ Tus hábitos', desc: 'Base + personales' },
-              { src: '/screenshots/screenshot_2_metas.png', label: '🎯 Tus metas', desc: '30 / 90 / 180 días' },
-              { src: '/screenshots/screenshot_3_tablero.png', label: '⚡ El tablero', desc: 'Hoy a primera vista' },
-              { src: '/screenshots/screenshot_4_finanzas.png', label: '💰 Finanzas', desc: 'Categorías personales' },
-            ].map((s) => (
+            {screenshots.map((s) => (
               <div key={s.src} className="screenshot-item" style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(139,92,246,0.22)', boxShadow: '0 16px 48px rgba(0,0,0,0.5)' }}>
                 <Image
                   src={s.src}
@@ -168,17 +230,13 @@ export default function LandingPage() {
       <section style={{ padding: '80px 24px', background: 'rgba(139,92,246,0.03)', borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
         <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: 16 }}>
-            ¿Cuántas veces empezaste y lo dejaste?
+            {t('landing.problema_h2')}
           </h2>
           <p style={{ color: textMuted, marginBottom: 48, fontSize: '1rem' }}>
-            Casi siempre pasa lo mismo: la voluntad está, la estructura no.
+            {t('landing.problema_sub')}
           </p>
           <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-            {[
-              { icon: '🔄', title: '"Empiezo y lo abandono"', desc: 'Sin sistema de racha, los hábitos se caen al tercer día.' },
-              { icon: '💸', title: '"No sé a dónde se va mi plata"', desc: 'Sin registro diario, el mes termina y no entendés qué pasó.' },
-              { icon: '🎯', title: '"Nunca sé bien qué quiero"', desc: 'Sin una meta escrita y con fecha, todo queda en intención.' },
-            ].map((p) => (
+            {problemas.map((p) => (
               <div key={p.title} className="card" style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '1.8rem', marginBottom: 12 }}>{p.icon}</div>
                 <h3 style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 8, color: textPrimary }}>{p.title}</h3>
@@ -192,33 +250,14 @@ export default function LandingPage() {
       {/* ── 3 MÓDULOS ── */}
       <section className="section">
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <div className="tag">Qué tiene</div>
+          <div className="tag">{t('landing.modulos_tag')}</div>
           <h2 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800 }}>
-            Todo en un solo lugar
+            {t('landing.modulos_h2')}
           </h2>
-          <p style={{ color: textMuted, marginTop: 12, fontSize: '1rem' }}>No son tres cosas por separado.</p>
+          <p style={{ color: textMuted, marginTop: 12, fontSize: '1rem' }}>{t('landing.modulos_sub')}</p>
         </div>
         <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-          {[
-            {
-              emoji: '⚡',
-              title: 'Hábitos',
-              color: purple,
-              items: ['Ring de progreso diario', 'Racha global y por hábito', 'Historial de los últimos 30 días', 'Frecuencia personalizada por hábito'],
-            },
-            {
-              emoji: '💰',
-              title: 'Finanzas',
-              color: gold,
-              items: ['Ingresos, gastos y categorías', 'Inversión registrada como movimiento real', 'Balance: Libre, Gastos, Inversión', 'Análisis mensual por categoría'],
-            },
-            {
-              emoji: '🎯',
-              title: 'Metas',
-              color: green,
-              items: ['Sistema 30 / 90 / 180 días', 'Barra de progreso en tiempo real', 'Tareas, ideas y calendario', 'Racha como ancla de compromiso'],
-            },
-          ].map((mod) => (
+          {modulos.map((mod) => (
             <div key={mod.title} className="card" style={{ borderColor: `${mod.color}33` }}>
               <div style={{ width: 48, height: 48, borderRadius: 12, background: `${mod.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', marginBottom: 16 }}>
                 {mod.emoji}
@@ -241,20 +280,16 @@ export default function LandingPage() {
       <section style={{ padding: '80px 24px', background: 'radial-gradient(ellipse at top, #1a0a2e 0%, #0b0520 60%)', borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <div className="tag">Sistema de metas</div>
+            <div className="tag">{t('landing.metas_tag')}</div>
             <h2 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: 12 }}>
-              No son buenas intenciones. Son compromisos con fecha.
+              {t('landing.metas_h2')}
             </h2>
             <p style={{ color: textMuted, fontSize: '1rem' }}>
-              La mayoría de las personas no tienen objetivos claros. Vos ya vas a tener tres.
+              {t('landing.metas_sub')}
             </p>
           </div>
           <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-            {[
-              { emoji: '🌱', label: '30 días', question: '¿Qué cambio querés notar en un mes?', color: green, bg: `${green}12` },
-              { emoji: '🚀', label: '90 días', question: '¿Qué querés haber logrado en 3 meses?', color: purple, bg: `${purple}12` },
-              { emoji: '🏆', label: '180 días', question: '¿En qué persona querés convertirte en 6 meses?', color: gold, bg: `${gold}12` },
-            ].map((m) => (
+            {metas.map((m) => (
               <div key={m.label} style={{ background: m.bg, border: `1px solid ${m.color}33`, borderRadius: 16, padding: '28px 24px', textAlign: 'center' }}>
                 <div style={{ fontSize: '2.4rem', marginBottom: 12 }}>{m.emoji}</div>
                 <div style={{ fontWeight: 800, color: m.color, fontSize: '1.1rem', marginBottom: 10 }}>{m.label}</div>
@@ -269,15 +304,15 @@ export default function LandingPage() {
       <section className="section">
         <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center' }}>
           <div>
-            <div className="tag">Finanzas personales</div>
+            <div className="tag">{t('landing.regla_tag')}</div>
             <h2 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 2rem)', fontWeight: 800, marginBottom: 16 }}>
-              La Regla del 10%
+              {t('landing.regla_h2')}
             </h2>
             <p style={{ color: textMuted, lineHeight: 1.7, fontSize: '1rem', marginBottom: 20 }}>
-              Cada día, la app calcula el 10% de lo que ganaste y te sugiere invertirlo. Lo registrás como un movimiento real — porque sale de tu bolsillo.
+              {t('landing.regla_p1')}
             </p>
             <p style={{ color: textMuted, lineHeight: 1.7, fontSize: '1rem' }}>
-              La mayoría no ahorra porque nadie le dio un sistema, no porque no quiera. Esto te da el sistema.
+              {t('landing.regla_p2')}
             </p>
           </div>
           <div className="card" style={{ padding: 28 }}>
@@ -315,22 +350,15 @@ export default function LandingPage() {
       {/* ── GRATIS SIN TRAMPA ── */}
       <section style={{ padding: '80px 24px', background: 'rgba(139,92,246,0.03)', borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
         <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
-          <div className="tag">Modelo de negocio</div>
+          <div className="tag">{t('landing.gratis_tag')}</div>
           <h2 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: 12 }}>
-            Gratis. Sin cobros sorpresa. Sin letra chica.
+            {t('landing.gratis_h2')}
           </h2>
           <p style={{ color: textMuted, marginBottom: 48, fontSize: '1rem', maxWidth: 480, margin: '0 auto 48px' }}>
-            Hay aplicaciones que arrancan gratis y después te cobran para usar lo que prometieron. Acá es todo de entrada, sin excepciones.
+            {t('landing.gratis_sub')}
           </p>
           <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-            {[
-              { icon: '✅', text: 'Todos los módulos incluidos' },
-              { icon: '🚫', text: 'Sin funciones bloqueadas' },
-              { icon: '💳', text: 'Sin tarjeta de crédito' },
-              { icon: '♾️', text: 'Sin límite de hábitos o metas' },
-              { icon: '🔒', text: 'Tus datos son tuyos' },
-              { icon: '🌍', text: 'Disponible en 10 idiomas' },
-            ].map((item) => (
+            {gratisItems.map((item) => (
               <div key={item.text} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px' }}>
                 <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
                 <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{item.text}</span>
@@ -342,12 +370,12 @@ export default function LandingPage() {
 
       {/* ── MULTIIDIOMA ── */}
       <section className="section" style={{ textAlign: 'center' }}>
-        <div className="tag">Disponible en</div>
+        <div className="tag">{t('landing.idiomas_tag')}</div>
         <h2 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: 12 }}>
-          Para cualquier persona en el mundo
+          {t('landing.idiomas_h2')}
         </h2>
         <p style={{ color: textMuted, marginBottom: 40, fontSize: '1rem' }}>
-          Disponible en más de 10 idiomas.
+          {t('landing.idiomas_sub')}
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12 }}>
           {[
@@ -373,12 +401,12 @@ export default function LandingPage() {
       {/* ── INSTALÁ COMO APP ── */}
       <section style={{ padding: '80px 24px', background: 'rgba(139,92,246,0.03)', borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
         <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
-          <div className="tag">Sin tienda de aplicaciones</div>
+          <div className="tag">{t('landing.instalar_tag')}</div>
           <h2 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: 12 }}>
-            Tenela en tu celular como una app
+            {t('landing.instalar_h2')}
           </h2>
           <p style={{ color: textMuted, marginBottom: 48, fontSize: '1rem', maxWidth: 480, margin: '0 auto 48px' }}>
-            No necesitás descargarla de ninguna tienda. Se instala directo desde el navegador en dos toques.
+            {t('landing.instalar_sub')}
           </p>
           <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, maxWidth: 720, margin: '0 auto' }}>
             <div className="card" style={{ textAlign: 'left' }}>
@@ -386,17 +414,12 @@ export default function LandingPage() {
                 <span style={{ fontSize: '1.6rem' }}>🤖</span>
                 <span style={{ fontWeight: 700, fontSize: '1rem' }}>Android (Chrome)</span>
               </div>
-              {[
-                { n: '1', text: 'Abrí libre.amauta.cloud en Chrome' },
-                { n: '2', text: 'Tocá los 3 puntos (⋮) arriba a la derecha' },
-                { n: '3', text: 'Elegí "Instalar app" o "Agregar a pantalla de inicio"' },
-                { n: '4', text: 'Tocá "Instalar" y listo' },
-              ].map((step) => (
-                <div key={step.n} style={{ display: 'flex', gap: 12, marginBottom: 14, alignItems: 'flex-start' }}>
+              {androidSteps.map((text, i) => (
+                <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 14, alignItems: 'flex-start' }}>
                   <div style={{ width: 24, height: 24, borderRadius: '50%', background: gradientCTA, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.72rem', fontWeight: 800, color: 'white' }}>
-                    {step.n}
+                    {i + 1}
                   </div>
-                  <span style={{ fontSize: '0.875rem', color: textMuted, lineHeight: 1.5, paddingTop: 2 }}>{step.text}</span>
+                  <span style={{ fontSize: '0.875rem', color: textMuted, lineHeight: 1.5, paddingTop: 2 }}>{text}</span>
                 </div>
               ))}
             </div>
@@ -405,23 +428,18 @@ export default function LandingPage() {
                 <span style={{ fontSize: '1.6rem' }}>🍎</span>
                 <span style={{ fontWeight: 700, fontSize: '1rem' }}>iPhone (Safari)</span>
               </div>
-              {[
-                { n: '1', text: 'Abrí libre.amauta.cloud en Safari' },
-                { n: '2', text: 'Tocá el botón de compartir (□↑) abajo al centro' },
-                { n: '3', text: 'Deslizá y elegí "Agregar a inicio"' },
-                { n: '4', text: 'Tocá "Agregar" arriba a la derecha' },
-              ].map((step) => (
-                <div key={step.n} style={{ display: 'flex', gap: 12, marginBottom: 14, alignItems: 'flex-start' }}>
+              {iosSteps.map((text, i) => (
+                <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 14, alignItems: 'flex-start' }}>
                   <div style={{ width: 24, height: 24, borderRadius: '50%', background: gradientCTA, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.72rem', fontWeight: 800, color: 'white' }}>
-                    {step.n}
+                    {i + 1}
                   </div>
-                  <span style={{ fontSize: '0.875rem', color: textMuted, lineHeight: 1.5, paddingTop: 2 }}>{step.text}</span>
+                  <span style={{ fontSize: '0.875rem', color: textMuted, lineHeight: 1.5, paddingTop: 2 }}>{text}</span>
                 </div>
               ))}
             </div>
           </div>
           <p style={{ marginTop: 32, fontSize: '0.82rem', color: '#6b7280' }}>
-            Queda en tu pantalla de inicio con el ícono de Amauta Libre. Se abre como cualquier app, sin barra del navegador.
+            {t('landing.instalar_nota')}
           </p>
         </div>
       </section>
@@ -431,29 +449,28 @@ export default function LandingPage() {
         <div style={{ maxWidth: 600, margin: '0 auto' }}>
           <Image src="/logo-transparent.png" alt="Amauta Libre" width={64} height={64} style={{ borderRadius: 16, marginBottom: 28, boxShadow: '0 8px 32px rgba(139,92,246,0.4)' }} />
           <h2 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', fontWeight: 800, marginBottom: 16, lineHeight: 1.15 }}>
-            Empezá ahora.
+            {t('landing.cta_h2')}
           </h2>
           <p style={{ color: textMuted, fontSize: '1.05rem', marginBottom: 40, lineHeight: 1.6 }}>
-            Lo que hacés hoy define quién sos mañana.<br />
-            Tardás 2 minutos. No necesitás contraseña.
+            {t('landing.cta_sub')}
           </p>
           <Link href="/login" className="btn-cta" style={{ padding: '18px 44px', fontSize: '1.1rem', borderRadius: 14, boxShadow: '0 12px 40px rgba(139,92,246,0.35)', margin: '0 auto' }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            Entrar con Google — es gratis
+            {t('landing.cta_btn')}
           </Link>
 
           {/* CTA secundario — Amauta Cloud */}
           <div style={{ marginTop: 32, padding: '20px 24px', borderRadius: 14, border: '1px solid rgba(139,92,246,0.2)', background: 'rgba(139,92,246,0.06)' }}>
             <p style={{ fontSize: '0.8rem', color: textMuted, marginBottom: 10 }}>
-              ¿Querés más que una app? ¿Buscás mentoría personalizada con IA?
+              {t('landing.cta_cloud_q')}
             </p>
             <a href="https://amauta.cloud/landing" target="_blank" rel="noopener noreferrer" style={{ color: '#a78bfa', fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none' }}>
-              Conocé Amauta Cloud →
+              {t('landing.cta_cloud_link')}
             </a>
           </div>
 
           <p style={{ marginTop: 24, fontSize: '0.82rem', color: '#6b7280' }}>
-            Una app de <a href="https://amauta.cloud" target="_blank" rel="noopener noreferrer" style={{ color: '#a78bfa', textDecoration: 'none' }}>Amauta</a> — hecha en Argentina, para el mundo.
+            {t('landing.cta_footer')}
           </p>
         </div>
       </section>
@@ -462,8 +479,8 @@ export default function LandingPage() {
       <footer style={{ borderTop: `1px solid ${borderSubtle}`, padding: '32px 24px', textAlign: 'center' }}>
         <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 24, fontSize: '0.82rem', color: textMuted }}>
           <span>© 2026 Amauta Libre</span>
-          <Link href="/privacidad" style={{ color: textMuted, textDecoration: 'none' }}>Privacidad</Link>
-          <Link href="/terminos" style={{ color: textMuted, textDecoration: 'none' }}>Términos</Link>
+          <Link href="/privacidad" style={{ color: textMuted, textDecoration: 'none' }}>{t('landing.footer_privacidad')}</Link>
+          <Link href="/terminos" style={{ color: textMuted, textDecoration: 'none' }}>{t('landing.footer_terminos')}</Link>
           <a href="https://amauta.cloud" target="_blank" rel="noopener noreferrer" style={{ color: textMuted, textDecoration: 'none' }}>Amauta Cloud</a>
           <a href="https://libreria.amauta.cloud" target="_blank" rel="noopener noreferrer" style={{ color: textMuted, textDecoration: 'none' }}>Librería</a>
         </div>
