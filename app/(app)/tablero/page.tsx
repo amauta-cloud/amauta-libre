@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import TablizableClient from './TablizableClient'
 import SaludoHeader from '@/components/SaludoHeader'
+import DiaHeader from '@/components/DiaHeader'
 
 type Habito = {
   id: string
@@ -82,7 +84,8 @@ function calcularRacha(historial: RegistroHistorial[], habitos: Habito[], today:
 export default async function TablizablePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const today = todayStr()
+  const cookieStore = await cookies()
+  const today = cookieStore.get('amauta-date')?.value || todayStr()
   const hace60dias = dateStrOffset(today, 60)
 
   const [habitosRes, registrosRes, historialRes, tareasRes, educacionRes, usuarioRes, metasRes] = await Promise.all([
@@ -120,9 +123,7 @@ export default async function TablizablePage() {
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto', padding: '1.5rem 1rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <p style={{ color: '#7c3aed', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
-          {getDiaLabel()}
-        </p>
+        <DiaHeader />
         <SaludoHeader nombre={nombre} />
       </div>
 

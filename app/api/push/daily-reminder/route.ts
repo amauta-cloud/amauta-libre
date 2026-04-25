@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
 
-  const { data: rawSubscriptions } = await supabase.from('push_subscriptions').select('*')
+  const { data: rawSubscriptions } = await supabase.from('push_subscriptions').select('*').order('created_at', { ascending: false })
   if (!rawSubscriptions?.length) return NextResponse.json({ sent: 0 })
 
   // Deduplicate by endpoint — keep only the most recent row per endpoint

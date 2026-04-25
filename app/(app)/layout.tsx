@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import NavBar from '@/components/NavBar'
+import LocalDateSync from '@/components/LocalDateSync'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -25,6 +26,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         avatar={avatarUrl}
         userId={user.id}
       />
+      <LocalDateSync />
       <main style={{
         flex: 1,
         paddingBottom: '5rem',        /* mobile: clear bottom nav */
