@@ -2,12 +2,27 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useLocale, LOCALES, type Locale } from '@/lib/i18n/LocaleContext'
 import { ONBOARDING_STORAGE_KEY } from '@/components/OnboardingTutorial'
 import PushNotificationSetup from '@/components/PushNotificationSetup'
+
+const PRESET_AVATARS = [
+  { id: 'lion',    emoji: '🦁', bg: '#7c3aed' },
+  { id: 'owl',     emoji: '🦉', bg: '#0369a1' },
+  { id: 'phoenix', emoji: '🦅', bg: '#b45309' },
+  { id: 'wolf',    emoji: '🐺', bg: '#374151' },
+  { id: 'fox',     emoji: '🦊', bg: '#c2410c' },
+  { id: 'tiger',   emoji: '🐯', bg: '#a16207' },
+  { id: 'panda',   emoji: '🐼', bg: '#166534' },
+  { id: 'dragon',  emoji: '🐉', bg: '#7e22ce' },
+  { id: 'bear',    emoji: '🐻', bg: '#92400e' },
+  { id: 'hawk',    emoji: '🦆', bg: '#0f766e' },
+]
+
+const AVATAR_PRESET_KEY = 'amauta_avatar_preset'
 
 export default function NavBar({ nombre: initialNombre, avatar, userId }: { nombre?: string; avatar?: string; userId?: string }) {
   const pathname = usePathname()
@@ -21,10 +36,25 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [avatarFailed, setAvatarFailed] = useState(false)
+  const [presetId, setPresetId] = useState<string | null>(null)
+  const [pickingAvatar, setPickingAvatar] = useState(false)
   const [soporteOpen, setSoporteOpen] = useState(false)
   const [soporteText, setSoporteText] = useState('')
   const [soporteCategoria, setSoporteCategoria] = useState<'bug' | 'sugerencia' | 'otro'>('otro')
   const [soporteStatus, setSoporteStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+
+  useEffect(() => {
+    const saved = localStorage.getItem(AVATAR_PRESET_KEY)
+    if (saved) setPresetId(saved)
+  }, [])
+
+  function selectPreset(id: string) {
+    localStorage.setItem(AVATAR_PRESET_KEY, id)
+    setPresetId(id)
+    setPickingAvatar(false)
+  }
+
+  const activePreset = PRESET_AVATARS.find(p => p.id === presetId)
 
   const NAV = [
     { href: '/tablero',       label: t('nav.tablero'),       icon: '⚡' },
@@ -106,13 +136,26 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
 
         {/* Perfil */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          {avatar && !avatarFailed ? (
-            <img src={avatar} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} style={{ width: '44px', height: '44px', borderRadius: '50%' }} />
-          ) : (
-            <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.1rem', fontWeight: 700, flexShrink: 0 }}>
-              {nombreInput?.[0]?.toUpperCase() || 'U'}
-            </div>
-          )}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            {avatar && !avatarFailed ? (
+              <img src={avatar} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} style={{ width: '44px', height: '44px', borderRadius: '50%' }} />
+            ) : activePreset ? (
+              <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: activePreset.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0 }}>
+                {activePreset.emoji}
+              </div>
+            ) : (
+              <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.1rem', fontWeight: 700, flexShrink: 0 }}>
+                {nombreInput?.[0]?.toUpperCase() || 'U'}
+              </div>
+            )}
+            <button
+              onClick={() => setPickingAvatar(o => !o)}
+              style={{ position: 'absolute', bottom: -2, right: -2, width: '18px', height: '18px', borderRadius: '50%', background: '#1a1730', border: '1px solid rgba(139,92,246,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.6rem', padding: 0 }}
+              title="Cambiar avatar"
+            >
+              ✏️
+            </button>
+          </div>
           <div style={{ flex: 1 }}>
             {editingNombre ? (
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -136,6 +179,31 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
             )}
           </div>
         </div>
+
+        {/* Avatar picker */}
+        {pickingAvatar && (
+          <div style={{ padding: '0.875rem', borderRadius: '12px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.15)' }}>
+            <div style={{ fontSize: '0.68rem', color: '#7c3aed', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.625rem' }}>Elegí tu personaje</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {PRESET_AVATARS.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => selectPreset(p.id)}
+                  style={{
+                    width: '44px', height: '44px', borderRadius: '50%',
+                    background: p.bg,
+                    border: presetId === p.id ? '2px solid #a78bfa' : '2px solid transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.4rem', cursor: 'pointer',
+                    boxShadow: presetId === p.id ? '0 0 0 2px rgba(139,92,246,0.4)' : 'none',
+                  }}
+                >
+                  {p.emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Idioma */}
         <div>
@@ -318,6 +386,24 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
     </div>
   ) : null
 
+  const AvatarDisplay = ({ size, emojiSize, mobile = false }: { size: number; emojiSize: string; mobile?: boolean }) => {
+    if (avatar && !avatarFailed) {
+      return <img src={avatar} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', opacity: configOpen ? 1 : 0.85, flexShrink: 0 }} />
+    }
+    if (activePreset) {
+      return (
+        <div style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', background: activePreset.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: emojiSize, flexShrink: 0, opacity: configOpen ? 1 : 0.85 }}>
+          {activePreset.emoji}
+        </div>
+      )
+    }
+    return (
+      <div style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: mobile ? '0.65rem' : '0.85rem', flexShrink: 0 }}>
+        {nombreInput?.[0]?.toUpperCase() || 'U'}
+      </div>
+    )
+  }
+
   const AvatarBtn = ({ size = 32, mobile = false }: { size?: number; mobile?: boolean }) => (
     <button
       onClick={() => setConfigOpen(o => !o)}
@@ -328,13 +414,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
         ...(mobile ? { flex: 1, justifyContent: 'center', paddingTop: '0.5rem', paddingBottom: '0.5rem' } : {}),
       }}
     >
-      {avatar && !avatarFailed ? (
-        <img src={avatar} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', opacity: configOpen ? 1 : 0.85 }} />
-      ) : (
-        <div style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: mobile ? '0.65rem' : '0.85rem', flexShrink: 0 }}>
-          {nombreInput?.[0]?.toUpperCase() || 'U'}
-        </div>
-      )}
+      <AvatarDisplay size={size} emojiSize={mobile ? '0.9rem' : '1.1rem'} mobile={mobile} />
       {mobile && <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('nav.config')}</span>}
     </button>
   )
@@ -392,13 +472,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
             border: '1px solid rgba(255,255,255,0.07)',
             cursor: 'pointer', transition: 'all 0.15s',
           }}>
-            {avatar && !avatarFailed ? (
-              <img src={avatar} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
-            ) : (
-              <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.8rem', fontWeight: 700 }}>
-                {nombreInput?.[0]?.toUpperCase() || 'U'}
-              </div>
-            )}
+            <AvatarDisplay size={30} emojiSize="1rem" />
             <div style={{ flex: 1, textAlign: 'left' }}>
               <div style={{ color: '#d1d5db', fontSize: '0.78rem', fontWeight: 500 }}>{nombreInput?.split(' ')[0] || 'Usuario'}</div>
               <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('nav.config')}</div>
