@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
+import { createClient as createUserClient } from '@/lib/supabase/server'
+
+const ADMIN_EMAIL = 'amauta.iiaa@gmail.com'
 
 export async function GET(req: NextRequest) {
   if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
@@ -12,8 +15,14 @@ export async function GET(req: NextRequest) {
     process.env.VAPID_PRIVATE_KEY,
   )
   const authHeader = req.headers.get('authorization')
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const validCron = !process.env.CRON_SECRET || authHeader === `Bearer ${process.env.CRON_SECRET}`
+  if (!validCron) {
+    // Allow admin user as fallback (for manual testing from browser)
+    const userClient = await createUserClient()
+    const { data: { user } } = await userClient.auth.getUser()
+    if (!user || user.email !== ADMIN_EMAIL) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
   }
 
   const supabase = createClient(
