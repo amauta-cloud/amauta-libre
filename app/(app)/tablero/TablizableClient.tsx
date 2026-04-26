@@ -747,6 +747,22 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>{racha > 0 ? '🔥' : '💤'}</span>
               <span style={{ color: racha > 0 ? '#fb923c' : '#4b5563', fontWeight: 700, fontSize: '1.1rem', lineHeight: 1.2 }}>{racha}</span>
               <span style={{ color: '#6b7280', fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tablero.hoy.racha')}</span>
+              {(() => {
+                const level = pct < 25 ? 0 : pct < 50 ? 1 : pct < 75 ? 2 : pct < 100 ? 3 : 4
+                const barColors = ['#7c3aed', '#f59e0b', '#fb923c', '#10b981']
+                return (
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', marginTop: '0.3rem' }}>
+                    {[1, 2, 3, 4].map(bar => (
+                      <div key={bar} style={{
+                        width: 5,
+                        height: 5 + bar * 3,
+                        borderRadius: 2,
+                        background: bar <= level ? barColors[bar - 1] : 'rgba(255,255,255,0.08)',
+                      }} />
+                    ))}
+                  </div>
+                )
+              })()}
             </div>
           </div>
 

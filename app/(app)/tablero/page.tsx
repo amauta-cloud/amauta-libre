@@ -68,7 +68,7 @@ function calcularRacha(historial: RegistroHistorial[], habitos: Habito[], today:
     const dow = new Date(fecha + 'T12:00:00').getDay()
     const scheduled = habitos.filter(h => !h.dias_semana || h.dias_semana.length === 0 || h.dias_semana.includes(dow))
     if (scheduled.length === 0) return true
-    const threshold = Math.max(1, Math.ceil(scheduled.length * 0.5))
+    const threshold = Math.max(1, Math.ceil(scheduled.length * 0.25))
     return (completadosPorFecha[fecha] || 0) >= threshold
   }
   let racha = 0
