@@ -478,7 +478,7 @@ export default function LandingPage() {
       {/* ── FOOTER ── */}
       <footer style={{ borderTop: `1px solid ${borderSubtle}`, padding: '32px 24px', textAlign: 'center' }}>
         <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 24, fontSize: '0.82rem', color: textMuted }}>
-          <span>© 2026 Amauta Libre</span>
+          <span>© {new Date().getFullYear()} Amauta Libre</span>
           <Link href="/privacidad" style={{ color: textMuted, textDecoration: 'none' }}>{t('landing.footer_privacidad')}</Link>
           <Link href="/terminos" style={{ color: textMuted, textDecoration: 'none' }}>{t('landing.footer_terminos')}</Link>
           <a href="https://amauta.cloud" target="_blank" rel="noopener noreferrer" style={{ color: textMuted, textDecoration: 'none' }}>Amauta Cloud</a>

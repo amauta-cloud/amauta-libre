@@ -8,9 +8,13 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error && data.user) {
+      const createdAt = new Date(data.user.created_at).getTime()
+      const lastSignIn = new Date(data.user.last_sign_in_at ?? data.user.created_at).getTime()
+      const isNewUser = lastSignIn - createdAt < 10000
+      const destination = isNewUser ? `${origin}${next}?welcome=1` : `${origin}${next}`
+      return NextResponse.redirect(destination)
     }
   }
 

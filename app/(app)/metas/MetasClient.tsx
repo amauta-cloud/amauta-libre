@@ -25,7 +25,8 @@ export default function MetasClient({ userId }: { userId: string }) {
       .select('meta30,meta90,meta180')
       .eq('usuario_id', userId)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) { setToast('Error al cargar. Recargá la página.'); setLoading(false); return }
         if (data) {
           setMeta30(data.meta30 || '')
           setMeta90(data.meta90 || '')

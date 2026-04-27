@@ -83,9 +83,9 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
   async function saveNombre() {
     if (!nombreInput.trim() || !userId) return
     setNombreSaving(true)
-    await supabase.from('usuarios').update({ nombre: nombreInput.trim() }).eq('id', userId)
+    const { error } = await supabase.from('usuarios').update({ nombre: nombreInput.trim() }).eq('id', userId)
     setNombreSaving(false)
-    setEditingNombre(false)
+    if (!error) setEditingNombre(false)
   }
 
   function handleLang(code: Locale) {
