@@ -15,7 +15,11 @@ export async function GET(req: NextRequest) {
     process.env.VAPID_PRIVATE_KEY,
   )
   const authHeader = req.headers.get('authorization')
-  const validCron = !process.env.CRON_SECRET || authHeader === `Bearer ${process.env.CRON_SECRET}`
+  const queryToken = req.nextUrl.searchParams.get('token')
+  const validCron = (
+    (!process.env.CRON_SECRET || authHeader === `Bearer ${process.env.CRON_SECRET}`) ||
+    (process.env.PUSH_TOKEN && queryToken === process.env.PUSH_TOKEN)
+  )
   if (!validCron) {
     // Allow admin user as fallback (for manual testing from browser)
     const userClient = await createUserClient()
