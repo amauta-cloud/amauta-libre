@@ -34,6 +34,8 @@ export async function middleware(request: NextRequest) {
   const isPublic =
     pathname === '/' ||
     pathname === '/login' ||
+    pathname === '/manifest.webmanifest' ||
+    pathname === '/manifest' ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/api/') ||
     pathname.startsWith('/privacidad') ||
