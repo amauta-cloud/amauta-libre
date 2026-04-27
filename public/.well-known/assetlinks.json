@@ -3,6 +3,6 @@
   "target": {
     "namespace": "android_app",
     "package_name": "cloud.amauta.libre",
-    "sha256_cert_fingerprints": ["PLACEHOLDER_REEMPLAZAR_CON_SHA256_REAL"]
+    "sha256_cert_fingerprints": ["20:60:B2:D2:F8:C3:FE:16:71:59:B9:CF:5C:AC:E2:31:73:CA:66:D2:05:3C:D6:EB:8D:AE:39:8F:DC:48:15:0F"]
   }
 }]
