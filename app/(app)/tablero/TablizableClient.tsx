@@ -265,31 +265,37 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     Promise.all([
       supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', today).order('creado_en'),
       supabase.from('finanzas_diarias').select('ahorro').eq('usuario_id', userId).eq('fecha', today).maybeSingle(),
-    ]).then(([{ data: itemsData }, { data: dailyRec }]) => {
+    ]).then(([{ data: itemsData, error: err1 }, { data: dailyRec }]) => {
+      if (err1) return
       const items = (itemsData || []) as FinanzaItem[]
       setFinanzaItems(items)
       const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
       const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
       const ahorro = (dailyRec as { ahorro: boolean } | null)?.ahorro ?? false
       setFinanzas({ ingresos, gastos, ahorro })
-    })
+    }).catch(() => {})
   }, [userId, today]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load month data
   const loadMonthData = useCallback(async () => {
     setMonthLoading(true)
-    const daysInMonth = new Date(year, month, 0).getDate()
-    const from = `${year}-${String(month).padStart(2, '0')}-01`
-    const to = `${year}-${String(month).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`
-    const [regRes, finRes, itemsRes] = await Promise.all([
-      supabase.from('habito_registros').select('habito_id,fecha,valor_bool,valor_numero').eq('usuario_id', userId).gte('fecha', from).lte('fecha', to),
-      supabase.from('finanzas_diarias').select('fecha,ingresos,gastos,ahorro').eq('usuario_id', userId).gte('fecha', from).lte('fecha', to),
-      supabase.from('finanzas_items').select('tipo,monto,categoria').eq('usuario_id', userId).gte('fecha', from).lte('fecha', to),
-    ])
-    setMonthRegistros(regRes.data || [])
-    setMonthFinanzas((finRes.data || []) as { fecha: string; ingresos: number; gastos: number; ahorro: boolean }[])
-    setMonthItems((itemsRes.data || []) as { tipo: string; monto: number; categoria: string | null }[])
-    setMonthLoading(false)
+    try {
+      const daysInMonth = new Date(year, month, 0).getDate()
+      const from = `${year}-${String(month).padStart(2, '0')}-01`
+      const to = `${year}-${String(month).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`
+      const [regRes, finRes, itemsRes] = await Promise.all([
+        supabase.from('habito_registros').select('habito_id,fecha,valor_bool,valor_numero').eq('usuario_id', userId).gte('fecha', from).lte('fecha', to),
+        supabase.from('finanzas_diarias').select('fecha,ingresos,gastos,ahorro').eq('usuario_id', userId).gte('fecha', from).lte('fecha', to),
+        supabase.from('finanzas_items').select('tipo,monto,categoria').eq('usuario_id', userId).gte('fecha', from).lte('fecha', to),
+      ])
+      setMonthRegistros(regRes.data || [])
+      setMonthFinanzas((finRes.data || []) as { fecha: string; ingresos: number; gastos: number; ahorro: boolean }[])
+      setMonthItems((itemsRes.data || []) as { tipo: string; monto: number; categoria: string | null }[])
+    } catch {
+      // datos del mes no disponibles, la UI muestra vacío
+    } finally {
+      setMonthLoading(false)
+    }
   }, [userId, year, month]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -976,9 +982,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             {/* Monto + descripcion + Agregar */}
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.875rem', flexWrap: 'wrap' }}>
               <input
-                type="number" value={itemMonto} onChange={e => setItemMonto(e.target.value)}
+                type="number" value={itemMonto}
+                onChange={e => { const v = e.target.value; if (v === '' || parseFloat(v) >= 0) setItemMonto(v) }}
                 onKeyDown={e => e.key === 'Enter' && addFinanzaItem()}
                 placeholder={t('tablero.hoy.monto_placeholder')}
+                min="0" step="0.01"
                 style={{ width: '90px', padding: '0.55rem 0.6rem', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${itemCategoria === 'Inversión' ? 'rgba(245,197,24,0.3)' : itemTipo === 'ingreso' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, color: '#f3f0ff', fontSize: '0.9rem', fontWeight: 700, outline: 'none', flexShrink: 0 }}
               />
               <input
