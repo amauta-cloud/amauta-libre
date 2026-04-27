@@ -43,6 +43,134 @@ function CronTestBtn({ label, url }: { label: string; url: string }) {
   )
 }
 
+function CustomPushForm() {
+  const [open, setOpen] = useState(false)
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
+  const [state, setState] = useState<BtnState>('idle')
+  const [result, setResult] = useState<{ sent?: number } | null>(null)
+
+  async function enviar() {
+    if (state === 'sending' || !title.trim() || !body.trim()) return
+    setState('sending')
+    try {
+      const res = await fetch('/api/admin/push-custom', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: title.trim(), body: body.trim() }),
+      })
+      const data = await res.json()
+      setResult(data)
+      setState(data.error ? 'error' : 'done')
+    } catch {
+      setState('error')
+    }
+  }
+
+  function reset() {
+    setState('idle')
+    setResult(null)
+    setTitle('')
+    setBody('')
+  }
+
+  return (
+    <div>
+      <button
+        onClick={() => { setOpen(o => !o); reset() }}
+        style={{
+          padding: '0.4rem 0.75rem',
+          borderRadius: '8px',
+          border: '1px solid rgba(59,130,246,0.3)',
+          background: open ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.08)',
+          color: '#60a5fa',
+          fontSize: '0.72rem',
+          fontWeight: 600,
+          cursor: 'pointer',
+          whiteSpace: 'nowrap' as const,
+        }}
+      >
+        ✍️ mensaje libre
+      </button>
+
+      {open && (
+        <div style={{
+          marginTop: '0.625rem',
+          padding: '0.875rem',
+          borderRadius: '10px',
+          border: '1px solid rgba(59,130,246,0.2)',
+          background: 'rgba(59,130,246,0.05)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+        }}>
+          {state === 'done' ? (
+            <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
+              <div style={{ color: '#10b981', fontWeight: 700, fontSize: '0.85rem' }}>✓ Enviado a {result?.sent} dispositivos</div>
+              <button onClick={reset} style={{ marginTop: '0.5rem', padding: '0.3rem 0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#6b7280', fontSize: '0.72rem', cursor: 'pointer' }}>
+                Otro mensaje
+              </button>
+            </div>
+          ) : (
+            <>
+              <input
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder="Título del mensaje"
+                style={{
+                  padding: '0.5rem 0.625rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(255,255,255,0.05)',
+                  color: '#f3f0ff',
+                  fontSize: '0.8rem',
+                  outline: 'none',
+                }}
+              />
+              <textarea
+                value={body}
+                onChange={e => setBody(e.target.value)}
+                placeholder="Cuerpo del mensaje..."
+                rows={2}
+                style={{
+                  padding: '0.5rem 0.625rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(255,255,255,0.05)',
+                  color: '#f3f0ff',
+                  fontSize: '0.8rem',
+                  outline: 'none',
+                  resize: 'none',
+                }}
+              />
+              {state === 'error' && (
+                <span style={{ color: '#ef4444', fontSize: '0.72rem' }}>Error al enviar</span>
+              )}
+              <button
+                onClick={enviar}
+                disabled={!title.trim() || !body.trim() || state === 'sending'}
+                style={{
+                  padding: '0.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: title.trim() && body.trim() ? 'rgba(59,130,246,0.25)' : 'rgba(255,255,255,0.05)',
+                  color: title.trim() && body.trim() ? '#60a5fa' : '#4b5563',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: title.trim() && body.trim() ? 'pointer' : 'default',
+                  opacity: state === 'sending' ? 0.6 : 1,
+                }}
+              >
+                {state === 'sending' ? 'Enviando...' : '📨 Enviar a todos'}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function AdminPushButton({ totalSubs }: { totalSubs: number }) {
   const [estado, setEstado] = useState<BtnState>('idle')
   const [resultado, setResultado] = useState<{ sent: number; total: number } | null>(null)
@@ -87,11 +215,12 @@ export default function AdminPushButton({ totalSubs }: { totalSubs: number }) {
           <span style={{ fontSize: '0.72rem', color: '#ef4444' }}>Error al enviar</span>
         )}
       </div>
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' as const }}>
         <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>Test crons:</span>
         <CronTestBtn label="☀️ mañana" url="/api/push/daily-reminder" />
         <CronTestBtn label="🌙 noche" url="/api/push/noche-recordatorio" />
       </div>
+      <CustomPushForm />
     </div>
   )
 }

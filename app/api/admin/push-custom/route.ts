@@ -1,0 +1,67 @@
+import { NextRequest, NextResponse } from 'next/server'
+import webpush from 'web-push'
+import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdmin } from '@supabase/supabase-js'
+
+const ADMIN_EMAIL = 'amauta.iiaa@gmail.com'
+
+export async function POST(req: NextRequest) {
+  if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+    return NextResponse.json({ error: 'VAPID keys not configured' }, { status: 500 })
+  }
+  webpush.setVapidDetails(
+    `mailto:${process.env.VAPID_SUBJECT ?? ADMIN_EMAIL}`,
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY,
+  )
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email !== ADMIN_EMAIL) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { title, body } = await req.json() as { title?: string; body?: string }
+  if (!title?.trim() || !body?.trim()) {
+    return NextResponse.json({ error: 'title y body son requeridos' }, { status: 400 })
+  }
+
+  const admin = createAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+
+  const { data: rawSubscriptions } = await admin.from('push_subscriptions').select('*').order('created_at', { ascending: false })
+  if (!rawSubscriptions?.length) return NextResponse.json({ sent: 0, total: 0 })
+
+  const seen = new Map<string, typeof rawSubscriptions[0]>()
+  for (const sub of rawSubscriptions) {
+    if (!seen.has(sub.endpoint)) seen.set(sub.endpoint, sub)
+  }
+  const subscriptions = Array.from(seen.values())
+
+  const payload = JSON.stringify({ title: title.trim(), body: body.trim(), url: '/tablero' })
+
+  let sent = 0
+  const expired: string[] = []
+
+  for (const sub of subscriptions) {
+    try {
+      await webpush.sendNotification(
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        payload,
+      )
+      sent++
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'statusCode' in err && (err as { statusCode: number }).statusCode === 410) {
+        expired.push(sub.id)
+      }
+    }
+  }
+
+  if (expired.length > 0) {
+    await admin.from('push_subscriptions').delete().in('id', expired)
+  }
+
+  return NextResponse.json({ sent, total: subscriptions.length, expired: expired.length })
+}
