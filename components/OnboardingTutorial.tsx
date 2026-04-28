@@ -111,9 +111,7 @@ export default function OnboardingTutorial({
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 200,
-      background: current.bottom
-        ? 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.72) 44%, rgba(0,0,0,0.96) 62%)'
-        : 'rgba(0,0,0,0.82)',
+      background: 'rgba(0,0,0,0.88)',
       display: 'flex',
       alignItems: current.bottom ? 'flex-end' : 'center',
       justifyContent: 'center',
