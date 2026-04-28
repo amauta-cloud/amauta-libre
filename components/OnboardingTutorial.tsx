@@ -112,47 +112,13 @@ export default function OnboardingTutorial({
     <div style={{
       position: 'fixed', inset: 0, zIndex: 200,
       background: current.bottom
-        ? 'linear-gradient(to top, rgba(0,0,0,0.94) 52%, rgba(0,0,0,0.15) 100%)'
+        ? 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.72) 44%, rgba(0,0,0,0.96) 62%)'
         : 'rgba(0,0,0,0.82)',
       display: 'flex',
       alignItems: current.bottom ? 'flex-end' : 'center',
       justifyContent: 'center',
       padding: current.bottom ? '0 1.25rem' : '1.5rem',
     }}>
-      {/* Arrow pointing up to tabs when in bottom mode */}
-      {current.bottom && (
-        <div style={{
-          position: 'absolute',
-          top: '18%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '6px',
-          pointerEvents: 'none',
-        }}>
-          <div style={{
-            fontSize: '1.75rem',
-            animation: 'none',
-            filter: 'drop-shadow(0 0 8px rgba(139,92,246,0.8))',
-          }}>
-            ☝️
-          </div>
-          <span style={{
-            background: 'rgba(139,92,246,0.25)',
-            border: '1px solid rgba(139,92,246,0.5)',
-            borderRadius: '99px',
-            padding: '0.2rem 0.75rem',
-            fontSize: '0.72rem',
-            color: '#c4b5fd',
-            fontWeight: 600,
-            backdropFilter: 'blur(4px)',
-          }}>
-            {current.emoji} {current.title}
-          </span>
-        </div>
-      )}
 
       <div style={{
         width: '100%', maxWidth: '420px',
