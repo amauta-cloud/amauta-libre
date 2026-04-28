@@ -352,7 +352,7 @@ export default function EducacionClient({
                 </div>
 
                 <a
-                  href="https://amauta.cloud"
+                  href="https://amauta.cloud/landing"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
