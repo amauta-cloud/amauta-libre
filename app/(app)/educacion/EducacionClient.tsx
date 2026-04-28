@@ -81,10 +81,11 @@ export default function EducacionClient({
   const TIPO_CORRECTO: Record<number, string> = {
     1: 'Audiolibro', 2: 'Libro PDF', 3: 'Libro PDF', 4: 'Libro PDF',
     5: 'Libro PDF', 6: 'Video', 7: 'Libro PDF', 8: 'Audiolibro',
-    9: 'Video', 10: 'Audiolibro', 11: 'Biblioteca',
+    9: 'Video', 10: 'Audiolibro', 11: 'Audiolibro', 12: 'Libro PDF',
+    13: 'Libro PDF', 14: 'Libro PDF', 15: 'Libro PDF', 16: 'Biblioteca',
   }
 
-  const totalPasos = 11
+  const totalPasos = 16
   const etapasPorOrden: Record<number, Etapa> = {}
   for (const e of etapas) {
     etapasPorOrden[e.orden] = { ...e, tipo: TIPO_CORRECTO[e.orden] ?? e.tipo }
