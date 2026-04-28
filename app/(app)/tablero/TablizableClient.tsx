@@ -238,6 +238,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [historialOpen, setHistorialOpen] = useState<string | null>(null)
   const [logroVisible, setLogroVisible] = useState<number | null>(null)
   const [sharingRacha, setSharingRacha] = useState(false)
+  const [onboardingTab, setOnboardingTab] = useState<string | null>(null)
 
   // Live stats
   const todayDow = new Date(today + 'T12:00:00').getDay()
@@ -725,15 +726,21 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const libreHoy = ingresosHoy - gastosHoy
   const sugerido10 = Math.round(ingresosHoy * 0.1)
 
-  const navBtn = (tab: typeof activeTab, label: string, emoji: string) => (
-    <button onClick={() => setActiveTab(tab)} style={{
-      flex: 1, padding: '0.5rem 0.25rem', borderRadius: '8px', border: 'none',
-      background: activeTab === tab ? 'rgba(139,92,246,0.25)' : 'transparent',
-      color: activeTab === tab ? '#a78bfa' : '#6b7280',
-      fontWeight: activeTab === tab ? 700 : 400,
-      fontSize: '0.72rem', cursor: 'pointer', transition: 'all 0.15s',
-    }}>{emoji} {label}</button>
-  )
+  const navBtn = (tab: typeof activeTab, label: string, emoji: string) => {
+    const isHighlighted = tab === onboardingTab
+    return (
+      <button onClick={() => setActiveTab(tab)} style={{
+        flex: 1, padding: '0.5rem 0.25rem', borderRadius: '8px',
+        border: isHighlighted ? '1px solid rgba(139,92,246,0.75)' : '1px solid transparent',
+        background: isHighlighted ? 'rgba(139,92,246,0.35)' : activeTab === tab ? 'rgba(139,92,246,0.25)' : 'transparent',
+        color: isHighlighted || activeTab === tab ? '#c4b5fd' : '#6b7280',
+        fontWeight: isHighlighted || activeTab === tab ? 700 : 400,
+        fontSize: '0.72rem', cursor: 'pointer', transition: 'all 0.2s',
+        transform: isHighlighted ? 'scale(1.06)' : 'scale(1)',
+        boxShadow: isHighlighted ? '0 0 0 2px rgba(139,92,246,0.5), 0 0 14px rgba(139,92,246,0.35)' : 'none',
+      }}>{emoji} {label}</button>
+    )
+  }
 
   if (localHabitos.length === 0 && activeTab === 'hoy') {
     return (
@@ -754,7 +761,13 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   return (
     <>
-      <OnboardingTutorial onFinish={() => setActiveTab('habitos')} />
+      <OnboardingTutorial
+        onFinish={() => { setActiveTab('habitos'); setOnboardingTab(null) }}
+        onStepChange={(tab) => {
+          setOnboardingTab(tab)
+          if (tab) setActiveTab(tab as typeof activeTab)
+        }}
+      />
       {/* Tab nav */}
       <div style={{
         display: 'flex', gap: '0.2rem', padding: '0.25rem',

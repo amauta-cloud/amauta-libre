@@ -5,7 +5,23 @@ import { useLocale } from '@/lib/i18n/LocaleContext'
 
 export const ONBOARDING_STORAGE_KEY = 'amauta_onboarding_done'
 
-export default function OnboardingTutorial({ onFinish }: { onFinish?: () => void }) {
+type TabTarget = 'hoy' | 'mes' | 'habitos' | 'finanzas' | 'metas' | null
+
+type StepDef = {
+  emoji: string
+  title: string
+  desc: string
+  tab: TabTarget
+  bottom: boolean
+}
+
+export default function OnboardingTutorial({
+  onFinish,
+  onStepChange,
+}: {
+  onFinish?: () => void
+  onStepChange?: (tab: TabTarget) => void
+}) {
   const { t } = useLocale()
   const [visible, setVisible] = useState(false)
   const [step, setStep] = useState(0)
@@ -15,9 +31,66 @@ export default function OnboardingTutorial({ onFinish }: { onFinish?: () => void
     if (!done) setVisible(true)
   }, [])
 
+  const steps: StepDef[] = [
+    {
+      emoji: '👋',
+      title: t('onboarding.step0_title'),
+      desc:  t('onboarding.step0_desc'),
+      tab:   null,
+      bottom: false,
+    },
+    {
+      emoji: '⚡',
+      title: t('onboarding.step1_title'),
+      desc:  t('onboarding.step1_desc'),
+      tab:   'hoy',
+      bottom: true,
+    },
+    {
+      emoji: '✏️',
+      title: t('onboarding.step2_title'),
+      desc:  t('onboarding.step2_desc'),
+      tab:   'habitos',
+      bottom: true,
+    },
+    {
+      emoji: '💰',
+      title: t('onboarding.step3_title'),
+      desc:  t('onboarding.step3_desc'),
+      tab:   'finanzas',
+      bottom: true,
+    },
+    {
+      emoji: '🎯',
+      title: t('onboarding.step4_title'),
+      desc:  t('onboarding.step4_desc'),
+      tab:   'metas',
+      bottom: true,
+    },
+    {
+      emoji: '✅',
+      title: t('onboarding.step5_title'),
+      desc:  t('onboarding.step5_desc'),
+      tab:   null,
+      bottom: false,
+    },
+    {
+      emoji: '📚',
+      title: t('onboarding.step6_title'),
+      desc:  t('onboarding.step6_desc'),
+      tab:   null,
+      bottom: false,
+    },
+  ]
+
+  useEffect(() => {
+    if (visible) onStepChange?.(steps[step]?.tab ?? null)
+  }, [step, visible]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function dismiss() {
     localStorage.setItem(ONBOARDING_STORAGE_KEY, '1')
     setVisible(false)
+    onStepChange?.(null)
   }
 
   function finish() {
@@ -26,21 +99,11 @@ export default function OnboardingTutorial({ onFinish }: { onFinish?: () => void
   }
 
   function next() {
-    if (step < 6) setStep(s => s + 1)
+    if (step < steps.length - 1) setStep(s => s + 1)
     else finish()
   }
 
   if (!visible) return null
-
-  const steps = [
-    { emoji: '👋', title: t('onboarding.step0_title'), desc: t('onboarding.step0_desc') },
-    { emoji: '⚡', title: t('onboarding.step1_title'), desc: t('onboarding.step1_desc') },
-    { emoji: '✅', title: t('onboarding.step2_title'), desc: t('onboarding.step2_desc') },
-    { emoji: '🎯', title: t('onboarding.step6_title'), desc: t('onboarding.step6_desc') },
-    { emoji: '💰', title: t('onboarding.step3_title'), desc: t('onboarding.step3_desc') },
-    { emoji: '📋', title: t('onboarding.step4_title'), desc: t('onboarding.step4_desc') },
-    { emoji: '📚', title: t('onboarding.step5_title'), desc: t('onboarding.step5_desc') },
-  ]
 
   const current = steps[step]
   const isLast = step === steps.length - 1
@@ -48,25 +111,65 @@ export default function OnboardingTutorial({ onFinish }: { onFinish?: () => void
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(0,0,0,0.82)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '1.5rem',
+      background: current.bottom
+        ? 'linear-gradient(to top, rgba(0,0,0,0.94) 52%, rgba(0,0,0,0.15) 100%)'
+        : 'rgba(0,0,0,0.82)',
+      display: 'flex',
+      alignItems: current.bottom ? 'flex-end' : 'center',
+      justifyContent: 'center',
+      padding: current.bottom ? '0 1.25rem' : '1.5rem',
     }}>
+      {/* Arrow pointing up to tabs when in bottom mode */}
+      {current.bottom && (
+        <div style={{
+          position: 'absolute',
+          top: '18%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '6px',
+          pointerEvents: 'none',
+        }}>
+          <div style={{
+            fontSize: '1.75rem',
+            animation: 'none',
+            filter: 'drop-shadow(0 0 8px rgba(139,92,246,0.8))',
+          }}>
+            ☝️
+          </div>
+          <span style={{
+            background: 'rgba(139,92,246,0.25)',
+            border: '1px solid rgba(139,92,246,0.5)',
+            borderRadius: '99px',
+            padding: '0.2rem 0.75rem',
+            fontSize: '0.72rem',
+            color: '#c4b5fd',
+            fontWeight: 600,
+            backdropFilter: 'blur(4px)',
+          }}>
+            {current.emoji} {current.title}
+          </span>
+        </div>
+      )}
+
       <div style={{
         width: '100%', maxWidth: '420px',
+        marginBottom: current.bottom ? '5.5rem' : 0,
         background: 'linear-gradient(160deg, #1a0f35 0%, #0f0a2e 100%)',
         border: '1px solid rgba(139,92,246,0.35)',
-        borderRadius: '20px', padding: '2rem 1.75rem 1.75rem',
+        borderRadius: '20px', padding: '1.75rem 1.75rem 1.5rem',
         boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
-        display: 'flex', flexDirection: 'column', gap: '1.25rem',
+        display: 'flex', flexDirection: 'column', gap: '1.1rem',
       }}>
         {/* Header: emoji + paso X de Y + omitir */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{
-            width: '56px', height: '56px', borderRadius: '14px',
+            width: '48px', height: '48px', borderRadius: '12px',
             background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.75rem',
+            fontSize: '1.5rem',
           }}>
             {current.emoji}
           </div>
@@ -89,15 +192,10 @@ export default function OnboardingTutorial({ onFinish }: { onFinish?: () => void
 
         {/* Content */}
         <div>
-          <h2 style={{
-            margin: '0 0 0.625rem', fontSize: '1.2rem', fontWeight: 800,
-            color: '#fff', lineHeight: 1.25,
-          }}>
+          <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.15rem', fontWeight: 800, color: '#fff', lineHeight: 1.25 }}>
             {current.title}
           </h2>
-          <p style={{
-            margin: 0, color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.65,
-          }}>
+          <p style={{ margin: 0, color: '#9ca3af', fontSize: '0.875rem', lineHeight: 1.65 }}>
             {current.desc}
           </p>
         </div>
@@ -117,9 +215,9 @@ export default function OnboardingTutorial({ onFinish }: { onFinish?: () => void
         <button
           onClick={next}
           style={{
-            width: '100%', padding: '0.875rem', borderRadius: '12px', border: 'none',
+            width: '100%', padding: '0.8rem', borderRadius: '12px', border: 'none',
             background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-            color: 'white', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer',
+            color: 'white', fontSize: '0.92rem', fontWeight: 700, cursor: 'pointer',
           }}
         >
           {isLast ? t('onboarding.empezar') : t('onboarding.siguiente')}
