@@ -234,7 +234,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId, educacio
           onClick={() => {
             localStorage.removeItem(ONBOARDING_STORAGE_KEY)
             setConfigOpen(false)
-            window.location.reload()
+            window.location.href = '/tablero'
           }}
           style={{
             width: '100%', padding: '0.65rem', borderRadius: '10px',
