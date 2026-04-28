@@ -47,17 +47,17 @@ export default function OnboardingTutorial({
       bottom: true,
     },
     {
-      emoji: '✏️',
+      emoji: '💰',
       title: t('onboarding.step2_title'),
       desc:  t('onboarding.step2_desc'),
-      tab:   'habitos',
+      tab:   'finanzas',
       bottom: true,
     },
     {
-      emoji: '💰',
+      emoji: '✏️',
       title: t('onboarding.step3_title'),
       desc:  t('onboarding.step3_desc'),
-      tab:   'finanzas',
+      tab:   'habitos',
       bottom: true,
     },
     {

@@ -742,32 +742,39 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     )
   }
 
+  const onboardingJSX = (
+    <OnboardingTutorial
+      onFinish={() => { setActiveTab('habitos'); setOnboardingTab(null) }}
+      onStepChange={(tab) => {
+        setOnboardingTab(tab)
+        if (tab) setActiveTab(tab as typeof activeTab)
+      }}
+    />
+  )
+
   if (localHabitos.length === 0 && activeTab === 'hoy') {
     return (
-      <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✨</div>
-        <p style={{ color: '#9ca3af', fontSize: '0.95rem', marginBottom: '0.5rem', fontWeight: 600 }}>{t('tablero.hoy.sin_habitos')}</p>
-        <p style={{ color: '#6b7280', fontSize: '0.82rem', marginBottom: '1.5rem' }}>{t('tablero.hoy.sin_habitos_sub')}</p>
-        <button onClick={() => setActiveTab('habitos')} style={{
-          padding: '0.7rem 1.5rem', borderRadius: '10px', border: 'none',
-          background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-          color: 'white', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
-        }}>
-          {t('tablero.hoy.sin_habitos_cta')}
-        </button>
-      </div>
+      <>
+        {onboardingJSX}
+        <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✨</div>
+          <p style={{ color: '#9ca3af', fontSize: '0.95rem', marginBottom: '0.5rem', fontWeight: 600 }}>{t('tablero.hoy.sin_habitos')}</p>
+          <p style={{ color: '#6b7280', fontSize: '0.82rem', marginBottom: '1.5rem' }}>{t('tablero.hoy.sin_habitos_sub')}</p>
+          <button onClick={() => setActiveTab('habitos')} style={{
+            padding: '0.7rem 1.5rem', borderRadius: '10px', border: 'none',
+            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+            color: 'white', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
+          }}>
+            {t('tablero.hoy.sin_habitos_cta')}
+          </button>
+        </div>
+      </>
     )
   }
 
   return (
     <>
-      <OnboardingTutorial
-        onFinish={() => { setActiveTab('habitos'); setOnboardingTab(null) }}
-        onStepChange={(tab) => {
-          setOnboardingTab(tab)
-          if (tab) setActiveTab(tab as typeof activeTab)
-        }}
-      />
+      {onboardingJSX}
       {/* Tab nav */}
       <div style={{
         display: 'flex', gap: '0.2rem', padding: '0.25rem',
