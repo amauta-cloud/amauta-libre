@@ -756,6 +756,17 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     return (
       <>
         {onboardingJSX}
+        <div style={{
+          display: 'flex', gap: '0.2rem', padding: '0.25rem',
+          background: 'rgba(255,255,255,0.04)', borderRadius: '10px', marginBottom: '1.25rem',
+          ...(onboardingTab !== null ? { position: 'relative', zIndex: 201 } : {}),
+        }}>
+          {navBtn('hoy', t('tablero.tabs.hoy'), '⚡')}
+          {navBtn('mes', t('tablero.tabs.mes'), '📊')}
+          {navBtn('finanzas', t('tablero.tabs.finanzas'), '💰')}
+          {navBtn('habitos', t('tablero.tabs.habitos'), '✏️')}
+          {navBtn('metas', t('tablero.tabs.metas'), '🎯')}
+        </div>
         <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✨</div>
           <p style={{ color: '#9ca3af', fontSize: '0.95rem', marginBottom: '0.5rem', fontWeight: 600 }}>{t('tablero.hoy.sin_habitos')}</p>
