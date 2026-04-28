@@ -30,6 +30,16 @@ export default function OnboardingTutorial({
     if (!done) setVisible(true)
   }, [])
 
+  // Lock body scroll while overlay is open — prevents iOS Safari URL bar
+  // from hiding/showing and causing the fixed overlay to shift/deform
+  useEffect(() => {
+    if (visible) {
+      const prev = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => { document.body.style.overflow = prev }
+    }
+  }, [visible])
+
   const steps: StepDef[] = [
     { emoji: '👋', title: t('onboarding.step0_title'), desc: t('onboarding.step0_desc'), tab: null },
     { emoji: '⚡', title: t('onboarding.step1_title'), desc: t('onboarding.step1_desc'), tab: 'hoy' },
@@ -68,28 +78,29 @@ export default function OnboardingTutorial({
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(0,0,0,0.88)',
+      background: '#000',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '1.5rem',
+      overflowY: 'auto',
     }}>
 
       <div style={{
         width: '100%', maxWidth: '420px',
         background: 'linear-gradient(160deg, #1a0f35 0%, #0f0a2e 100%)',
         border: '1px solid rgba(139,92,246,0.35)',
-        borderRadius: '20px', padding: '1.75rem 1.75rem 1.5rem',
+        borderRadius: '20px', padding: '1.5rem 1.5rem 1.25rem',
         boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
-        display: 'flex', flexDirection: 'column', gap: '1.1rem',
+        display: 'flex', flexDirection: 'column', gap: '1rem',
       }}>
         {/* Header: emoji + paso X de Y + omitir */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{
-            width: '48px', height: '48px', borderRadius: '12px',
+            width: '44px', height: '44px', borderRadius: '12px',
             background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.5rem',
+            fontSize: '1.4rem', flexShrink: 0,
           }}>
             {current.emoji}
           </div>
@@ -112,22 +123,13 @@ export default function OnboardingTutorial({
 
         {/* Content */}
         <div>
-          <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.15rem', fontWeight: 800, color: '#fff', lineHeight: 1.25 }}>
+          <h2 style={{ margin: '0 0 0.4rem', fontSize: '1.1rem', fontWeight: 800, color: '#fff', lineHeight: 1.25 }}>
             {current.title}
           </h2>
-          <p style={{ margin: 0, color: '#9ca3af', fontSize: '0.875rem', lineHeight: 1.65 }}>
+          <p style={{ margin: 0, color: '#9ca3af', fontSize: '0.85rem', lineHeight: 1.6 }}>
             {current.desc}
           </p>
         </div>
-
-        {/* Tab indicator */}
-        {current.tab && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '8px' }}>
-            <span style={{ fontSize: '0.75rem', color: '#a78bfa' }}>
-              Mirá la pestaña <strong style={{ color: '#c4b5fd' }}>{current.tab.charAt(0).toUpperCase() + current.tab.slice(1)}</strong> en la barra de abajo
-            </span>
-          </div>
-        )}
 
         {/* Dots */}
         <div style={{ display: 'flex', gap: '0.375rem', justifyContent: 'center' }}>
@@ -144,7 +146,7 @@ export default function OnboardingTutorial({
         <button
           onClick={next}
           style={{
-            width: '100%', padding: '0.8rem', borderRadius: '12px', border: 'none',
+            width: '100%', padding: '0.75rem', borderRadius: '12px', border: 'none',
             background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
             color: 'white', fontSize: '0.92rem', fontWeight: 700, cursor: 'pointer',
           }}
