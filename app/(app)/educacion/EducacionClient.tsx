@@ -142,7 +142,12 @@ export default function EducacionClient({
     '"The Untethered Soul" · Michael Singer',
     '"Your Wish Is Your Command" · Kevin Trudeau',
     '"Phoenix" · Brian Tracy',
+    '"Don\'t Worry About Anything" · Brian Tracy',
     '"The Silva Method" · José Silva',
+    '"The Master Key System" · Charles F. Haanel',
+    '"Autobiography of a Yogi" · Paramahansa Yogananda',
+    '"Unveiled Mysteries" · Guy Ballard',
+    '"The Lives of Alcyone" · CW Leadbeater',
     '"Consciousness Development Library"',
   ]
 

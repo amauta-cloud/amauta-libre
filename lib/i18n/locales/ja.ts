@@ -314,7 +314,7 @@ export const ja: typeof es = {
     volver: '戻る',
     arrancar_con: '{titulo}を始める →',
     llegaste: '最後までたどり着きました。',
-    once_materiales: '11の素材。11の振り返り。誰でもできることではありません。',
+    once_materiales: '16の素材。16の振り返り。誰でもできることではありません。',
     lo_que_recorriste: '📂 これまでに歩んだこと（{n}）',
     aviso_idioma_titulo: '🌍 スペイン語コンテンツ',
     aviso_idioma_desc: '教材はスペイン語です。ほとんどはYouTubeであなたの言語でも視聴できます。これらのタイトルで検索してください：',

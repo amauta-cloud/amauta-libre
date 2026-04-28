@@ -56,7 +56,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId, educacio
 
   const activePreset = PRESET_AVATARS.find(p => p.id === presetId)
 
-  const eduBadge = educacionPaso > 0 && educacionPaso < 11 ? `${educacionPaso}/11` : null
+  const eduBadge = educacionPaso > 0 && educacionPaso < 16 ? `${educacionPaso}/16` : null
   const NAV = [
     { href: '/tablero',       label: t('nav.tablero'),       icon: '⚡',  badge: null },
     { href: '/planificacion', label: t('nav.planificacion'),  icon: '✅',  badge: null },
