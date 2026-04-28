@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useLocale } from '@/lib/i18n/LocaleContext'
 
 export const ONBOARDING_STORAGE_KEY = 'amauta_onboarding_done'
@@ -75,9 +76,9 @@ export default function OnboardingTutorial({
   const current = steps[step]
   const isLast = step === steps.length - 1
 
-  return (
+  const overlay = (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 200,
+      position: 'fixed', inset: 0, zIndex: 9999,
       background: '#000',
       display: 'flex',
       alignItems: 'center',
@@ -156,4 +157,8 @@ export default function OnboardingTutorial({
       </div>
     </div>
   )
+
+  return typeof document !== 'undefined'
+    ? createPortal(overlay, document.body)
+    : overlay
 }
