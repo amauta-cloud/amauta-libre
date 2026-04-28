@@ -331,68 +331,114 @@ export const es = {
     paso_listo: 'Paso {n} listo. Vamos.',
     pasos: [
       {
+        // Paso 1: El Secreto Más Raro — Nightingale
         mensajeIntro: 'Earl Nightingale grabó este audio hace más de 60 años. Sigue siendo el más directo sobre el tema. 30 minutos que te van a sacudir la cabeza.',
         preguntaTransicion: '¿Qué entendiste por "el secreto más raro del mundo"? ¿Cómo se aplica a tu vida hoy?',
         teaserProximo: 'La Vaca · Camilo Cruz',
         mensajeProximo: 'La Vaca es una historia corta sobre la excusa que te tiene atado. Todos tenemos una. La pregunta es si estás dispuesto a verla.',
       },
       {
+        // Paso 2: La Vaca — Cruz
         mensajeIntro: 'Una historia corta sobre la excusa que te tiene atado. Todos tenemos una vaca. La pregunta es si estás dispuesto a verla y matarla.',
         preguntaTransicion: '¿Cuál era tu vaca? ¿Qué decidiste hacer con ella después de leerlo?',
         teaserProximo: 'Tráguese ese Sapo · Brian Tracy',
         mensajeProximo: 'Si La Vaca te mostró la excusa, este libro te da el método. El "sapo" es esa tarea que venís postergando. Tragárselo primero cambia todo el día.',
       },
       {
+        // Paso 3: Tráguese ese Sapo — Tracy
         mensajeIntro: 'Si La Vaca te mostró la excusa, Tráguese ese Sapo te da el método. El sapo es esa tarea que venís postergando. Hacer eso primero cambia todo.',
         preguntaTransicion: '¿Cuál fue el sapo que te tragaste? ¿Qué pasó después de hacerlo?',
         teaserProximo: 'Detox Financiero · Fernando Palacio',
         mensajeProximo: 'El dinero no es el problema. La relación con el dinero es el problema. Detox Financiero ayuda a identificar las creencias que te frenan económicamente.',
       },
       {
+        // Paso 4: Detox Financiero — Palacio
         mensajeIntro: 'El dinero no es el problema. La relación con el dinero es el problema. Este libro te ayuda a limpiar las creencias que te frenan económicamente, muchas desde la infancia.',
         preguntaTransicion: '¿Qué creencia sobre el dinero identificaste? ¿Cómo pensás trabajarla?',
         teaserProximo: 'Deja de Ser Tú · Joe Dispenza',
         mensajeProximo: 'Dispenza va más profundo. Explica cómo el cerebro construye la realidad y por qué ciertos patrones se repiten sin importar cuánto intentés cambiarlos.',
       },
       {
+        // Paso 5: Deja de Ser Tú — Dispenza (Audiolibro)
         mensajeIntro: 'Dispenza va más profundo que cualquier otro autor de este camino. Explica cómo el cerebro construye la realidad y por qué ciertos patrones se repiten sin importar cuánto intentés cambiarlos. Preparate.',
         preguntaTransicion: '¿Qué patrón identificaste en vos? ¿Qué ejercicio del libro te resultó más poderoso?',
+        teaserProximo: 'REWIRED · Dr. Joe Dispenza',
+        mensajeProximo: 'Dispenza en video es otra experiencia. REWIRED explica cómo reconectar el cerebro para que tus nuevas decisiones se vuelvan automáticas en lugar de una lucha constante.',
+      },
+      {
+        // Paso 6: REWIRED — Dispenza (Video)
+        mensajeIntro: 'Dispenza en video es otra experiencia. REWIRED explica cómo reconectar el cerebro para que tus nuevas decisiones se vuelvan automáticas, en lugar de una lucha constante.',
+        preguntaTransicion: '¿Qué práctica del video vas a incorporar? ¿Cuándo empezás?',
         teaserProximo: 'La Liberación del Alma · Michael Singer',
         mensajeProximo: 'Singer no habla de hacer más. Habla de soltar lo que te pesa. Pocos libros te mueven como este.',
       },
       {
+        // Paso 7: La Liberación del Alma — Singer
         mensajeIntro: 'Singer no habla de hacer más. Habla de soltar lo que te pesa. Pocos libros te mueven como este.',
         preguntaTransicion: '¿Hay algo que estabas aferrando que decidiste soltar? ¿Qué cambió cuando lo hiciste?',
         teaserProximo: 'Su Deseo es Su Mandato · Kevin Trudeau',
         mensajeProximo: 'Trudeau explica por qué lo que deseás con más claridad es lo que terminás creando, y por qué la mayoría no lo logra.',
       },
       {
+        // Paso 8: Su Deseo es Su Mandato — Trudeau
         mensajeIntro: 'Trudeau explica por qué lo que deseás con más claridad es lo que terminás atrayendo, y por qué la mayoría no lo logra. Escuchalo cuando podás concentrarte.',
-        preguntaTransicion: '¿Cuál fue el concepto que más te impactó? ¿Qué vas a hacer diferente con lo que aprendiste?',
-        teaserProximo: 'REWIRED · Dr. Joe Dispenza',
-        mensajeProximo: 'Dispenza en video es otra experiencia. REWIRED explica cómo reconectar el cerebro para que tus nuevas decisiones se vuelvan automáticas en lugar de una lucha constante.',
-      },
-      {
-        mensajeIntro: 'Dispenza en video es otra experiencia. REWIRED explica cómo reconectar el cerebro para que tus nuevas decisiones se vuelvan automáticas, en lugar de una lucha constante.',
-        preguntaTransicion: '¿Qué práctica del video vas a incorporar? ¿Cuándo empezás?',
-        teaserProximo: 'Biblioteca · Desarrollo de Consciencia',
-        mensajeProximo: 'Llegaste a la biblioteca. El material que profundiza todo lo que venís trabajando.',
-      },
-      {
-        mensajeIntro: 'Llegaste a la biblioteca. Acá encontrás el material que profundiza todo lo que venís trabajando.',
-        preguntaTransicion: '¿En qué área de tu vida sentís que más creciste desde que arrancaste este camino? ¿Qué todavía querés seguir trabajando?',
+        preguntaTransicion: 'Describí con detalle cómo se siente lograr lo que más querés. Qué ves, qué sentís, quiénes están.',
         teaserProximo: 'Fénix · Brian Tracy',
         mensajeProximo: 'Tracy en video, el proceso de renacer como persona y como profesional. El Fénix no vuelve siendo el mismo.',
       },
       {
+        // Paso 9: Fénix — Tracy (Video)
         mensajeIntro: 'Tracy en video, el proceso de renacer como persona y como profesional. El Fénix no vuelve siendo el mismo. Este video te ayuda a entender qué hay que dejar ir para que eso pase.',
-        preguntaTransicion: '¿En qué aspecto de tu vida sentís que renaciste? ¿Qué dejaste ir para que eso pase?',
-        teaserProximo: 'Método José Silva',
-        mensajeProximo: 'El último del camino: el Método Silva. Más de 50 años de práctica, resultados concretos. Con esto cerrás el círculo.',
+        preguntaTransicion: '¿Qué parte de vos tiene que morir para que nazca quien querés ser?',
+        teaserProximo: 'No Te Preocupes Más, Confía en Dios · Brian Tracy',
+        mensajeProximo: 'Tracy grabó este audio como si fuera una conversación. 47 minutos sobre por qué el control que creés tener es lo que más te frena.',
       },
       {
-        mensajeIntro: 'El Método Silva tiene más de 50 años. Sigue siendo una de las técnicas más concretas para usar la mente con un propósito. Con esto cerrás el círculo.',
-        preguntaTransicion: '¿Cómo vas a integrar todo lo que aprendiste a tu vida cotidiana?',
+        // Paso 10: No Te Preocupes Más, Confía en Dios — Tracy (Audiolibro)
+        mensajeIntro: 'Brian Tracy grabó este audio como si fuera una conversación, no una conferencia. En 47 minutos deja en claro por qué el control que creés tener es lo que más te frena.',
+        preguntaTransicion: '¿Dónde estás aferrándote en vez de confiar?',
+        teaserProximo: 'Método José Silva',
+        mensajeProximo: 'El Método Silva tiene más de 50 años. Sigue siendo una de las técnicas más concretas para usar la mente con un propósito.',
+      },
+      {
+        // Paso 11: Método José Silva
+        mensajeIntro: 'El Método Silva tiene más de 50 años. Sigue siendo una de las técnicas más concretas para usar la mente con un propósito. Con esto cerrás el círculo de la reprogramación.',
+        preguntaTransicion: 'Practicá el nivel Alfa esta noche antes de dormir. Mañana anotá qué notaste.',
+        teaserProximo: 'El Sistema de la Llave Maestra · Charles F. Haanel',
+        mensajeProximo: 'Haanel escribió esto en 1912. Uno de los textos más precisos sobre cómo funciona la mente cuando se enfoca. No es motivación, es mecánica mental.',
+      },
+      {
+        // Paso 12: El Sistema de la Llave Maestra — Haanel
+        mensajeIntro: 'Haanel escribió esto en 1912 y sigue siendo uno de los textos más precisos sobre cómo funciona la mente cuando se enfoca. No es motivación, es mecánica mental.',
+        preguntaTransicion: 'Escribí tu objetivo principal en presente, como si ya fuera realidad. Usá la primera persona.',
+        teaserProximo: 'Autobiografía de un Yogui · Paramahansa Yogananda',
+        mensajeProximo: 'Yogananda vivió lo que escribió. El único libro que Steve Jobs tenía en su iPad y que pidió distribuir en su funeral.',
+      },
+      {
+        // Paso 13: Autobiografía de un Yogui — Yogananda
+        mensajeIntro: 'Este es el único libro que Steve Jobs tenía en su iPad y que pidió distribuir en su funeral. Yogananda no teoriza, cuenta lo que vivió. Tomátelo con calma, vale la pena.',
+        preguntaTransicion: '¿Qué experiencias de tu vida te hacen creer que hay algo más grande que vos?',
+        teaserProximo: 'Misterios Develados · Guy Ballard y Saint Germain',
+        mensajeProximo: 'Ballard documenta algo difícil de catalogar. Una historia que es más que una historia.',
+      },
+      {
+        // Paso 14: Misterios Develados — Ballard y Saint Germain
+        mensajeIntro: 'Ballard documenta encuentros que no encajan con el mundo que conocés. No importa si creés o no en lo que describe. Lo que importa es qué te pregunta.',
+        preguntaTransicion: '¿En qué parte de tu vida estás siendo llamado a servir?',
+        teaserProximo: 'Las Últimas 30 Vidas de Alcione · CW Leadbeater',
+        mensajeProximo: 'Leadbeater describe 30 vidas en secuencia, desde la antigüedad hasta hoy. Un mapa de cómo se construye el alma a través del tiempo.',
+      },
+      {
+        // Paso 15: Las Últimas 30 Vidas de Alcione — Leadbeater
+        mensajeIntro: 'Leadbeater era clarividente y esto es lo que vio. Un registro de 30 vidas de una misma conciencia a través de distintas épocas. Es el material más profundo del camino.',
+        preguntaTransicion: '¿Qué patrón reconocés en vos que venís repitiendo desde hace mucho tiempo?',
+        teaserProximo: 'Biblioteca · Desarrollo de Consciencia',
+        mensajeProximo: 'La Biblioteca es el final del camino estructurado. El comienzo de algo que ya no tiene estructura. Todo lo que reunimos para que sigas por tu cuenta.',
+      },
+      {
+        // Paso 16: Biblioteca — Desarrollo de Consciencia
+        mensajeIntro: 'Llegaste a la biblioteca. Acá encontrás el material que profundiza todo lo que venís trabajando.',
+        preguntaTransicion: '¿En qué área de tu vida sentís que más creciste desde que arrancaste este camino? ¿Qué todavía querés seguir trabajando?',
         teaserProximo: null,
         mensajeProximo: null,
       },
