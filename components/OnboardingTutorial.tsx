@@ -12,7 +12,6 @@ type StepDef = {
   title: string
   desc: string
   tab: TabTarget
-  bottom: boolean
 }
 
 export default function OnboardingTutorial({
@@ -32,55 +31,13 @@ export default function OnboardingTutorial({
   }, [])
 
   const steps: StepDef[] = [
-    {
-      emoji: '👋',
-      title: t('onboarding.step0_title'),
-      desc:  t('onboarding.step0_desc'),
-      tab:   null,
-      bottom: false,
-    },
-    {
-      emoji: '⚡',
-      title: t('onboarding.step1_title'),
-      desc:  t('onboarding.step1_desc'),
-      tab:   'hoy',
-      bottom: true,
-    },
-    {
-      emoji: '💰',
-      title: t('onboarding.step2_title'),
-      desc:  t('onboarding.step2_desc'),
-      tab:   'finanzas',
-      bottom: true,
-    },
-    {
-      emoji: '✏️',
-      title: t('onboarding.step3_title'),
-      desc:  t('onboarding.step3_desc'),
-      tab:   'habitos',
-      bottom: true,
-    },
-    {
-      emoji: '🎯',
-      title: t('onboarding.step4_title'),
-      desc:  t('onboarding.step4_desc'),
-      tab:   'metas',
-      bottom: true,
-    },
-    {
-      emoji: '✅',
-      title: t('onboarding.step5_title'),
-      desc:  t('onboarding.step5_desc'),
-      tab:   null,
-      bottom: false,
-    },
-    {
-      emoji: '📚',
-      title: t('onboarding.step6_title'),
-      desc:  t('onboarding.step6_desc'),
-      tab:   null,
-      bottom: false,
-    },
+    { emoji: '👋', title: t('onboarding.step0_title'), desc: t('onboarding.step0_desc'), tab: null },
+    { emoji: '⚡', title: t('onboarding.step1_title'), desc: t('onboarding.step1_desc'), tab: 'hoy' },
+    { emoji: '💰', title: t('onboarding.step2_title'), desc: t('onboarding.step2_desc'), tab: 'finanzas' },
+    { emoji: '✏️', title: t('onboarding.step3_title'), desc: t('onboarding.step3_desc'), tab: 'habitos' },
+    { emoji: '🎯', title: t('onboarding.step4_title'), desc: t('onboarding.step4_desc'), tab: 'metas' },
+    { emoji: '✅', title: t('onboarding.step5_title'), desc: t('onboarding.step5_desc'), tab: null },
+    { emoji: '📚', title: t('onboarding.step6_title'), desc: t('onboarding.step6_desc'), tab: null },
   ]
 
   useEffect(() => {
@@ -113,14 +70,13 @@ export default function OnboardingTutorial({
       position: 'fixed', inset: 0, zIndex: 200,
       background: 'rgba(0,0,0,0.88)',
       display: 'flex',
-      alignItems: current.bottom ? 'flex-end' : 'center',
+      alignItems: 'center',
       justifyContent: 'center',
-      padding: current.bottom ? '0 1.25rem' : '1.5rem',
+      padding: '1.5rem',
     }}>
 
       <div style={{
         width: '100%', maxWidth: '420px',
-        marginBottom: current.bottom ? '5.5rem' : 0,
         background: 'linear-gradient(160deg, #1a0f35 0%, #0f0a2e 100%)',
         border: '1px solid rgba(139,92,246,0.35)',
         borderRadius: '20px', padding: '1.75rem 1.75rem 1.5rem',
@@ -163,6 +119,15 @@ export default function OnboardingTutorial({
             {current.desc}
           </p>
         </div>
+
+        {/* Tab indicator */}
+        {current.tab && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: '#a78bfa' }}>
+              Mirá la pestaña <strong style={{ color: '#c4b5fd' }}>{current.tab.charAt(0).toUpperCase() + current.tab.slice(1)}</strong> en la barra de abajo
+            </span>
+          </div>
+        )}
 
         {/* Dots */}
         <div style={{ display: 'flex', gap: '0.375rem', justifyContent: 'center' }}>

@@ -759,7 +759,6 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
         <div style={{
           display: 'flex', gap: '0.2rem', padding: '0.25rem',
           background: 'rgba(255,255,255,0.04)', borderRadius: '10px', marginBottom: '1.25rem',
-          ...(onboardingTab !== null ? { position: 'relative', zIndex: 201 } : {}),
         }}>
           {navBtn('hoy', t('tablero.tabs.hoy'), '⚡')}
           {navBtn('mes', t('tablero.tabs.mes'), '📊')}
@@ -786,11 +785,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   return (
     <>
       {onboardingJSX}
-      {/* Tab nav — zIndex 201 cuando el onboarding está activo para aparecer encima del overlay */}
       <div style={{
         display: 'flex', gap: '0.2rem', padding: '0.25rem',
         background: 'rgba(255,255,255,0.04)', borderRadius: '10px', marginBottom: '1.25rem',
-        ...(onboardingTab !== null ? { position: 'relative', zIndex: 201 } : {}),
       }}>
         {navBtn('hoy', t('tablero.tabs.hoy'), '⚡')}
         {navBtn('mes', t('tablero.tabs.mes'), '📊')}
