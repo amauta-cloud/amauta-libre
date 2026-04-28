@@ -747,7 +747,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       onFinish={() => { setActiveTab('habitos'); setOnboardingTab(null) }}
       onStepChange={(tab) => {
         setOnboardingTab(tab)
-        if (tab) setActiveTab(tab as typeof activeTab)
+        if (tab && tab !== activeTab) setActiveTab(tab as typeof activeTab)
       }}
     />
   )

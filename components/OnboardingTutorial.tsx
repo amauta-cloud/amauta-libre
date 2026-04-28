@@ -31,13 +31,22 @@ export default function OnboardingTutorial({
     if (!done) setVisible(true)
   }, [])
 
-  // Lock body scroll while overlay is open — prevents iOS Safari URL bar
-  // from hiding/showing and causing the fixed overlay to shift/deform
+  // iOS Safari scroll lock: position:fixed is the only reliable technique.
+  // overflow:hidden is ignored by iOS Safari. Saving scrollY and restoring
+  // on cleanup prevents the page from jumping to top when the overlay closes.
   useEffect(() => {
-    if (visible) {
-      const prev = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      return () => { document.body.style.overflow = prev }
+    if (!visible) return
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      document.body.style.overflow = ''
+      window.scrollTo(0, scrollY)
     }
   }, [visible])
 
