@@ -163,6 +163,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
                   value={nombreInput}
                   onChange={e => setNombreInput(e.target.value)}
                   autoFocus
+                  maxLength={50}
                   onKeyDown={e => { if (e.key === 'Enter') saveNombre(); if (e.key === 'Escape') setEditingNombre(false) }}
                   style={{ flex: 1, padding: '0.4rem 0.625rem', borderRadius: '8px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(139,92,246,0.3)', color: '#f3f0ff', fontSize: '0.875rem', outline: 'none' }}
                 />
@@ -294,6 +295,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
                     onChange={e => setSoporteText(e.target.value)}
                     placeholder={t('nav.soporte_placeholder')}
                     rows={3}
+                    maxLength={500}
                     style={{
                       width: '100%', padding: '0.625rem', borderRadius: '8px', resize: 'none',
                       background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',

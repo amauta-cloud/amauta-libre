@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdmin } from '@supabase/supabase-js'
 import Link from 'next/link'
 import AdminPushButton from '@/components/AdminPushButton'
+import AdminUsuariosTable from '@/components/AdminUsuariosTable'
 
 export const dynamic = 'force-dynamic'
 
@@ -80,25 +81,28 @@ export default async function AdminPage() {
     registrosHoyRes,
     soporteRes,
     finanzasRes,
+    metasRes,
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email'),
     admin.from('habito_registros').select('usuario_id').eq('fecha', today),
     admin.from('habito_registros').select('usuario_id').gte('fecha', hace7),
     admin.from('habito_registros').select('usuario_id').gte('fecha', hace30),
     admin.from('push_subscriptions').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
-    admin.from('habitos').select('id, nombre, emoji, categoria').eq('activo', true),
+    admin.from('habitos').select('id, nombre, emoji, categoria, usuario_id').eq('activo', true),
     admin.from('educacion_estado').select('usuario_id, etapa_actual'),
     admin.from('habito_registros').select('usuario_id, fecha').gte('fecha', hace90),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     admin.from('habito_registros').select('usuario_id, habito_id').eq('fecha', today).limit(500),
     admin.from('soporte_mensajes').select('id, usuario_id, mensaje, categoria, creado_en').order('creado_en', { ascending: false }).limit(50).then(r => r.error ? { data: [] as { id: string; usuario_id: string; mensaje: string; categoria: string; creado_en: string }[] } : r),
     admin.from('finanzas_items').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
+    admin.from('metas').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
   ])
 
   const usuarios = usuariosRes.data ?? []
   const totalUsuarios = usuarios.length
   const soporteMensajes = soporteRes.data ?? []
   const emailMap = Object.fromEntries(usuarios.map(u => [u.id, u.email || u.nombre || '?']))
+  const emailOnlyMap = Object.fromEntries(usuarios.map(u => [u.id, u.email ?? '']))
   const usuariosConFinanzas = new Set((finanzasRes.data ?? []).map(r => r.usuario_id)).size
   const pctFinanzas = totalUsuarios > 0 ? Math.round((usuariosConFinanzas / totalUsuarios) * 100) : 0
 
@@ -140,11 +144,22 @@ export default async function AdminPage() {
   const catOrdenadas = Object.entries(catCount)
     .sort((a, b) => b[1] - a[1])
 
-  // Education
+  // Aprendizaje (educación)
   const completadosEdu = (educacionRes.data ?? []).filter(e => e.etapa_actual >= 11).length
   const pctEdu = totalUsuarios > 0 ? Math.round((completadosEdu / totalUsuarios) * 100) : 0
   const retencion7 = totalUsuarios > 0 ? Math.round((activos7 / totalUsuarios) * 100) : 0
   const retencionColor = retencion7 >= 40 ? '#10b981' : retencion7 >= 20 ? '#f59e0b' : '#ef4444'
+
+  // Embudo de conversión
+  const usuariosConHabitos = new Set((habitosRes.data ?? []).map((h: any) => h.usuario_id)).size
+  const usuariosConMetas = new Set((metasRes.data ?? []).map(r => r.usuario_id)).size
+  const embudoSteps = [
+    { label: 'Registrados', value: totalUsuarios, color: '#a78bfa' },
+    { label: 'Con hábitos', value: usuariosConHabitos, color: '#60a5fa' },
+    { label: 'Con metas', value: usuariosConMetas, color: '#34d399' },
+    { label: 'Aprendizaje completo', value: completadosEdu, color: '#F5C518' },
+    { label: 'Activos 30d', value: activos30, color: '#10b981' },
+  ]
 
   // DAU chart: últimos 30 días
   const registros90 = registros90Res.data ?? []
@@ -228,7 +243,7 @@ export default async function AdminPage() {
     .map(u => ({
       ...u,
       ultimaActividad: ultimaActMap[u.id] ?? null,
-      authUser: authUsers.find(a => a.id === u.id),
+      authUser: authUsers.find(a => a.id === u.id) ? { created_at: authUsers.find(a => a.id === u.id)!.created_at } : null,
       streak: streakMap[u.id] ?? 0,
       habitosHoy: hoyPorUsuario[u.id]?.length ?? 0,
       educacionEtapa: eduMap[u.id] ?? 0,
@@ -289,7 +304,7 @@ export default async function AdminPage() {
             <span style={{ color: '#4b5563', fontSize: '0.68rem' }}>últimos 30 días</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '80px' }}>
-            {dauArray.map((d, i) => {
+            {dauArray.map((d) => {
               const pct = maxDau > 0 ? (d.count / maxDau) * 100 : 0
               const isToday = d.fecha === today
               return (
@@ -309,9 +324,8 @@ export default async function AdminPage() {
               )
             })}
           </div>
-          {/* Labels cada 7 días */}
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', marginTop: '4px' }}>
-            {dauArray.map((d, i) => (
+            {dauArray.map((d) => (
               <div key={d.fecha} style={{ flex: 1, textAlign: 'center', fontSize: '0.55rem', color: '#4b5563', overflow: 'hidden' }}>
                 {d.label}
               </div>
@@ -473,78 +487,49 @@ export default async function AdminPage() {
               <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.3rem' }}>{activos30} de {totalUsuarios} usuarios</div>
             </div>
             <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', flex: 1 }}>
-              <div style={{ fontSize: '0.62rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Educación completada</div>
+              <div style={{ fontSize: '0.62rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Aprendizaje completado</div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: '#F5C518', lineHeight: 1 }}>{pctEdu}%</div>
               <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.3rem' }}>{completadosEdu} de {totalUsuarios} usuarios</div>
             </div>
           </div>
         </div>
 
-        {/* Tabla usuarios */}
-        <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', overflowX: 'auto' }}>
-          <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 1rem 0' }}>
-            Usuarios <span style={{ color: '#6b7280', fontWeight: 400 }}>({totalUsuarios})</span>
-          </h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
-            <thead>
-              <tr>
-                {['Usuario', 'Registrado', 'Racha', 'Hoy', 'Edu', 'Última actividad', ''].map(h => (
-                  <th key={h} style={{ textAlign: 'left', color: '#6b7280', fontWeight: 600, padding: '0.35rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {usuariosTabla.map(u => {
-                const activo7d = u.ultimaActividad && u.ultimaActividad >= hace7
-                const activo30d = u.ultimaActividad && u.ultimaActividad >= hace30
-                const registrado = u.authUser?.created_at
-                  ? new Date(u.authUser.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: '2-digit' })
-                  : '—'
-                let actividadColor = '#374151'
-                let actividadLabel = u.ultimaActividad ?? 'nunca'
-                if (activo7d) { actividadColor = '#10b981' }
-                else if (activo30d) { actividadColor = '#9ca3af' }
-                else if (u.ultimaActividad) { actividadColor = '#6b7280' }
-                const streakColor = u.streak >= 30 ? '#f59e0b' : u.streak >= 7 ? '#a78bfa' : u.streak > 0 ? '#6b7280' : '#374151'
-                const eduColor = u.educacionEtapa >= 11 ? '#10b981' : u.educacionEtapa >= 5 ? '#a78bfa' : u.educacionEtapa > 0 ? '#6b7280' : '#374151'
-                return (
-                  <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
-                      <div style={{ color: '#e5e7eb', fontWeight: 500 }}>{u.nombre || '—'}</div>
-                      <div style={{ color: '#4b5563', fontSize: '0.65rem' }}>{u.email}</div>
-                    </td>
-                    <td style={{ padding: '0.6rem 0.75rem', color: '#6b7280', whiteSpace: 'nowrap', fontSize: '0.72rem' }}>{registrado}</td>
-                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
-                      <span style={{ color: streakColor, fontWeight: 600, fontSize: '0.78rem' }}>
-                        {u.streak > 0 ? `${u.streak >= 7 ? '🔥' : '⚡'}${u.streak}d` : '—'}
-                      </span>
-                    </td>
-                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
-                      <span style={{ color: u.habitosHoy > 0 ? '#10b981' : '#374151', fontWeight: u.habitosHoy > 0 ? 600 : 400, fontSize: '0.78rem' }}>
-                        {u.habitosHoy > 0 ? `✓ ${u.habitosHoy}` : '—'}
-                      </span>
-                    </td>
-                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
-                      <span style={{ color: eduColor, fontSize: '0.78rem', fontWeight: 600 }}>
-                        {u.educacionEtapa}/11
-                      </span>
-                    </td>
-                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
-                      <span style={{ color: actividadColor, fontSize: '0.72rem' }}>{actividadLabel}</span>
-                    </td>
-                    <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
-                      <Link href={`/admin/usuario/${u.id}`} style={{ fontSize: '0.72rem', color: '#7c3aed', textDecoration: 'none', padding: '0.25rem 0.5rem', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '6px', whiteSpace: 'nowrap' }}>
-                        Ver →
-                      </Link>
-                    </td>
-                  </tr>
-                )
-              })}
-              {usuariosTabla.length === 0 && (
-                <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: '#4b5563', fontSize: '0.8rem' }}>Sin usuarios registrados</td></tr>
-              )}
-            </tbody>
-          </table>
+        {/* Embudo de conversión */}
+        <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', marginBottom: '1.5rem' }}>
+          <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 1rem 0' }}>Embudo de conversión</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {embudoSteps.map((step, i) => {
+              const pct = embudoSteps[0].value > 0 ? Math.round((step.value / embudoSteps[0].value) * 100) : 0
+              const dropPct = i > 0 && embudoSteps[i - 1].value > 0
+                ? Math.round(((embudoSteps[i - 1].value - step.value) / embudoSteps[i - 1].value) * 100)
+                : null
+              return (
+                <div key={step.label}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '0.6rem', color: '#4b5563', width: '1rem' }}>{i + 1}</span>
+                      <span style={{ fontSize: '0.78rem', color: '#d1d5db' }}>{step.label}</span>
+                      {dropPct !== null && dropPct > 0 && (
+                        <span style={{ fontSize: '0.62rem', color: '#ef4444', fontWeight: 600 }}>-{dropPct}%</span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'baseline' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 700, color: step.color }}>{fmt(step.value)}</span>
+                      <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>{pct}%</span>
+                    </div>
+                  </div>
+                  <div style={{ height: '4px', borderRadius: '99px', background: 'rgba(255,255,255,0.05)' }}>
+                    <div style={{ height: '100%', borderRadius: '99px', background: step.color, width: `${pct}%`, transition: 'width 0.4s' }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Tabla usuarios — client component con search + CSV */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <AdminUsuariosTable usuarios={usuariosTabla} hace7={hace7} hace30={hace30} />
         </div>
 
         {/* Mensajes de soporte */}
@@ -560,6 +545,10 @@ export default async function AdminPage() {
                 const catColor = m.categoria === 'bug' ? '#ef4444' : m.categoria === 'sugerencia' ? '#8b5cf6' : '#6b7280'
                 const fecha = new Date(m.creado_en)
                 const fechaStr = `${fecha.toLocaleDateString('es-AR')} ${fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`
+                const userEmail = emailOnlyMap[m.usuario_id] ?? ''
+                const userDisplay = emailMap[m.usuario_id] || m.usuario_id
+                const mailtoBody = encodeURIComponent(`Hola! Vi tu mensaje en Amauta Libre: "${m.mensaje.slice(0, 100)}"\n\n`)
+                const mailtoHref = userEmail ? `mailto:${userEmail}?subject=Re: tu mensaje en Amauta Libre&body=${mailtoBody}` : ''
                 return (
                   <div key={m.id} style={{ padding: '0.875rem', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
@@ -568,8 +557,23 @@ export default async function AdminPage() {
                       </span>
                       <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>{fechaStr}</span>
                     </div>
-                    <p style={{ margin: '0 0 0.375rem', color: '#d1d5db', fontSize: '0.85rem', lineHeight: 1.5 }}>{m.mensaje}</p>
-                    <div style={{ fontSize: '0.65rem', color: '#4b5563' }}>{emailMap[m.usuario_id] || m.usuario_id}</div>
+                    <p style={{ margin: '0 0 0.5rem', color: '#d1d5db', fontSize: '0.85rem', lineHeight: 1.5 }}>{m.mensaje}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: 500 }}>{userDisplay}</div>
+                      {mailtoHref && (
+                        <a
+                          href={mailtoHref}
+                          style={{
+                            fontSize: '0.7rem', color: '#a78bfa', textDecoration: 'none',
+                            padding: '0.2rem 0.6rem', borderRadius: '6px',
+                            border: '1px solid rgba(139,92,246,0.3)', background: 'rgba(139,92,246,0.08)',
+                            fontWeight: 600,
+                          }}
+                        >
+                          ↩ Responder
+                        </a>
+                      )}
+                    </div>
                   </div>
                 )
               })}

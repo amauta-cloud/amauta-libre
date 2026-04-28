@@ -12,6 +12,8 @@ export default function MetasClient({ userId }: { userId: string }) {
   const { t } = useLocale()
 
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
   const [step, setStep] = useState(0) // 0=intro, 1=form
   const [meta30, setMeta30] = useState('')
   const [meta90, setMeta90] = useState('')
@@ -20,13 +22,15 @@ export default function MetasClient({ userId }: { userId: string }) {
   const [toast, setToast] = useState('')
 
   useEffect(() => {
+    setLoading(true)
+    setLoadError(false)
     supabase
       .from('metas')
       .select('meta30,meta90,meta180')
       .eq('usuario_id', userId)
       .maybeSingle()
       .then(({ data, error }) => {
-        if (error) { setToast('Error al cargar. Recargá la página.'); setLoading(false); return }
+        if (error) { setLoadError(true); setLoading(false); return }
         if (data) {
           setMeta30(data.meta30 || '')
           setMeta90(data.meta90 || '')
@@ -35,7 +39,7 @@ export default function MetasClient({ userId }: { userId: string }) {
         }
         setLoading(false)
       })
-  }, [userId])
+  }, [userId, retryCount])
 
   async function guardar() {
     if (!meta30.trim() && !meta90.trim() && !meta180.trim()) return
@@ -68,6 +72,27 @@ export default function MetasClient({ userId }: { userId: string }) {
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#0f0d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ color: '#a78bfa', fontSize: '0.9rem' }}>{t('metas.loading')}</div>
+    </div>
+  )
+
+  if (loadError) return (
+    <div style={{ minHeight: '100vh', background: '#0f0d1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div style={{ maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⚠️</div>
+        <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+          No se pudo cargar tu información. Revisá tu conexión e intentá de nuevo.
+        </p>
+        <button
+          onClick={() => setRetryCount(c => c + 1)}
+          style={{
+            padding: '0.75rem 1.5rem', borderRadius: '10px', border: 'none',
+            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+            color: '#fff', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
+          }}
+        >
+          Reintentar
+        </button>
+      </div>
     </div>
   )
 

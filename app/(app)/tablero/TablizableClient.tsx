@@ -1004,6 +1004,13 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               </button>
             </div>
 
+            {/* Aviso sin categoría */}
+            {finanzaCategorias.length > 0 && !itemCategoria && itemMonto && (
+              <div style={{ fontSize: '0.72rem', color: '#f59e0b', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span>⚠️</span> Seleccioná una categoría para organizar mejor tus finanzas
+              </div>
+            )}
+
             {/* Lista de items del día */}
             {finanzaItems.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '0.875rem' }}>

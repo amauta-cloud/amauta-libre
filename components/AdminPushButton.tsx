@@ -43,10 +43,20 @@ function CronTestBtn({ label, url }: { label: string; url: string }) {
   )
 }
 
+type Segmento = 'todos' | 'nuevos_7d' | 'activos_30d' | 'dormidos'
+
+const SEGMENTOS: { id: Segmento; label: string }[] = [
+  { id: 'todos', label: 'Todos' },
+  { id: 'nuevos_7d', label: 'Nuevos 7d' },
+  { id: 'activos_30d', label: 'Activos 30d' },
+  { id: 'dormidos', label: 'Dormidos' },
+]
+
 function CustomPushForm() {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  const [segmento, setSegmento] = useState<Segmento>('todos')
   const [state, setState] = useState<BtnState>('idle')
   const [result, setResult] = useState<{ sent?: number } | null>(null)
 
@@ -57,7 +67,7 @@ function CustomPushForm() {
       const res = await fetch('/api/admin/push-custom', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), body: body.trim() }),
+        body: JSON.stringify({ title: title.trim(), body: body.trim(), segmento }),
       })
       const data = await res.json()
       setResult(data)
@@ -72,6 +82,7 @@ function CustomPushForm() {
     setResult(null)
     setTitle('')
     setBody('')
+    setSegmento('todos')
   }
 
   return (
@@ -113,6 +124,28 @@ function CustomPushForm() {
             </div>
           ) : (
             <>
+              {/* Segmentación */}
+              <div>
+                <div style={{ fontSize: '0.62rem', color: '#6b7280', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Enviar a</div>
+                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                  {SEGMENTOS.map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => setSegmento(s.id)}
+                      style={{
+                        padding: '0.25rem 0.6rem', borderRadius: '6px', fontSize: '0.7rem',
+                        border: '1px solid',
+                        borderColor: segmento === s.id ? 'rgba(59,130,246,0.5)' : 'rgba(255,255,255,0.08)',
+                        background: segmento === s.id ? 'rgba(59,130,246,0.2)' : 'transparent',
+                        color: segmento === s.id ? '#60a5fa' : '#6b7280',
+                        cursor: 'pointer', fontWeight: segmento === s.id ? 700 : 400,
+                      }}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <input
                 value={title}
                 onChange={e => setTitle(e.target.value)}
@@ -161,7 +194,7 @@ function CustomPushForm() {
                   opacity: state === 'sending' ? 0.6 : 1,
                 }}
               >
-                {state === 'sending' ? 'Enviando...' : '📨 Enviar a todos'}
+                {state === 'sending' ? 'Enviando...' : `📨 Enviar a: ${SEGMENTOS.find(s => s.id === segmento)?.label}`}
               </button>
             </>
           )}

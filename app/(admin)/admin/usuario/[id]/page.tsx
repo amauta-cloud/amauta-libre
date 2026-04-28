@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdmin } from '@supabase/supabase-js'
 import Link from 'next/link'
+import AdminNotasField from '@/components/AdminNotasField'
 
 export const dynamic = 'force-dynamic'
 
@@ -168,7 +169,7 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
           <MiniCard label="Racha actual" value={streak > 0 ? `${streak}d` : '0'} color={streak >= 30 ? '#f59e0b' : streak >= 7 ? '#a78bfa' : '#6b7280'} sub={streak >= 7 ? '🔥 activo' : streak > 0 ? '⚡ activo' : 'sin racha'} />
           <MiniCard label="Días activo (90d)" value={String(diasActivos90)} color="#10b981" sub="con al menos 1 hábito" />
           <MiniCard label="Hábitos activos" value={String(habitosActivos.length)} color="#60a5fa" sub={`${habitos.length} total`} />
-          <MiniCard label="Educación" value={`${educacion?.etapa_actual ?? 0}/11`} color={educacion?.etapa_actual === 11 ? '#10b981' : '#F5C518'} sub={educacion?.etapa_actual === 11 ? 'Completado ✓' : 'en progreso'} />
+          <MiniCard label="Aprendizaje" value={`${educacion?.etapa_actual ?? 0}/11`} color={educacion?.etapa_actual === 11 ? '#10b981' : '#F5C518'} sub={educacion?.etapa_actual === 11 ? 'Completado ✓' : 'en progreso'} />
           <MiniCard label="Metas escritas" value={metas ? '✓' : '—'} color={metas?.meta30 ? '#10b981' : '#374151'} sub={metas?.meta30 ? 'tiene metas' : 'sin metas aún'} />
           <MiniCard
             label="Tareas pendientes"
@@ -250,9 +251,9 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
             )}
           </div>
 
-          {/* Educación */}
+          {/* Aprendizaje */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem' }}>
-            <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 1rem 0' }}>Educación</h2>
+            <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 1rem 0' }}>Aprendizaje</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {Array.from({ length: 11 }, (_, i) => {
                 const paso = i + 1
@@ -354,6 +355,9 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
           </div>
 
         </div>
+
+        {/* Notas del admin */}
+        <AdminNotasField usuarioId={id} />
 
       </div>
     </div>

@@ -340,15 +340,45 @@ export default function EducacionClient({
             )}
 
             {paso >= totalPasos && (
-              <div style={{ ...cardStyle, textAlign: 'center', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🏆</div>
-                <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem', fontWeight: 700, color: '#6ee7b7' }}>
-                  {t('educacion.llegaste')}
-                </h3>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#9ca3af', lineHeight: 1.6 }}>
-                  {t('educacion.once_materiales')}
-                </p>
-              </div>
+              <>
+                <div style={{ ...cardStyle, textAlign: 'center', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🏆</div>
+                  <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem', fontWeight: 700, color: '#6ee7b7' }}>
+                    {t('educacion.llegaste')}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#9ca3af', lineHeight: 1.6 }}>
+                    {t('educacion.once_materiales')}
+                  </p>
+                </div>
+
+                <a
+                  href="https://amauta.cloud"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'block', textDecoration: 'none', marginBottom: '1rem',
+                    background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)',
+                    borderRadius: '14px', padding: '1.5rem',
+                  }}
+                >
+                  <div style={{ fontSize: '0.62rem', color: '#a78bfa', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.07em', marginBottom: '0.5rem' }}>
+                    Amauta Cloud
+                  </div>
+                  <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '1rem', marginBottom: '0.625rem', lineHeight: 1.3 }}>
+                    Quiero conocerte — trabajemos juntos
+                  </div>
+                  <p style={{ margin: '0 0 1rem', fontSize: '0.82rem', color: '#9ca3af', lineHeight: 1.65 }}>
+                    Llegaste hasta acá porque sos de los pocos que realmente buscan crecer. Escribime, quiero conocer tu historia y ver cómo puedo acompañarte.
+                  </p>
+                  <span style={{
+                    display: 'inline-block', padding: '0.55rem 1.1rem', borderRadius: '8px',
+                    background: 'rgba(139,92,246,0.18)', border: '1px solid rgba(139,92,246,0.35)',
+                    color: '#a78bfa', fontWeight: 700, fontSize: '0.82rem',
+                  }}>
+                    Ir a Amauta Cloud →
+                  </span>
+                </a>
+              </>
             )}
 
             {paso > 1 && (
