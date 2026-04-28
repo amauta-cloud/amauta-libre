@@ -137,7 +137,7 @@ function frecuenciaLabel(dias?: number[] | null): string {
   return [...dias].sort((a, b) => a - b).map(d => DIAS_LABELS[d]).join(' ')
 }
 
-export default function TablizableClient({ habitos, regMap: initialRegMap, userId, today, racha, metas, historial }: {
+export default function TablizableClient({ habitos, regMap: initialRegMap, userId, today, racha, metas, historial, nombre = '' }: {
   habitos: Habito[]
   regMap: Record<string, Registro>
   userId: string
@@ -145,12 +145,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   racha: number
   metas: MetasData
   historial: HistorialReg[]
+  nombre?: string
 }) {
   const supabase = createClient()
   const { t, locale } = useLocale()
   const fmt = (n: number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n)
 
   const [regMap, setRegMap] = useState(initialRegMap)
+  const [liveHistorial, setLiveHistorial] = useState<HistorialReg[]>(historial)
   const [loading, setLoading] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'hoy' | 'mes' | 'habitos' | 'finanzas' | 'metas'>('hoy')
   const [habitoFeedback, setHabitoFeedback] = useState<string | null>(null)
@@ -235,6 +237,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const [historialOpen, setHistorialOpen] = useState<string | null>(null)
   const [logroVisible, setLogroVisible] = useState<number | null>(null)
+  const [sharingRacha, setSharingRacha] = useState(false)
 
   // Live stats
   const todayDow = new Date(today + 'T12:00:00').getDay()
@@ -375,7 +378,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     if (!h) return 0
     if (!isHoy(h, todayDow)) return 0
     const doneToday = (() => {
-      const r = historial.find(x => x.habito_id === habitoId && x.fecha === today)
+      const r = liveHistorial.find(x => x.habito_id === habitoId && x.fecha === today)
       return r?.valor_bool === true || (r?.valor_numero != null && r.valor_numero > 0)
     })()
     let streak = doneToday ? 1 : 0
@@ -384,7 +387,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       d.setDate(d.getDate() - i)
       if (!isHoy(h, d.getDay())) continue
       const f = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-      const r = historial.find(x => x.habito_id === habitoId && x.fecha === f)
+      const r = liveHistorial.find(x => x.habito_id === habitoId && x.fecha === f)
       const done = r?.valor_bool === true || (r?.valor_numero != null && r.valor_numero > 0)
       if (done) streak++
       else break
@@ -595,6 +598,37 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       }
     })
     await supabase.from('habito_registros').upsert(upserts, { onConflict: 'habito_id,fecha' })
+
+    // Sync liveHistorial so weekly summary and racha reflect the edit immediately
+    const savedDate = editingDay
+    const newEntries: HistorialReg[] = localHabitos.map(h => {
+      const r = editDayRegMap[h.id]
+      return {
+        habito_id: h.id, fecha: savedDate,
+        valor_bool: h.tipo === 'boolean' ? (r?.valor_bool ?? false) : null,
+        valor_numero: h.tipo === 'numero' ? (r?.valor_numero ?? 0) : null,
+      }
+    })
+    setLiveHistorial(prev => [...prev.filter(r => r.fecha !== savedDate), ...newEntries])
+
+    // If the edited day is today, also sync the "Hoy" tab state
+    if (savedDate === today) {
+      const newReg: Record<string, Registro> = {}
+      for (const h of localHabitos) {
+        const r = editDayRegMap[h.id]
+        newReg[h.id] = {
+          habito_id: h.id,
+          valor_bool: h.tipo === 'boolean' ? (r?.valor_bool ?? false) : null,
+          valor_numero: h.tipo === 'numero' ? (r?.valor_numero ?? 0) : null,
+          nota: regMap[h.id]?.nota ?? null,
+        }
+      }
+      setRegMap(newReg)
+      setNumValues(Object.fromEntries(
+        localHabitos.filter(h => h.tipo === 'numero').map(h => [h.id, editDayRegMap[h.id]?.valor_numero ?? 0])
+      ))
+    }
+
     setEditSaving(false)
     setEditSaved(true)
     setTimeout(() => { setEditingDay(null); loadMonthData() }, 1200)
@@ -795,21 +829,38 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           {racha >= 7 && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-0.25rem' }}>
               <button
-                onClick={() => {
-                  const text = `¡${racha} días de racha en Amauta Libre! 🔥 libre.amauta.cloud`
-                  if (typeof navigator !== 'undefined' && navigator.share) {
-                    navigator.share({ text }).catch(() => {})
-                  } else {
-                    navigator.clipboard?.writeText(text)
+                disabled={sharingRacha}
+                onClick={async () => {
+                  setSharingRacha(true)
+                  const params = new URLSearchParams({ dias: String(racha) })
+                  if (nombre) params.set('nombre', nombre)
+                  const imgUrl = `/api/og/racha?${params.toString()}`
+                  try {
+                    const res = await fetch(imgUrl)
+                    const blob = await res.blob()
+                    const file = new File([blob], 'racha-amauta.png', { type: 'image/png' })
+                    if (typeof navigator !== 'undefined' && navigator.canShare?.({ files: [file] })) {
+                      await navigator.share({ files: [file], title: `🔥 ${racha} días de racha`, text: 'Amauta Libre · libre.amauta.cloud' })
+                    } else if (typeof navigator !== 'undefined' && navigator.share) {
+                      await navigator.share({ title: `🔥 ${racha} días de racha`, text: `¡${racha} días seguidos con Amauta Libre!`, url: 'https://libre.amauta.cloud' })
+                    } else {
+                      window.open(imgUrl, '_blank')
+                    }
+                  } catch {
+                    window.open(imgUrl, '_blank')
+                  } finally {
+                    setSharingRacha(false)
                   }
                 }}
                 style={{
                   background: 'transparent', border: '1px solid rgba(251,146,60,0.25)',
-                  color: '#fb923c', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer',
+                  color: sharingRacha ? '#6b7280' : '#fb923c', fontSize: '0.72rem', fontWeight: 600,
+                  cursor: sharingRacha ? 'not-allowed' : 'pointer',
                   padding: '0.3rem 0.75rem', borderRadius: '99px',
+                  opacity: sharingRacha ? 0.6 : 1,
                 }}
               >
-                📤 Compartir racha
+                {sharingRacha ? '⏳ Generando...' : '📤 Compartir racha'}
               </button>
             </div>
           )}
@@ -930,7 +981,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               const d = new Date(today + 'T12:00:00')
               d.setDate(d.getDate() - i)
               const fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-              const regsDelDia = historial.filter(r => r.fecha === fecha)
+              const regsDelDia = liveHistorial.filter(r => r.fecha === fecha)
               const hechos = regsDelDia.filter(r => r.valor_bool === true || (r.valor_numero != null && r.valor_numero > 0)).length
               const habitosDia = localHabitos.filter(h => isHoy(h, d.getDay()))
               const total = habitosDia.length
@@ -2184,7 +2235,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           const d = new Date(today + 'T12:00:00')
           d.setDate(d.getDate() - i)
           const fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-          const reg = historial.find(r => r.habito_id === h.id && r.fecha === fecha)
+          const reg = liveHistorial.find(r => r.habito_id === h.id && r.fecha === fecha)
           const done = reg?.valor_bool === true || (reg?.valor_numero != null && reg.valor_numero > 0)
           days30.push({ fecha, done })
         }

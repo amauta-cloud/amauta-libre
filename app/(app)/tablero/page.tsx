@@ -151,12 +151,12 @@ export default async function TablizablePage() {
             <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>Educación</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
               <span style={{ fontSize: '1.4rem', fontWeight: 700, color: '#60a5fa' }}>
-                {educacionPaso >= 11 ? '🏆' : educacionPaso > 0 ? `Paso ${educacionPaso}` : '—'}
+                {educacionPaso >= 16 ? '🏆' : educacionPaso > 0 ? `Paso ${educacionPaso}` : '—'}
               </span>
               {educacionPaso === 0 && (
                 <span style={{ fontSize: '0.72rem', color: '#4b5563' }}>sin iniciar</span>
               )}
-              {educacionPaso > 0 && educacionPaso < 11 && (
+              {educacionPaso > 0 && educacionPaso < 16 && (
                 <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>en curso</span>
               )}
             </div>
@@ -189,6 +189,7 @@ export default async function TablizablePage() {
         racha={racha}
         metas={metasData}
         historial={historial}
+        nombre={nombre}
       />
     </div>
   )
