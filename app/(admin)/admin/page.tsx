@@ -266,7 +266,7 @@ export default async function AdminPage() {
               Amauta Libre — Admin
             </p>
             <h1 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>Panel de control</h1>
-            <p style={{ color: '#4b5563', fontSize: '0.78rem', marginTop: '0.25rem' }}>{today} · <span style={{ color: '#6b7280' }}>v1.17.0</span></p>
+            <p style={{ color: '#4b5563', fontSize: '0.78rem', marginTop: '0.25rem' }}>{today} · <span style={{ color: '#6b7280' }}>v1.18.0</span></p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem', flexShrink: 0 }}>
             <AdminPushButton totalSubs={pushSubs} />
