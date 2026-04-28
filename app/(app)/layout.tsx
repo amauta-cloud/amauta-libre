@@ -11,11 +11,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!user) redirect('/login')
 
-  const { data: perfil } = await supabase
-    .from('usuarios')
-    .select('nombre')
-    .eq('id', user.id)
-    .single()
+  const [{ data: perfil }, { data: educacionData }] = await Promise.all([
+    supabase.from('usuarios').select('nombre').eq('id', user.id).single(),
+    supabase.from('educacion_estado').select('etapa_actual').eq('usuario_id', user.id).maybeSingle(),
+  ])
+  const educacionPaso = educacionData?.etapa_actual ?? 0
 
   const meta = user.user_metadata || {}
   const identityData = user.identities?.[0]?.identity_data || {}
@@ -27,6 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         nombre={perfil?.nombre || user.user_metadata?.full_name}
         avatar={avatarUrl}
         userId={user.id}
+        educacionPaso={educacionPaso}
       />
       <LocalDateSync />
       <Suspense fallback={null}><MetaPixelEvents /></Suspense>

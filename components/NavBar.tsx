@@ -24,7 +24,7 @@ const PRESET_AVATARS = [
 
 const AVATAR_PRESET_KEY = 'amauta_avatar_preset'
 
-export default function NavBar({ nombre: initialNombre, avatar, userId }: { nombre?: string; avatar?: string; userId?: string }) {
+export default function NavBar({ nombre: initialNombre, avatar, userId, educacionPaso = 0 }: { nombre?: string; avatar?: string; userId?: string; educacionPaso?: number }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -56,10 +56,11 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
 
   const activePreset = PRESET_AVATARS.find(p => p.id === presetId)
 
+  const eduBadge = educacionPaso > 0 && educacionPaso < 11 ? `${educacionPaso}/11` : null
   const NAV = [
-    { href: '/tablero',       label: t('nav.tablero'),       icon: '⚡' },
-    { href: '/planificacion', label: t('nav.planificacion'),  icon: '✅' },
-    { href: '/educacion',     label: t('nav.educacion'),      icon: '📚' },
+    { href: '/tablero',       label: t('nav.tablero'),       icon: '⚡',  badge: null },
+    { href: '/planificacion', label: t('nav.planificacion'),  icon: '✅',  badge: null },
+    { href: '/educacion',     label: t('nav.educacion'),      icon: '📚', badge: eduBadge },
   ]
 
   async function handleLogout() {
@@ -444,7 +445,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
 
         {/* Nav links */}
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          {NAV.map(({ href, label, icon }) => {
+          {NAV.map(({ href, label, icon, badge }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
             return (
               <Link key={href} href={href} style={{
@@ -458,7 +459,16 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
                 transition: 'all 0.15s',
                 border: active ? '1px solid rgba(139,92,246,0.2)' : '1px solid transparent',
               }}>
-                <span style={{ fontSize: '1rem' }}>{icon}</span>
+                <div style={{ position: 'relative', display: 'inline-flex' }}>
+                  <span style={{ fontSize: '1rem' }}>{icon}</span>
+                  {badge && (
+                    <span style={{
+                      position: 'absolute', top: '-4px', right: '-10px',
+                      background: '#8B5CF6', color: '#fff', fontSize: '0.45rem', fontWeight: 700,
+                      padding: '0.1rem 0.25rem', borderRadius: '99px', lineHeight: 1.2, whiteSpace: 'nowrap',
+                    }}>{badge}</span>
+                  )}
+                </div>
                 {label}
               </Link>
             )
@@ -492,7 +502,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
         display: 'flex',
         padding: '0.5rem 0',
       }} className="mobile-nav">
-        {NAV.map(({ href, label, icon }) => {
+        {NAV.map(({ href, label, icon, badge }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link key={href} href={href} style={{
@@ -502,7 +512,16 @@ export default function NavBar({ nombre: initialNombre, avatar, userId }: { nomb
               textDecoration: 'none', fontSize: '0.65rem', fontWeight: active ? 600 : 400,
               transition: 'color 0.15s',
             }}>
-              <span style={{ fontSize: '1.3rem' }}>{icon}</span>
+              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: '1.3rem' }}>{icon}</span>
+                {badge && (
+                  <span style={{
+                    position: 'absolute', top: '-3px', right: '-8px',
+                    background: '#8B5CF6', color: '#fff', fontSize: '0.45rem', fontWeight: 700,
+                    padding: '0.1rem 0.2rem', borderRadius: '99px', lineHeight: 1.2, whiteSpace: 'nowrap',
+                  }}>{badge}</span>
+                )}
+              </div>
               {label}
             </Link>
           )

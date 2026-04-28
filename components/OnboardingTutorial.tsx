@@ -5,7 +5,7 @@ import { useLocale } from '@/lib/i18n/LocaleContext'
 
 export const ONBOARDING_STORAGE_KEY = 'amauta_onboarding_done'
 
-export default function OnboardingTutorial() {
+export default function OnboardingTutorial({ onFinish }: { onFinish?: () => void }) {
   const { t } = useLocale()
   const [visible, setVisible] = useState(false)
   const [step, setStep] = useState(0)
@@ -20,9 +20,14 @@ export default function OnboardingTutorial() {
     setVisible(false)
   }
 
+  function finish() {
+    dismiss()
+    onFinish?.()
+  }
+
   function next() {
     if (step < 6) setStep(s => s + 1)
-    else dismiss()
+    else finish()
   }
 
   if (!visible) return null

@@ -116,6 +116,17 @@ function catColor(cat?: string | null): string {
 const DIAS_CORTOS = ['D','L','M','M','J','V','S']
 const DIAS_LABELS = ['Do','Lu','Ma','Mi','Ju','Vi','Sá']
 
+const LOGRO_MILESTONES = [7, 21, 66, 100, 180, 365]
+const LOGRO_KEY = 'amauta_logros_vistos'
+const LOGRO_DATA: Record<number, { emoji: string; titulo: string; desc: string }> = {
+  7:   { emoji: '🔥', titulo: '¡Primera semana!',   desc: '7 días seguidos. Ya no es un intento, es un hábito.' },
+  21:  { emoji: '🚀', titulo: '¡21 días!',           desc: 'Tres semanas sin parar. El sistema ya forma parte de vos.' },
+  66:  { emoji: '🏆', titulo: '¡66 días!',           desc: 'Se dice que a los 66 días un hábito se automatiza. Llegaste.' },
+  100: { emoji: '💯', titulo: '¡100 días!',          desc: '100 días de compromiso con vos mismo. Eso es extraordinario.' },
+  180: { emoji: '🌟', titulo: '¡6 meses!',           desc: 'Medio año. La mayoría no llega ni a la primera semana.' },
+  365: { emoji: '👑', titulo: '¡Un año completo!',   desc: 'Un año entero. Sos lo que hacés todos los días.' },
+}
+
 function isHoy(h: { dias_semana?: number[] | null }, dow: number): boolean {
   if (!h.dias_semana || h.dias_semana.length === 0) return true
   return h.dias_semana.includes(dow)
@@ -223,6 +234,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const [historialOpen, setHistorialOpen] = useState<string | null>(null)
+  const [logroVisible, setLogroVisible] = useState<number | null>(null)
 
   // Live stats
   const todayDow = new Date(today + 'T12:00:00').getDay()
@@ -301,6 +313,13 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   useEffect(() => {
     if (activeTab === 'mes' || activeTab === 'finanzas') loadMonthData()
   }, [activeTab, loadMonthData])
+
+  useEffect(() => {
+    if (racha === 0) return
+    const vistos: number[] = JSON.parse(localStorage.getItem(LOGRO_KEY) || '[]')
+    const matching = LOGRO_MILESTONES.find(m => m === racha && !vistos.includes(m))
+    if (matching !== undefined) setLogroVisible(matching)
+  }, [racha])
 
   async function toggleBool(habito: Habito) {
     const current = regMap[habito.id]?.valor_bool ?? false
@@ -701,7 +720,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   return (
     <>
-      <OnboardingTutorial />
+      <OnboardingTutorial onFinish={() => setActiveTab('habitos')} />
       {/* Tab nav */}
       <div style={{
         display: 'flex', gap: '0.2rem', padding: '0.25rem',
@@ -771,6 +790,29 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               })()}
             </div>
           </div>
+
+          {/* Share racha */}
+          {racha >= 7 && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-0.25rem' }}>
+              <button
+                onClick={() => {
+                  const text = `¡${racha} días de racha en Amauta Libre! 🔥 libre.amauta.cloud`
+                  if (typeof navigator !== 'undefined' && navigator.share) {
+                    navigator.share({ text }).catch(() => {})
+                  } else {
+                    navigator.clipboard?.writeText(text)
+                  }
+                }}
+                style={{
+                  background: 'transparent', border: '1px solid rgba(251,146,60,0.25)',
+                  color: '#fb923c', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer',
+                  padding: '0.3rem 0.75rem', borderRadius: '99px',
+                }}
+              >
+                📤 Compartir racha
+              </button>
+            </div>
+          )}
 
           {/* Habit list */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
@@ -1376,8 +1418,22 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             </div>
 
             {localHabitos.length === 0 && !showAddHabito && (
-              <div style={{ textAlign: 'center', padding: '1.5rem', color: '#4b5563', fontSize: '0.82rem' }}>
-                {t('tablero.habitos.sin_personales')}
+              <div style={{ textAlign: 'center', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '2.5rem' }}>✏️</span>
+                <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '0.95rem' }}>Aún no tenés hábitos</div>
+                <p style={{ color: '#6b7280', fontSize: '0.82rem', margin: 0, lineHeight: 1.6, maxWidth: '220px' }}>
+                  Un hábito al día transforma lo que sos. Empezá con uno.
+                </p>
+                <button
+                  onClick={() => setShowAddHabito(true)}
+                  style={{
+                    marginTop: '0.25rem', padding: '0.65rem 1.5rem', borderRadius: '10px', border: 'none',
+                    background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                    color: 'white', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer',
+                  }}
+                >
+                  + Agregar mi primer hábito
+                </button>
               </div>
             )}
 
@@ -2200,6 +2256,74 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} />
                   <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('tablero.habitos.sin_registro_legend')}</span>
                 </div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Logros — milestone modal */}
+      {logroVisible !== null && (() => {
+        const l = LOGRO_DATA[logroVisible] ?? { emoji: '🔥', titulo: `¡${logroVisible} días!`, desc: 'Seguís.' }
+        function dismissLogro() {
+          const vistos: number[] = JSON.parse(localStorage.getItem(LOGRO_KEY) || '[]')
+          localStorage.setItem(LOGRO_KEY, JSON.stringify([...vistos, logroVisible!]))
+          setLogroVisible(null)
+        }
+        return (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 200,
+            background: 'rgba(0,0,0,0.88)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '1.5rem',
+          }}>
+            <div style={{
+              width: '100%', maxWidth: '360px',
+              background: 'linear-gradient(160deg, #1a0f35 0%, #0f0a2e 100%)',
+              border: '1px solid rgba(251,146,60,0.4)',
+              borderRadius: '20px', padding: '2rem 1.75rem',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
+              textAlign: 'center',
+              boxShadow: '0 0 48px rgba(251,146,60,0.12)',
+            }}>
+              <div style={{ fontSize: '3.5rem', lineHeight: 1 }}>{l.emoji}</div>
+              <div>
+                <div style={{ color: '#fb923c', fontWeight: 800, fontSize: '1.3rem', marginBottom: '0.4rem' }}>{l.titulo}</div>
+                <p style={{ color: '#9ca3af', fontSize: '0.875rem', lineHeight: 1.65, margin: 0 }}>{l.desc}</p>
+              </div>
+              <div style={{
+                background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.25)',
+                borderRadius: '10px', padding: '0.5rem 1.25rem',
+                color: '#fb923c', fontWeight: 700, fontSize: '1.1rem',
+              }}>
+                🔥 {logroVisible} días
+              </div>
+              <div style={{ display: 'flex', gap: '0.625rem', width: '100%', marginTop: '0.25rem' }}>
+                <button
+                  onClick={() => {
+                    const text = `¡${logroVisible} días de racha en Amauta Libre! ${l.emoji} libre.amauta.cloud`
+                    if (typeof navigator !== 'undefined' && navigator.share) navigator.share({ text }).catch(() => {})
+                    else navigator.clipboard?.writeText(text)
+                    dismissLogro()
+                  }}
+                  style={{
+                    flex: 1, padding: '0.65rem', borderRadius: '10px',
+                    border: '1px solid rgba(251,146,60,0.3)', background: 'rgba(251,146,60,0.08)',
+                    color: '#fb923c', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                  }}
+                >
+                  📤 Compartir
+                </button>
+                <button
+                  onClick={dismissLogro}
+                  style={{
+                    flex: 1, padding: '0.65rem', borderRadius: '10px', border: 'none',
+                    background: 'linear-gradient(135deg, #fb923c, #f59e0b)',
+                    color: 'white', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
+                  }}
+                >
+                  ¡Gracias!
+                </button>
               </div>
             </div>
           </div>
