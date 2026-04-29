@@ -62,7 +62,8 @@ export default async function AdminPage() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
 
-  const today = dateStr(new Date())
+  const nowArg = new Date(Date.now() - 3 * 60 * 60 * 1000) // UTC-3 Argentina
+  const today = dateStr(nowArg)
   const hace7 = dateStr(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
   const hace14 = dateStr(new Date(Date.now() - 14 * 24 * 60 * 60 * 1000))
   const hace30 = dateStr(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
@@ -90,7 +91,7 @@ export default async function AdminPage() {
     admin.from('push_subscriptions').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
     admin.from('habitos').select('id, nombre, emoji, categoria, usuario_id').eq('activo', true),
     admin.from('educacion_estado').select('usuario_id, etapa_actual'),
-    admin.from('habito_registros').select('usuario_id, fecha').gte('fecha', hace90),
+    admin.from('habito_registros').select('usuario_id, fecha, valor_bool, valor_numero').gte('fecha', hace90),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     admin.from('habito_registros').select('usuario_id, habito_id').eq('fecha', today).limit(500),
     admin.from('soporte_mensajes').select('id, usuario_id, mensaje, categoria, creado_en').order('creado_en', { ascending: false }).limit(50).then(r => r.error ? { data: [] as { id: string; usuario_id: string; mensaje: string; categoria: string; creado_en: string }[] } : r),
@@ -208,17 +209,20 @@ export default async function AdminPage() {
     hoyPorUsuario[r.usuario_id].push(r)
   }
 
-  // Rachas para todos los usuarios
+  // Rachas para todos los usuarios — misma lógica que la app (al menos 1 hábito completado, UTC-3)
   const userDateSets: Record<string, Set<string>> = {}
-  for (const r of registros90) {
-    if (!userDateSets[r.usuario_id]) userDateSets[r.usuario_id] = new Set()
-    userDateSets[r.usuario_id].add(r.fecha)
+  for (const r of registros90 as { usuario_id: string; fecha: string; valor_bool: boolean | null; valor_numero: number | null }[]) {
+    const completado = r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)
+    if (completado) {
+      if (!userDateSets[r.usuario_id]) userDateSets[r.usuario_id] = new Set()
+      userDateSets[r.usuario_id].add(r.fecha)
+    }
   }
   const streakMap: Record<string, number> = {}
   for (const u of usuarios) {
     const fechas = userDateSets[u.id] ?? new Set<string>()
     let streak = 0
-    const d = new Date()
+    const d = new Date(Date.now() - 3 * 60 * 60 * 1000) // UTC-3 Argentina
     while (true) {
       const f = dateStr(d)
       if (!fechas.has(f)) break

@@ -43,7 +43,8 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
 
-  const today = dateStr(new Date())
+  const todayArg = dateStr(new Date(Date.now() - 3 * 60 * 60 * 1000)) // UTC-3 Argentina
+  const today = todayArg
   const hace30 = dateStr(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
   const hace90 = dateStr(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000))
 
@@ -58,7 +59,7 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
     tareasRes,
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email').eq('id', id).single(),
-    admin.from('habitos').select('id, nombre, emoji, categoria, activo, tipo').eq('usuario_id', id),
+    admin.from('habitos').select('id, nombre, emoji, categoria, activo, tipo, dias_semana').eq('usuario_id', id),
     admin.from('habito_registros').select('habito_id, fecha, valor_bool, valor_numero').eq('usuario_id', id).gte('fecha', hace90),
     admin.from('educacion_estado').select('etapa_actual, reflexion_inicial').eq('usuario_id', id).single(),
     admin.from('metas').select('meta30, meta90, meta180').eq('usuario_id', id).single(),
@@ -83,15 +84,33 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
 
   const isCompletado = (r: RegistroRow) => r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)
 
-  // Streak (días consecutivos con al menos 1 hábito completado)
-  const completadosPorFecha = new Set(registros90.filter(isCompletado).map(r => r.fecha))
-  let streak = 0
-  const streakD = new Date()
-  while (true) {
-    const f = dateStr(streakD)
-    if (!completadosPorFecha.has(f)) break
-    streak++
-    streakD.setDate(streakD.getDate() - 1)
+  // Streak — misma lógica que la app: respeta dias_semana + umbral 25% + UTC-3
+  type HabitoConDias = { id: string; nombre: string; emoji: string; categoria: string; activo: boolean; tipo: string; dias_semana: number[] | null }
+  const habitosActivos = (habitos as HabitoConDias[]).filter(h => h.activo)
+  const completadosPorFechaMap: Record<string, number> = {}
+  for (const r of registros90) {
+    if (isCompletado(r)) {
+      completadosPorFechaMap[r.fecha] = (completadosPorFechaMap[r.fecha] ?? 0) + 1
+    }
+  }
+  const esDiaBueno = (fecha: string) => {
+    const dow = new Date(fecha + 'T12:00:00').getDay()
+    const scheduled = habitosActivos.filter(h => !h.dias_semana || h.dias_semana.length === 0 || h.dias_semana.includes(dow))
+    if (scheduled.length === 0) return true
+    const threshold = Math.max(1, Math.ceil(scheduled.length * 0.25))
+    return (completadosPorFechaMap[fecha] ?? 0) >= threshold
+  }
+  const offsetDate = (base: string, daysBack: number) => {
+    const d = new Date(base + 'T12:00:00')
+    d.setDate(d.getDate() - daysBack)
+    return dateStr(d)
+  }
+  let streak = esDiaBueno(today) ? 1 : 0
+  if (streak === 1) {
+    for (let i = 1; i <= 90; i++) {
+      if (esDiaBueno(offsetDate(today, i))) streak++
+      else break
+    }
   }
 
   // Días activos en 90 días (al menos 1 hábito completado)
