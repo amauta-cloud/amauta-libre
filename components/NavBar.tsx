@@ -185,7 +185,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId, educacio
         {/* Avatar picker */}
         {pickingAvatar && (
           <div style={{ padding: '0.875rem', borderRadius: '12px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.15)' }}>
-            <div style={{ fontSize: '0.68rem', color: '#7c3aed', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.625rem' }}>Elegí tu personaje</div>
+            <div style={{ fontSize: '0.68rem', color: '#7c3aed', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.625rem' }}>{t('nav.elegir_avatar')}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
               {PRESET_AVATARS.map(p => (
                 <button

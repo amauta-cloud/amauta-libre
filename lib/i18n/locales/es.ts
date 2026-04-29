@@ -42,6 +42,7 @@ export const es = {
     eliminar_detalle: 'Vas a perder todos tus datos: hábitos, registros, finanzas, metas e historial. Esta acción no se puede deshacer.',
     privacidad: 'Privacidad',
     terminos: 'Términos',
+    elegir_avatar: 'Elegí tu personaje',
   },
   common: {
     loading: 'Un momento...',
@@ -59,6 +60,19 @@ export const es = {
       fallback: 'Tablero del día',
     },
     tabs: { hoy: 'Hoy', mes: 'Mes', habitos: 'Hábitos', metas: 'Metas', finanzas: 'Finanzas' },
+    mini: {
+      tareas: 'Tareas',
+      educacion: 'Aprendizaje',
+      paso_n: 'Paso {n}',
+      sin_iniciar: 'sin iniciar',
+      en_curso: 'en curso',
+      meta_mes: 'Meta del mes',
+      meta_cta: 'Definí tu meta del mes →',
+      tarea_vencidas: '{n} vencida{s}',
+      tarea_hoy: '{n} para hoy',
+      al_dia: 'Al día ✓',
+      tarea_pendientes: '{n} pendiente{s}',
+    },
     hoy: {
       habitos: 'hábitos',
       perfect: '¡Día perfecto! 🏆',
@@ -286,6 +300,8 @@ export const es = {
     guardar: 'Guardar mis metas →',
     guardar_hint: 'Escribí al menos una meta para guardar.',
     guardado_toast: 'Metas guardadas. Vamos.',
+    error_carga: 'No se pudo cargar tu información. Revisá tu conexión e intentá de nuevo.',
+    reintentar: 'Reintentar',
   },
   educacion: {
     titulo: '📚 Aprendizaje',

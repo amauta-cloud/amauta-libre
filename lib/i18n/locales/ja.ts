@@ -44,6 +44,7 @@ export const ja: typeof es = {
     eliminar_detalle: 'すべてのデータ（習慣、記録、財務、目標、履歴）が削除されます。この操作は元に戻せません。',
     privacidad: 'プライバシー',
     terminos: '利用規約',
+    elegir_avatar: 'キャラクターを選んでください',
   },
   common: {
     loading: '少々お待ちください...',
@@ -61,6 +62,19 @@ export const ja: typeof es = {
       fallback: '今日のダッシュボード',
     },
     tabs: { hoy: '今日', mes: '今月', habitos: '習慣', metas: '目標', finanzas: '財務' },
+    mini: {
+      tareas: 'タスク',
+      educacion: '学習',
+      paso_n: 'ステップ {n}',
+      sin_iniciar: '未開始',
+      en_curso: '進行中',
+      meta_mes: '今月の目標',
+      meta_cta: '今月の目標を設定する →',
+      tarea_vencidas: '{n}件期限切れ',
+      tarea_hoy: '今日{n}件',
+      al_dia: '完了 ✓',
+      tarea_pendientes: '{n}件保留中',
+    },
     hoy: {
       habitos: '習慣',
       perfect: '完璧な一日！🏆',
@@ -288,6 +302,8 @@ export const ja: typeof es = {
     guardar: '目標を保存する →',
     guardar_hint: '少なくとも一つの目標を入力してください。',
     guardado_toast: '目標を保存しました。さあ行こう。',
+    error_carga: '情報を読み込めませんでした。接続を確認して再試行してください。',
+    reintentar: '再試行',
   },
   educacion: {
     titulo: '📚 教育',

@@ -1,8 +1,8 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import TablizableClient from './TablizableClient'
+import TableroMiniCards from './TableroMiniCards'
 import SaludoHeader from '@/components/SaludoHeader'
 import DiaHeader from '@/components/DiaHeader'
 
@@ -110,9 +110,6 @@ export default async function TablizablePage() {
   const tareasVencidas = tareas.filter(t => t.fecha_limite && t.fecha_limite < today).length
   const tareasHoy = tareas.filter(t => t.fecha_limite === today).length
   const tareasTotales = tareas.length
-  const tareaColor = tareasVencidas > 0 ? '#ef4444' : tareasHoy > 0 ? '#f59e0b' : tareasHoy === 0 && tareasTotales === 0 ? '#10b981' : '#f472b6'
-  const tareaLabel = tareasVencidas > 0 ? `${tareasVencidas} vencida${tareasVencidas > 1 ? 's' : ''}` : tareasHoy > 0 ? `${tareasHoy} para hoy` : tareasTotales === 0 ? 'Al día ✓' : `${tareasTotales} pendiente${tareasTotales > 1 ? 's' : ''}`
-
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto', padding: '1.5rem 1rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
@@ -120,58 +117,13 @@ export default async function TablizablePage() {
         <SaludoHeader nombre={nombre} />
       </div>
 
-      {/* Mini stats — clickeable */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
-        <Link href="/planificacion?tab=tareas" style={{ textDecoration: 'none' }}>
-          <div style={{
-            background: '#1a1730', borderRadius: '12px',
-            border: `1px solid ${tareasVencidas > 0 ? 'rgba(239,68,68,0.2)' : 'rgba(139,92,246,0.1)'}`,
-            padding: '0.875rem 1rem', cursor: 'pointer', transition: 'border-color 0.2s',
-          }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>Tareas</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
-              <span style={{ fontSize: '1.4rem', fontWeight: 700, color: tareaColor }}>{tareasTotales === 0 ? '✓' : tareasTotales}</span>
-              <span style={{ fontSize: '0.72rem', color: tareaColor }}>{tareaLabel}</span>
-            </div>
-          </div>
-        </Link>
-
-        <Link href="/educacion" style={{ textDecoration: 'none' }}>
-          <div style={{
-            background: '#1a1730', borderRadius: '12px', border: '1px solid rgba(139,92,246,0.1)',
-            padding: '0.875rem 1rem', cursor: 'pointer', transition: 'border-color 0.2s',
-          }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>Educación</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
-              <span style={{ fontSize: '1.4rem', fontWeight: 700, color: '#60a5fa' }}>
-                {educacionPaso >= 16 ? '🏆' : educacionPaso > 0 ? `Paso ${educacionPaso}` : '—'}
-              </span>
-              {educacionPaso === 0 && (
-                <span style={{ fontSize: '0.72rem', color: '#4b5563' }}>sin iniciar</span>
-              )}
-              {educacionPaso > 0 && educacionPaso < 16 && (
-                <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>en curso</span>
-              )}
-            </div>
-          </div>
-        </Link>
-      </div>
-
-      {/* Meta del mes */}
-      <Link href="/metas" style={{ textDecoration: 'none', display: 'block', marginBottom: '1rem' }}>
-        <div style={{
-          background: meta30 ? 'rgba(16,185,129,0.06)' : '#1a1730',
-          border: `1px solid ${meta30 ? 'rgba(16,185,129,0.2)' : 'rgba(139,92,246,0.1)'}`,
-          borderRadius: '12px', padding: '0.875rem 1rem', cursor: 'pointer', transition: 'border-color 0.2s',
-        }}>
-          <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>⚓ Meta del mes</div>
-          <div style={{ color: meta30 ? '#6ee7b7' : '#4b5563', fontSize: '0.85rem', fontWeight: meta30 ? 500 : 400 }}>
-            {meta30
-              ? (meta30.length > 80 ? meta30.slice(0, 80) + '...' : meta30)
-              : 'Definí tu meta del mes →'}
-          </div>
-        </div>
-      </Link>
+      <TableroMiniCards
+        tareasVencidas={tareasVencidas}
+        tareasHoy={tareasHoy}
+        tareasTotales={tareasTotales}
+        educacionPaso={educacionPaso}
+        meta30={meta30}
+      />
 
       {/* Tablero completo */}
       <TablizableClient

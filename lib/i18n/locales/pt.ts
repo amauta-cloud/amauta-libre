@@ -44,6 +44,7 @@ export const pt: typeof es = {
     eliminar_detalle: 'Você perderá todos os seus dados: hábitos, registros, finanças, metas e histórico. Isso não pode ser desfeito.',
     privacidad: 'Privacidade',
     terminos: 'Termos',
+    elegir_avatar: 'Escolha seu personagem',
   },
   common: {
     loading: 'Um momento...',
@@ -61,6 +62,19 @@ export const pt: typeof es = {
       fallback: 'Painel do dia',
     },
     tabs: { hoy: 'Hoje', mes: 'Mês', habitos: 'Hábitos', metas: 'Metas', finanzas: 'Finanças' },
+    mini: {
+      tareas: 'Tarefas',
+      educacion: 'Aprendizado',
+      paso_n: 'Etapa {n}',
+      sin_iniciar: 'não iniciado',
+      en_curso: 'em andamento',
+      meta_mes: 'Meta do mês',
+      meta_cta: 'Defina sua meta do mês →',
+      tarea_vencidas: '{n} atrasada{s}',
+      tarea_hoy: '{n} para hoje',
+      al_dia: 'Em dia ✓',
+      tarea_pendientes: '{n} pendente{s}',
+    },
     hoy: {
       habitos: 'hábitos',
       perfect: 'Dia perfeito! 🏆',
@@ -288,6 +302,8 @@ export const pt: typeof es = {
     guardar: 'Salvar minhas metas →',
     guardar_hint: 'Escreva pelo menos uma meta para salvar.',
     guardado_toast: 'Metas salvas. Vamos.',
+    error_carga: 'Não foi possível carregar suas informações. Verifique sua conexão e tente novamente.',
+    reintentar: 'Tentar novamente',
   },
   educacion: {
     titulo: '📚 Educação',

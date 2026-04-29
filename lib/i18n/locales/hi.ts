@@ -44,6 +44,7 @@ export const hi: typeof es = {
     eliminar_detalle: 'आप अपना सारा डेटा खो देंगे: आदतें, रिकॉर्ड, वित्त, लक्ष्य और इतिहास। यह क्रिया पूर्ववत नहीं की जा सकती।',
     privacidad: 'गोपनीयता',
     terminos: 'नियम',
+    elegir_avatar: 'अपना पात्र चुनें',
   },
   common: {
     loading: 'एक पल...',
@@ -61,6 +62,19 @@ export const hi: typeof es = {
       fallback: 'आज का डैशबोर्ड',
     },
     tabs: { hoy: 'आज', mes: 'महीना', habitos: 'आदतें', metas: 'लक्ष्य', finanzas: 'वित्त' },
+    mini: {
+      tareas: 'कार्य',
+      educacion: 'सीखना',
+      paso_n: 'चरण {n}',
+      sin_iniciar: 'शुरू नहीं',
+      en_curso: 'जारी है',
+      meta_mes: 'माह का लक्ष्य',
+      meta_cta: 'माह का लक्ष्य तय करें →',
+      tarea_vencidas: '{n} विलंबित',
+      tarea_hoy: '{n} आज के लिए',
+      al_dia: 'अपडेट ✓',
+      tarea_pendientes: '{n} लंबित',
+    },
     hoy: {
       habitos: 'आदतें',
       perfect: 'परफेक्ट दिन! 🏆',
@@ -288,6 +302,8 @@ export const hi: typeof es = {
     guardar: 'मेरे लक्ष्य सहेजें →',
     guardar_hint: 'सहेजने के लिए कम से कम एक लक्ष्य लिखें।',
     guardado_toast: 'लक्ष्य सहेजे गए। चलते हैं।',
+    error_carga: 'आपकी जानकारी लोड नहीं हो सकी। अपना कनेक्शन जांचें और दोबारा कोशिश करें।',
+    reintentar: 'पुनः प्रयास करें',
   },
   educacion: {
     titulo: '📚 शिक्षा',

@@ -44,6 +44,7 @@ export const ar: typeof es = {
     eliminar_detalle: 'ستفقد جميع بياناتك: العادات والسجلات والمالية والأهداف والتاريخ. لا يمكن التراجع عن هذا الإجراء.',
     privacidad: 'الخصوصية',
     terminos: 'الشروط',
+    elegir_avatar: 'اختر شخصيتك',
   },
   common: {
     loading: 'لحظة...',
@@ -61,6 +62,19 @@ export const ar: typeof es = {
       fallback: 'لوحة اليوم',
     },
     tabs: { hoy: 'اليوم', mes: 'الشهر', habitos: 'العادات', metas: 'الأهداف', finanzas: 'المالية' },
+    mini: {
+      tareas: 'المهام',
+      educacion: 'التعلم',
+      paso_n: 'خطوة {n}',
+      sin_iniciar: 'لم تبدأ',
+      en_curso: 'قيد التنفيذ',
+      meta_mes: 'هدف الشهر',
+      meta_cta: 'حدد هدف الشهر →',
+      tarea_vencidas: '{n} متأخرة',
+      tarea_hoy: '{n} لليوم',
+      al_dia: 'على المسار ✓',
+      tarea_pendientes: '{n} معلقة',
+    },
     hoy: {
       habitos: 'عادات',
       perfect: 'يوم مثالي! 🏆',
@@ -288,6 +302,8 @@ export const ar: typeof es = {
     guardar: 'حفظ أهدافي →',
     guardar_hint: 'اكتب هدفاً واحداً على الأقل للحفظ.',
     guardado_toast: 'تم حفظ الأهداف. هيّا نبدأ.',
+    error_carga: 'تعذّر تحميل معلوماتك. تحقق من اتصالك وحاول مجددًا.',
+    reintentar: 'إعادة المحاولة',
   },
   educacion: {
     titulo: '📚 التعليم',

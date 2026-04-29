@@ -44,6 +44,7 @@ export const id: typeof es = {
     eliminar_detalle: 'Anda akan kehilangan semua data: kebiasaan, catatan, keuangan, tujuan, dan riwayat. Tindakan ini tidak dapat dibatalkan.',
     privacidad: 'Privasi',
     terminos: 'Syarat',
+    elegir_avatar: 'Pilih karakter Anda',
   },
   common: {
     loading: 'Sebentar...',
@@ -61,6 +62,19 @@ export const id: typeof es = {
       fallback: 'Dasbor hari ini',
     },
     tabs: { hoy: 'Hari ini', mes: 'Bulan', habitos: 'Kebiasaan', metas: 'Tujuan', finanzas: 'Keuangan' },
+    mini: {
+      tareas: 'Tugas',
+      educacion: 'Belajar',
+      paso_n: 'Langkah {n}',
+      sin_iniciar: 'belum mulai',
+      en_curso: 'sedang berjalan',
+      meta_mes: 'Target bulan ini',
+      meta_cta: 'Tentukan target bulan ini →',
+      tarea_vencidas: '{n} terlambat',
+      tarea_hoy: '{n} untuk hari ini',
+      al_dia: 'Semuanya beres ✓',
+      tarea_pendientes: '{n} tertunda',
+    },
     hoy: {
       habitos: 'kebiasaan',
       perfect: 'Hari sempurna! 🏆',
@@ -288,6 +302,8 @@ export const id: typeof es = {
     guardar: 'Simpan tujuanku →',
     guardar_hint: 'Tulis setidaknya satu tujuan untuk disimpan.',
     guardado_toast: 'Tujuan tersimpan. Ayo.',
+    error_carga: 'Tidak dapat memuat informasi Anda. Periksa koneksi dan coba lagi.',
+    reintentar: 'Coba lagi',
   },
   educacion: {
     titulo: '📚 Pendidikan',

@@ -80,7 +80,7 @@ export default function MetasClient({ userId }: { userId: string }) {
       <div style={{ maxWidth: '400px', width: '100%', textAlign: 'center' }}>
         <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⚠️</div>
         <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-          No se pudo cargar tu información. Revisá tu conexión e intentá de nuevo.
+          {t('metas.error_carga')}
         </p>
         <button
           onClick={() => setRetryCount(c => c + 1)}
@@ -90,7 +90,7 @@ export default function MetasClient({ userId }: { userId: string }) {
             color: '#fff', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
           }}
         >
-          Reintentar
+          {t('metas.reintentar')}
         </button>
       </div>
     </div>

@@ -44,6 +44,7 @@ export const fr: typeof es = {
     eliminar_detalle: 'Vous allez perdre toutes vos données : habitudes, enregistrements, finances, objectifs et historique. Cette action est irréversible.',
     privacidad: 'Confidentialité',
     terminos: 'Conditions',
+    elegir_avatar: 'Choisissez votre personnage',
   },
   common: {
     loading: 'Un instant...',
@@ -61,6 +62,19 @@ export const fr: typeof es = {
       fallback: 'Tableau de bord',
     },
     tabs: { hoy: "Aujourd'hui", mes: 'Mois', habitos: 'Habitudes', metas: 'Objectifs', finanzas: 'Finances' },
+    mini: {
+      tareas: 'Tâches',
+      educacion: 'Apprentissage',
+      paso_n: 'Étape {n}',
+      sin_iniciar: 'non commencé',
+      en_curso: 'en cours',
+      meta_mes: "Objectif du mois",
+      meta_cta: "Définir mon objectif du mois →",
+      tarea_vencidas: '{n} en retard',
+      tarea_hoy: "{n} pour aujourd'hui",
+      al_dia: 'À jour ✓',
+      tarea_pendientes: '{n} en attente',
+    },
     hoy: {
       habitos: 'habitudes',
       perfect: 'Journée parfaite ! 🏆',
@@ -288,6 +302,8 @@ export const fr: typeof es = {
     guardar: 'Enregistrer mes objectifs →',
     guardar_hint: 'Écrivez au moins un objectif pour enregistrer.',
     guardado_toast: 'Objectifs enregistrés. Allons-y.',
+    error_carga: 'Impossible de charger vos informations. Vérifiez votre connexion et réessayez.',
+    reintentar: 'Réessayer',
   },
   educacion: {
     titulo: '📚 Éducation',

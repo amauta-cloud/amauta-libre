@@ -44,6 +44,7 @@ export const zh: typeof es = {
     eliminar_detalle: '您将失去所有数据：习惯、记录、财务、目标和历史。此操作无法撤销。',
     privacidad: '隐私',
     terminos: '条款',
+    elegir_avatar: '选择您的角色',
   },
   common: {
     loading: '请稍候...',
@@ -61,6 +62,19 @@ export const zh: typeof es = {
       fallback: '今日看板',
     },
     tabs: { hoy: '今天', mes: '本月', habitos: '习惯', metas: '目标', finanzas: '财务' },
+    mini: {
+      tareas: '任务',
+      educacion: '学习',
+      paso_n: '步骤 {n}',
+      sin_iniciar: '未开始',
+      en_curso: '进行中',
+      meta_mes: '本月目标',
+      meta_cta: '设定本月目标 →',
+      tarea_vencidas: '{n}项逾期',
+      tarea_hoy: '今天{n}项',
+      al_dia: '一切正常 ✓',
+      tarea_pendientes: '{n}项待处理',
+    },
     hoy: {
       habitos: '个习惯',
       perfect: '完美的一天！🏆',
@@ -288,6 +302,8 @@ export const zh: typeof es = {
     guardar: '保存我的目标 →',
     guardar_hint: '至少写一个目标才能保存。',
     guardado_toast: '目标已保存。出发吧。',
+    error_carga: '无法加载您的信息。请检查连接后重试。',
+    reintentar: '重试',
   },
   educacion: {
     titulo: '📚 教育',

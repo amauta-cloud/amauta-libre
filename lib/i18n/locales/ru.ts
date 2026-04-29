@@ -44,6 +44,7 @@ export const ru: typeof es = {
     eliminar_detalle: 'Вы потеряете все данные: привычки, записи, финансы, цели и историю. Это действие нельзя отменить.',
     privacidad: 'Конфиденциальность',
     terminos: 'Условия',
+    elegir_avatar: 'Выберите персонажа',
   },
   common: {
     loading: 'Минуту...',
@@ -61,6 +62,19 @@ export const ru: typeof es = {
       fallback: 'Панель дня',
     },
     tabs: { hoy: 'Сегодня', mes: 'Месяц', habitos: 'Привычки', metas: 'Цели', finanzas: 'Финансы' },
+    mini: {
+      tareas: 'Задачи',
+      educacion: 'Обучение',
+      paso_n: 'Шаг {n}',
+      sin_iniciar: 'не начато',
+      en_curso: 'в процессе',
+      meta_mes: 'Цель месяца',
+      meta_cta: 'Определить цель месяца →',
+      tarea_vencidas: '{n} просрочена',
+      tarea_hoy: '{n} на сегодня',
+      al_dia: 'Всё в порядке ✓',
+      tarea_pendientes: '{n} на очереди',
+    },
     hoy: {
       habitos: 'привычки',
       perfect: 'Идеальный день! 🏆',
@@ -288,6 +302,8 @@ export const ru: typeof es = {
     guardar: 'Сохранить мои цели →',
     guardar_hint: 'Напишите хотя бы одну цель для сохранения.',
     guardado_toast: 'Цели сохранены. Вперёд.',
+    error_carga: 'Не удалось загрузить информацию. Проверьте соединение и попробуйте снова.',
+    reintentar: 'Повторить',
   },
   educacion: {
     titulo: '📚 Образование',

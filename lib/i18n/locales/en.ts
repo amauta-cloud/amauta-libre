@@ -44,6 +44,7 @@ export const en: typeof es = {
     eliminar_detalle: "You'll lose all your data: habits, records, finances, goals and history. This cannot be undone.",
     privacidad: 'Privacy',
     terminos: 'Terms',
+    elegir_avatar: 'Choose your character',
   },
   common: {
     loading: 'One moment...',
@@ -61,6 +62,19 @@ export const en: typeof es = {
       fallback: "Today's dashboard",
     },
     tabs: { hoy: 'Today', mes: 'Month', habitos: 'Habits', metas: 'Goals', finanzas: 'Finances' },
+    mini: {
+      tareas: 'Tasks',
+      educacion: 'Learning',
+      paso_n: 'Step {n}',
+      sin_iniciar: 'not started',
+      en_curso: 'in progress',
+      meta_mes: 'Monthly goal',
+      meta_cta: 'Define your monthly goal →',
+      tarea_vencidas: '{n} overdue',
+      tarea_hoy: '{n} due today',
+      al_dia: 'All clear ✓',
+      tarea_pendientes: '{n} pending',
+    },
     hoy: {
       habitos: 'habits',
       perfect: 'Perfect day! 🏆',
@@ -288,6 +302,8 @@ export const en: typeof es = {
     guardar: 'Save my goals →',
     guardar_hint: 'Write at least one goal to save.',
     guardado_toast: 'Goals saved. Let\'s go.',
+    error_carga: 'Could not load your information. Check your connection and try again.',
+    reintentar: 'Retry',
   },
   educacion: {
     titulo: '📚 Education',
