@@ -983,12 +983,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       }}>{done ? '✓' : ''}</button>
                     )}
                     <button onClick={() => setNotaOpen(notaOpen === h.id ? null : h.id)}
-                      title="Agregar nota"
+                      title={t('tablero.hoy.nota_title')}
                       style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: notaInputs[h.id] ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.04)', color: notaInputs[h.id] ? '#a78bfa' : '#4b5563', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       📝
                     </button>
                     <button onClick={() => setHistorialOpen(h.id)}
-                      title="Ver historial"
+                      title={t('tablero.hoy.historial_title')}
                       style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.04)', color: '#4b5563', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       📊
                     </button>
@@ -1511,9 +1511,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             {localHabitos.length === 0 && !showAddHabito && (
               <div style={{ textAlign: 'center', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
                 <span style={{ fontSize: '2.5rem' }}>✏️</span>
-                <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '0.95rem' }}>Aún no tenés hábitos</div>
+                <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '0.95rem' }}>{t('tablero.habitos.empty_titulo')}</div>
                 <p style={{ color: '#6b7280', fontSize: '0.82rem', margin: 0, lineHeight: 1.6, maxWidth: '220px' }}>
-                  Un hábito al día transforma lo que sos. Empezá con uno.
+                  {t('tablero.habitos.empty_desc')}
                 </p>
                 <button
                   onClick={() => setShowAddHabito(true)}
@@ -1523,7 +1523,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     color: 'white', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer',
                   }}
                 >
-                  + Agregar mi primer hábito
+                  + {t('tablero.habitos.empty_cta')}
                 </button>
               </div>
             )}

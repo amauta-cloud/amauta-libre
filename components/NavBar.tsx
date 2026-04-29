@@ -152,7 +152,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId, educacio
             <button
               onClick={() => setPickingAvatar(o => !o)}
               style={{ position: 'absolute', bottom: -2, right: -2, width: '18px', height: '18px', borderRadius: '50%', background: '#1a1730', border: '1px solid rgba(139,92,246,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.6rem', padding: 0 }}
-              title="Cambiar avatar"
+              title={t('nav.avatar_title')}
             >
               ✏️
             </button>
