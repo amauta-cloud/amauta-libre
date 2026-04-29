@@ -164,7 +164,7 @@ export default function EducacionClient({
         <div style={{ marginBottom: '1.75rem' }}>
           <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{t('educacion.titulo')}</h1>
           <p style={{ margin: '0.2rem 0 0', fontSize: '0.78rem', color: '#6b7280' }}>
-            {paso === 0 ? t('educacion.hola', { name: nombre }).trim() : t('educacion.paso_progreso', { paso, total: totalPasos, name: nombre }).trim()}
+            {paso === 0 ? t('educacion.hola', { name: nombre }).trim() : t('educacion.paso_progreso', { paso, total: totalPasos, name: etapasPorOrden[paso]?.titulo ?? nombre }).trim()}
           </p>
         </div>
 
@@ -190,6 +190,14 @@ export default function EducacionClient({
                 <li key={i} style={{ fontSize: '0.74rem', color: '#9ca3af', lineHeight: 1.4 }}>{titulo}</li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* ── INTRO MOTIVACIONAL ── */}
+        {paso === 0 && (
+          <div style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.18)', borderRadius: '12px', padding: '1rem 1.25rem', marginBottom: '1.25rem' }}>
+            <p style={{ margin: '0 0 0.25rem', fontSize: '0.9rem', fontWeight: 700, color: '#c4b5fd' }}>{t('educacion.intro_titulo')}</p>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: '#6b7280', lineHeight: 1.55 }}>{t('educacion.intro_desc')}</p>
           </div>
         )}
 

@@ -1045,6 +1045,21 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             )
           })()}
 
+          {/* Finanzas nudge */}
+          {finanzaItems.length === 0 && (
+            <div style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: '12px', padding: '0.875rem 1.125rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 500 }}>{t('tablero.hoy.finanzas_nudge')}</span>
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                <button onClick={() => setItemTipo('ingreso')} style={{ padding: '0.35rem 0.75rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'rgba(16,185,129,0.15)', color: '#10b981', fontSize: '0.75rem', fontWeight: 700 }}>
+                  {t('tablero.hoy.ingreso_btn')}
+                </button>
+                <button onClick={() => setItemTipo('gasto')} style={{ padding: '0.35rem 0.75rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.12)', color: '#ef4444', fontSize: '0.75rem', fontWeight: 700 }}>
+                  {t('tablero.hoy.gasto_btn')}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Finanzas */}
           <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
             <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.875rem' }}>{t('tablero.hoy.movimientos')}</div>
