@@ -49,13 +49,6 @@ function dateStrOffset(today: string, daysBack: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-function getDiaLabel() {
-  const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-  const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
-  const d = new Date()
-  return `${dias[d.getDay()]}, ${d.getDate()} ${meses[d.getMonth()]}`
-}
-
 
 function calcularRacha(historial: RegistroHistorial[], habitos: Habito[], today: string): number {
   if (habitos.length === 0) return 0

@@ -93,7 +93,7 @@ export default async function AdminPage() {
     admin.from('educacion_estado').select('usuario_id, etapa_actual'),
     admin.from('habito_registros').select('usuario_id, fecha, valor_bool, valor_numero').gte('fecha', hace90),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
-    admin.from('habito_registros').select('usuario_id, habito_id').eq('fecha', today).limit(500),
+    admin.from('habito_registros').select('usuario_id, habito_id, valor_bool, valor_numero').eq('fecha', today).limit(500),
     admin.from('soporte_mensajes').select('id, usuario_id, mensaje, categoria, creado_en').order('creado_en', { ascending: false }).limit(50).then(r => r.error ? { data: [] as { id: string; usuario_id: string; mensaje: string; categoria: string; creado_en: string }[] } : r),
     admin.from('finanzas_items').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
     admin.from('metas').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
@@ -200,11 +200,13 @@ export default async function AdminPage() {
     habitosMap[h.id] = { nombre: h.nombre, emoji: h.emoji }
   }
 
-  // Registros completados hoy por usuario
-  type RegRow = { usuario_id: string; habito_id: string }
+  // Registros completados hoy por usuario (solo completados reales)
+  type RegRow = { usuario_id: string; habito_id: string; valor_bool: boolean | null; valor_numero: number | null }
   const registrosHoy = ((registrosHoyRes as any).data ?? []) as RegRow[]
   const hoyPorUsuario: Record<string, RegRow[]> = {}
   for (const r of registrosHoy) {
+    const completado = r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)
+    if (!completado) continue
     if (!hoyPorUsuario[r.usuario_id]) hoyPorUsuario[r.usuario_id] = []
     hoyPorUsuario[r.usuario_id].push(r)
   }
@@ -270,7 +272,7 @@ export default async function AdminPage() {
               Amauta Libre — Admin
             </p>
             <h1 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>Panel de control</h1>
-            <p style={{ color: '#4b5563', fontSize: '0.78rem', marginTop: '0.25rem' }}>{today} · <span style={{ color: '#6b7280' }}>v1.18.0</span></p>
+            <p style={{ color: '#4b5563', fontSize: '0.78rem', marginTop: '0.25rem' }}>{today} · <span style={{ color: '#6b7280' }}>v1.20.0</span></p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem', flexShrink: 0 }}>
             <AdminPushButton totalSubs={pushSubs} />

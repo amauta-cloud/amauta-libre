@@ -113,7 +113,7 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
   }
 
   // Días activos en 90 días (al menos 1 hábito completado)
-  const diasActivos90 = completadosPorFecha.size
+  const diasActivos90 = Object.keys(completadosPorFechaMap).length
 
   // Actividad diaria (30 días) - para el chart
   const dauArray: { fecha: string; label: string; completado: number; total: number }[] = []
