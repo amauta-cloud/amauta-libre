@@ -379,17 +379,17 @@ export default function EducacionClient({
                     Amauta Cloud
                   </div>
                   <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '1rem', marginBottom: '0.625rem', lineHeight: 1.3 }}>
-                    Quiero conocerte — trabajemos juntos
+                    {t('educacion.amauta_cloud_titulo')}
                   </div>
                   <p style={{ margin: '0 0 1rem', fontSize: '0.82rem', color: '#9ca3af', lineHeight: 1.65 }}>
-                    Llegaste hasta acá porque sos de los pocos que realmente buscan crecer. Escribime, quiero conocer tu historia y ver cómo puedo acompañarte.
+                    {t('educacion.amauta_cloud_desc')}
                   </p>
                   <span style={{
                     display: 'inline-block', padding: '0.55rem 1.1rem', borderRadius: '8px',
                     background: 'rgba(139,92,246,0.18)', border: '1px solid rgba(139,92,246,0.35)',
                     color: '#a78bfa', fontWeight: 700, fontSize: '0.82rem',
                   }}>
-                    Ir a Amauta Cloud →
+                    {t('educacion.amauta_cloud_btn')}
                   </span>
                 </a>
               </>

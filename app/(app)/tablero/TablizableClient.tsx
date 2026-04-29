@@ -113,28 +113,15 @@ function catColor(cat?: string | null): string {
   return CATEGORIAS.find(c => c.id === (cat ?? null))?.color ?? '#6b7280'
 }
 
-const DIAS_CORTOS = ['D','L','M','M','J','V','S']
-const DIAS_LABELS = ['Do','Lu','Ma','Mi','Ju','Vi','Sá']
-
 const LOGRO_MILESTONES = [7, 21, 66, 100, 180, 365]
 const LOGRO_KEY = 'amauta_logros_vistos'
-const LOGRO_DATA: Record<number, { emoji: string; titulo: string; desc: string }> = {
-  7:   { emoji: '🔥', titulo: '¡Primera semana!',   desc: '7 días seguidos. Ya no es un intento, es un hábito.' },
-  21:  { emoji: '🚀', titulo: '¡21 días!',           desc: 'Tres semanas sin parar. El sistema ya forma parte de vos.' },
-  66:  { emoji: '🏆', titulo: '¡66 días!',           desc: 'Se dice que a los 66 días un hábito se automatiza. Llegaste.' },
-  100: { emoji: '💯', titulo: '¡100 días!',          desc: '100 días de compromiso con vos mismo. Eso es extraordinario.' },
-  180: { emoji: '🌟', titulo: '¡6 meses!',           desc: 'Medio año. La mayoría no llega ni a la primera semana.' },
-  365: { emoji: '👑', titulo: '¡Un año completo!',   desc: 'Un año entero. Sos lo que hacés todos los días.' },
+const LOGRO_EMOJIS: Record<number, string> = {
+  7: '🔥', 21: '🚀', 66: '🏆', 100: '💯', 180: '🌟', 365: '👑',
 }
 
 function isHoy(h: { dias_semana?: number[] | null }, dow: number): boolean {
   if (!h.dias_semana || h.dias_semana.length === 0) return true
   return h.dias_semana.includes(dow)
-}
-
-function frecuenciaLabel(dias?: number[] | null): string {
-  if (!dias || dias.length === 0) return ''
-  return [...dias].sort((a, b) => a - b).map(d => DIAS_LABELS[d]).join(' ')
 }
 
 export default function TablizableClient({ habitos, regMap: initialRegMap, userId, today, racha, metas, historial, nombre = '' }: {
@@ -150,6 +137,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const supabase = createClient()
   const { t, locale } = useLocale()
   const fmt = (n: number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n)
+  const catLabel = (id: string | null): string => {
+    if (id === 'salud') return t('tablero.cat.salud')
+    if (id === 'mente') return t('tablero.cat.mente')
+    if (id === 'dinero') return t('tablero.cat.dinero')
+    if (id === 'aprender') return t('tablero.cat.aprender')
+    if (id === 'social') return t('tablero.cat.social')
+    return t('tablero.cat.general')
+  }
 
   const [regMap, setRegMap] = useState(initialRegMap)
   const [liveHistorial, setLiveHistorial] = useState<HistorialReg[]>(historial)
@@ -870,9 +865,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     const blob = await res.blob()
                     const file = new File([blob], 'racha-amauta.png', { type: 'image/png' })
                     if (typeof navigator !== 'undefined' && navigator.canShare?.({ files: [file] })) {
-                      await navigator.share({ files: [file], title: `🔥 ${racha} días de racha`, text: 'Amauta Libre · libre.amauta.cloud' })
+                      await navigator.share({ files: [file], title: t('tablero.hoy.share_racha_title', { n: racha }), text: 'Amauta Libre · libre.amauta.cloud' })
                     } else if (typeof navigator !== 'undefined' && navigator.share) {
-                      await navigator.share({ title: `🔥 ${racha} días de racha`, text: `¡${racha} días seguidos con Amauta Libre!`, url: 'https://libre.amauta.cloud' })
+                      await navigator.share({ title: t('tablero.hoy.share_racha_title', { n: racha }), text: t('tablero.hoy.share_racha_text', { n: racha }), url: 'https://libre.amauta.cloud' })
                     } else {
                       window.open(imgUrl, '_blank')
                     }
@@ -890,7 +885,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   opacity: sharingRacha ? 0.6 : 1,
                 }}
               >
-                {sharingRacha ? '⏳ Generando...' : '📤 Compartir racha'}
+                {sharingRacha ? t('tablero.hoy.generando_racha') : t('tablero.hoy.compartir_racha')}
               </button>
             </div>
           )}
@@ -1306,7 +1301,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 {[
                   { label: t('tablero.mes.eficiencia'), value: `${eficienciaPromedio}%`, color: '#a78bfa', sub: t('tablero.mes.dias_registrados', { n: totalDias }), subColor: '#4b5563' },
-                  { label: t('tablero.mes.racha_actual'), value: `${racha} días`, color: '#F5C518', sub: racha > 0 ? '🔥' : t('tablero.mes.sin_racha'), subColor: '#4b5563' },
+                  { label: t('tablero.mes.racha_actual'), value: t('tablero.mes.racha_dias', { n: racha }), color: '#F5C518', sub: racha > 0 ? '🔥' : t('tablero.mes.sin_racha'), subColor: '#4b5563' },
                   { label: t('tablero.mes.ingresos'), value: fmt(totalIngresos), color: '#10b981', sub: totalGastos > 0 ? `📉 ${fmt(totalGastos)}` : t('tablero.mes.total_mes'), subColor: totalGastos > 0 ? '#ef4444' : '#4b5563' },
                   { label: t('tablero.mes.resultado'), value: (profit > 0 ? '+' : '') + fmt(profit), color: profit >= 0 ? '#10b981' : '#ef4444', sub: profit >= 0 ? t('tablero.mes.ganancia') : t('tablero.mes.perdida'), subColor: '#4b5563' },
                 ].map(s => (
@@ -1574,7 +1569,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                               color: nuevoCategoria === c.id ? c.color : '#6b7280',
                               fontWeight: nuevoCategoria === c.id ? 700 : 400, cursor: 'pointer',
                               outline: nuevoCategoria === c.id ? `1px solid ${c.color}66` : 'none',
-                            }}>{c.label}</button>
+                            }}>{catLabel(c.id)}</button>
                           ))}
                         </div>
                       </div>
@@ -1607,7 +1602,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       </div>
                       <span style={{ fontSize: '1.1rem' }}>{h.emoji}</span>
                       <span style={{ fontSize: '0.875rem', color: '#e5e7eb', flex: 1 }}>{h.nombre}</span>
-                      {h.categoria && <span style={{ fontSize: '0.62rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: `${catColor(h.categoria)}22`, color: catColor(h.categoria), fontWeight: 600, flexShrink: 0 }}>{CATEGORIAS.find(c => c.id === h.categoria)?.label}</span>}
+                      {h.categoria && <span style={{ fontSize: '0.62rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: `${catColor(h.categoria)}22`, color: catColor(h.categoria), fontWeight: 600, flexShrink: 0 }}>{catLabel(h.categoria)}</span>}
                       {h.dias_semana && h.dias_semana.length > 0 && <span style={{ fontSize: '0.6rem', color: '#6b7280', flexShrink: 0 }}>📅 {[...h.dias_semana].sort((a, b) => a - b).map(d => diasShort[d]).join(' ')}</span>}
                       {h.tipo === 'numero' && h.unidad && <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{h.unidad}</span>}
                       <button onClick={() => { setEditingHabito(h); setNuevoNombre(h.nombre); setNuevoEmoji(h.emoji); setNuevoTipo(h.tipo as 'boolean' | 'numero'); setNuevoCategoria(h.categoria ?? null); setNuevoDiasSemana(h.dias_semana ?? null) }}
@@ -1647,7 +1642,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.4rem' }}>{t('tablero.habitos.frecuencia')}</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
                     <button onClick={() => setNuevoDiasSemana(null)} style={{ padding: '0.3rem 0.625rem', borderRadius: '6px', border: 'none', fontSize: '0.75rem', background: nuevoDiasSemana === null ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.05)', color: nuevoDiasSemana === null ? '#a78bfa' : '#6b7280', fontWeight: nuevoDiasSemana === null ? 700 : 400, cursor: 'pointer' }}>{t('tablero.habitos.todos_dias')}</button>
-                    {DIAS_CORTOS.map((d, i) => {
+                    {diasNarrow.map((d, i) => {
                       const sel = nuevoDiasSemana?.includes(i) ?? false
                       return <button key={i} onClick={() => {
                         if (nuevoDiasSemana === null) { setNuevoDiasSemana([i]) }
@@ -1667,7 +1662,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                         color: nuevoCategoria === c.id ? c.color : '#6b7280',
                         fontWeight: nuevoCategoria === c.id ? 700 : 400, cursor: 'pointer',
                         outline: nuevoCategoria === c.id ? `1px solid ${c.color}66` : 'none',
-                      }}>{c.label}</button>
+                      }}>{catLabel(c.id)}</button>
                     ))}
                   </div>
                 </div>
@@ -2360,7 +2355,21 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
       {/* Logros — milestone modal */}
       {logroVisible !== null && (() => {
-        const l = LOGRO_DATA[logroVisible] ?? { emoji: '🔥', titulo: `¡${logroVisible} días!`, desc: 'Seguís.' }
+        const lEmoji = LOGRO_EMOJIS[logroVisible] ?? '🔥'
+        const lTitulo = logroVisible === 7 ? t('tablero.logro.titulo_7')
+          : logroVisible === 21 ? t('tablero.logro.titulo_21')
+          : logroVisible === 66 ? t('tablero.logro.titulo_66')
+          : logroVisible === 100 ? t('tablero.logro.titulo_100')
+          : logroVisible === 180 ? t('tablero.logro.titulo_180')
+          : logroVisible === 365 ? t('tablero.logro.titulo_365')
+          : `¡${logroVisible} días!`
+        const lDesc = logroVisible === 7 ? t('tablero.logro.desc_7')
+          : logroVisible === 21 ? t('tablero.logro.desc_21')
+          : logroVisible === 66 ? t('tablero.logro.desc_66')
+          : logroVisible === 100 ? t('tablero.logro.desc_100')
+          : logroVisible === 180 ? t('tablero.logro.desc_180')
+          : logroVisible === 365 ? t('tablero.logro.desc_365')
+          : ''
         function dismissLogro() {
           const vistos: number[] = JSON.parse(localStorage.getItem(LOGRO_KEY) || '[]')
           localStorage.setItem(LOGRO_KEY, JSON.stringify([...vistos, logroVisible!]))
@@ -2382,22 +2391,22 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               textAlign: 'center',
               boxShadow: '0 0 48px rgba(251,146,60,0.12)',
             }}>
-              <div style={{ fontSize: '3.5rem', lineHeight: 1 }}>{l.emoji}</div>
+              <div style={{ fontSize: '3.5rem', lineHeight: 1 }}>{lEmoji}</div>
               <div>
-                <div style={{ color: '#fb923c', fontWeight: 800, fontSize: '1.3rem', marginBottom: '0.4rem' }}>{l.titulo}</div>
-                <p style={{ color: '#9ca3af', fontSize: '0.875rem', lineHeight: 1.65, margin: 0 }}>{l.desc}</p>
+                <div style={{ color: '#fb923c', fontWeight: 800, fontSize: '1.3rem', marginBottom: '0.4rem' }}>{lTitulo}</div>
+                <p style={{ color: '#9ca3af', fontSize: '0.875rem', lineHeight: 1.65, margin: 0 }}>{lDesc}</p>
               </div>
               <div style={{
                 background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.25)',
                 borderRadius: '10px', padding: '0.5rem 1.25rem',
                 color: '#fb923c', fontWeight: 700, fontSize: '1.1rem',
               }}>
-                🔥 {logroVisible} días
+                🔥 {t('tablero.logro.dias', { n: logroVisible })}
               </div>
               <div style={{ display: 'flex', gap: '0.625rem', width: '100%', marginTop: '0.25rem' }}>
                 <button
                   onClick={() => {
-                    const text = `¡${logroVisible} días de racha en Amauta Libre! ${l.emoji} libre.amauta.cloud`
+                    const text = t('tablero.logro.share_text', { n: logroVisible }) + ` ${lEmoji} libre.amauta.cloud`
                     if (typeof navigator !== 'undefined' && navigator.share) navigator.share({ text }).catch(() => {})
                     else navigator.clipboard?.writeText(text)
                     dismissLogro()
@@ -2408,7 +2417,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     color: '#fb923c', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
                   }}
                 >
-                  📤 Compartir
+                  📤 {t('tablero.logro.compartir')}
                 </button>
                 <button
                   onClick={dismissLogro}
@@ -2418,7 +2427,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     color: 'white', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
                   }}
                 >
-                  ¡Gracias!
+                  {t('tablero.logro.gracias')}
                 </button>
               </div>
             </div>

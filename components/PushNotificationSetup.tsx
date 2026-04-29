@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useLocale } from '@/lib/i18n/LocaleContext'
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -13,6 +14,7 @@ type Status = 'idle' | 'loading' | 'subscribed' | 'denied' | 'unsupported'
 
 export default function PushNotificationSetup() {
   const [status, setStatus] = useState<Status>('idle')
+  const { t } = useLocale()
 
   useEffect(() => {
     if (!('PushManager' in window) || !('serviceWorker' in navigator)) {
@@ -76,21 +78,21 @@ export default function PushNotificationSetup() {
       borderRadius: '12px', border: '1px solid rgba(139,92,246,0.1)',
     }}>
       <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>
-        🔔 Recordatorio diario
+        {t('push.titulo')}
       </div>
 
       {status === 'subscribed' && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '0.82rem', color: '#10b981' }}>Activado — te avisamos cada día</span>
+          <span style={{ fontSize: '0.82rem', color: '#10b981' }}>{t('push.activado')}</span>
           <button onClick={unsubscribe} style={{ fontSize: '0.72rem', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem 0.4rem' }}>
-            Desactivar
+            {t('push.desactivar')}
           </button>
         </div>
       )}
 
       {status === 'denied' && (
         <p style={{ fontSize: '0.8rem', color: '#6b7280', margin: 0 }}>
-          Bloqueaste las notificaciones. Habilitálas en la config del navegador.
+          {t('push.bloqueado')}
         </p>
       )}
 
@@ -107,7 +109,7 @@ export default function PushNotificationSetup() {
             fontWeight: 500, opacity: status === 'loading' ? 0.6 : 1,
           }}
         >
-          {status === 'loading' ? 'Activando...' : 'Activar recordatorio diario'}
+          {status === 'loading' ? t('push.activando') : t('push.activar')}
         </button>
       )}
     </div>
