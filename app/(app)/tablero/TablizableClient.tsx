@@ -738,10 +738,10 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
         cursor: 'pointer', transition: 'all 0.2s',
         transform: isHighlighted ? 'scale(1.06)' : 'scale(1)',
         boxShadow: isHighlighted ? '0 0 0 2px rgba(139,92,246,0.5), 0 0 14px rgba(139,92,246,0.35)' : 'none',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
       }}>
         <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{emoji}</span>
-        <span style={{ fontSize: '0.58rem', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{label}</span>
+        <span style={{ fontSize: '0.65rem', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{label}</span>
       </button>
     )
   }
