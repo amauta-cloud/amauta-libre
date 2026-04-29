@@ -163,8 +163,6 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
     ? new Date(authUser.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
     : '—'
 
-  const habitosActivos = habitos.filter(h => h.activo)
-
   return (
     <div style={{ minHeight: '100vh', background: '#0f0d1a', padding: '2rem 1rem', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '860px', margin: '0 auto' }}>
