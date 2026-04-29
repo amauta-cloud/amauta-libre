@@ -730,15 +730,19 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     const isHighlighted = tab === onboardingTab
     return (
       <button onClick={() => setActiveTab(tab)} style={{
-        flex: 1, padding: '0.5rem 0.25rem', borderRadius: '8px',
+        flex: 1, minWidth: 0, padding: '0.4rem 0.1rem', borderRadius: '8px',
         border: isHighlighted ? '1px solid rgba(139,92,246,0.75)' : '1px solid transparent',
         background: isHighlighted ? 'rgba(139,92,246,0.35)' : activeTab === tab ? 'rgba(139,92,246,0.25)' : 'transparent',
         color: isHighlighted || activeTab === tab ? '#c4b5fd' : '#6b7280',
         fontWeight: isHighlighted || activeTab === tab ? 700 : 400,
-        fontSize: '0.72rem', cursor: 'pointer', transition: 'all 0.2s',
+        cursor: 'pointer', transition: 'all 0.2s',
         transform: isHighlighted ? 'scale(1.06)' : 'scale(1)',
         boxShadow: isHighlighted ? '0 0 0 2px rgba(139,92,246,0.5), 0 0 14px rgba(139,92,246,0.35)' : 'none',
-      }}>{emoji} {label}</button>
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+      }}>
+        <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{emoji}</span>
+        <span style={{ fontSize: '0.58rem', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{label}</span>
+      </button>
     )
   }
 

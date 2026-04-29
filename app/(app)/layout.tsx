@@ -33,8 +33,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Suspense fallback={null}><MetaPixelEvents /></Suspense>
       <main style={{
         flex: 1,
-        paddingBottom: '5rem',        /* mobile: clear bottom nav */
+        paddingBottom: '5rem',
         paddingLeft: '0',
+        overflowX: 'hidden',
       }} className="app-main">
         {children}
       </main>
