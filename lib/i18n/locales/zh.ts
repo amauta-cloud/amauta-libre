@@ -419,6 +419,12 @@ export const zh: typeof es = {
     step5_desc: '改变思维方式的书籍、音频和视频。没有截止日期。想走就走。',
     step6_title: '是什么把你带到这里',
     step6_desc: '你当初写下的目标每天都显示在这里。在艰难的日子里，它让你记得为什么开始。',
+    push_title: '每日提醒，保持连续记录',
+    push_desc: '我们每天早上8点和晚上发送通知，帮你结束每天。可随时在个人资料中关闭。',
+    push_activar: '开启提醒',
+    push_ahora_no: '暂不',
+    push_activando: '开启中...',
+    push_listo: '✓ 已开启 🔔',
   },
   rating: {
     racha: '{n}天连续',

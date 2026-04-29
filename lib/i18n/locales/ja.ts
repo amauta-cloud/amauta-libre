@@ -419,6 +419,12 @@ export const ja: typeof es = {
     step5_desc: '思考を変える本、音声、動画。締め切りなし。できるときに進めばいい。',
     step6_title: 'ここまで連れてきたもの',
     step6_desc: '最初に書いた目標が毎日ここに表示される。つらい日も、なぜ始めたかを思い出させてくれる。',
+    push_title: '毎日のリマインダーでストリークを維持',
+    push_desc: '毎朝8時と夜に通知を送ります。プロフィールからいつでもオフにできます。',
+    push_activar: 'リマインダーを有効にする',
+    push_ahora_no: '後で',
+    push_activando: '有効化中...',
+    push_listo: '✓ 設定完了 🔔',
   },
   rating: {
     racha: '{n}日連続',

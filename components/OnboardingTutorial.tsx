@@ -13,6 +13,14 @@ type StepDef = {
   title: string
   desc: string
   tab: TabTarget
+  isPushStep?: boolean
+}
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = window.atob(base64)
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0))) as Uint8Array<ArrayBuffer>
 }
 
 export default function OnboardingTutorial({
@@ -25,15 +33,17 @@ export default function OnboardingTutorial({
   const { t } = useLocale()
   const [visible, setVisible] = useState(false)
   const [step, setStep] = useState(0)
+  const [pushLoading, setPushLoading] = useState(false)
+  const [pushDone, setPushDone] = useState(false)
 
   useEffect(() => {
     const done = localStorage.getItem(ONBOARDING_STORAGE_KEY)
     if (!done) setVisible(true)
   }, [])
 
-
   const steps: StepDef[] = [
     { emoji: '👋', title: t('onboarding.step0_title'), desc: t('onboarding.step0_desc'), tab: null },
+    { emoji: '🔔', title: t('onboarding.push_title'), desc: t('onboarding.push_desc'), tab: null, isPushStep: true },
     { emoji: '⚡', title: t('onboarding.step1_title'), desc: t('onboarding.step1_desc'), tab: 'hoy' },
     { emoji: '💰', title: t('onboarding.step2_title'), desc: t('onboarding.step2_desc'), tab: 'finanzas' },
     { emoji: '✏️', title: t('onboarding.step3_title'), desc: t('onboarding.step3_desc'), tab: 'habitos' },
@@ -60,6 +70,32 @@ export default function OnboardingTutorial({
   function next() {
     if (step < steps.length - 1) setStep(s => s + 1)
     else finish()
+  }
+
+  async function subscribePush() {
+    if (!('PushManager' in window) || !('serviceWorker' in navigator)) {
+      next()
+      return
+    }
+    setPushLoading(true)
+    try {
+      const reg = await navigator.serviceWorker.ready
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
+      })
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sub),
+      })
+      setPushDone(true)
+      setTimeout(() => next(), 900)
+    } catch {
+      next()
+    } finally {
+      setPushLoading(false)
+    }
   }
 
   if (!visible) return null
@@ -134,17 +170,51 @@ export default function OnboardingTutorial({
           ))}
         </div>
 
-        {/* Button */}
-        <button
-          onClick={next}
-          style={{
-            width: '100%', padding: '0.75rem', borderRadius: '12px', border: 'none',
-            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-            color: 'white', fontSize: '0.92rem', fontWeight: 700, cursor: 'pointer',
-          }}
-        >
-          {isLast ? t('onboarding.empezar') : t('onboarding.siguiente')}
-        </button>
+        {/* Button(s) */}
+        {current.isPushStep ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <button
+              onClick={subscribePush}
+              disabled={pushLoading || pushDone}
+              style={{
+                width: '100%', padding: '0.75rem', borderRadius: '12px', border: 'none',
+                background: pushDone ? '#10b981' : 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                color: 'white', fontSize: '0.92rem', fontWeight: 700,
+                cursor: pushLoading || pushDone ? 'default' : 'pointer',
+                opacity: pushLoading ? 0.7 : 1, transition: 'background 0.3s',
+              }}
+            >
+              {pushDone
+                ? t('onboarding.push_listo')
+                : pushLoading
+                  ? t('onboarding.push_activando')
+                  : t('onboarding.push_activar')}
+            </button>
+            {!pushDone && (
+              <button
+                onClick={next}
+                style={{
+                  width: '100%', padding: '0.5rem', borderRadius: '10px',
+                  background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
+                  color: '#6b7280', fontSize: '0.82rem', cursor: 'pointer',
+                }}
+              >
+                {t('onboarding.push_ahora_no')}
+              </button>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={next}
+            style={{
+              width: '100%', padding: '0.75rem', borderRadius: '12px', border: 'none',
+              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+              color: 'white', fontSize: '0.92rem', fontWeight: 700, cursor: 'pointer',
+            }}
+          >
+            {isLast ? t('onboarding.empezar') : t('onboarding.siguiente')}
+          </button>
+        )}
       </div>
     </div>
   )

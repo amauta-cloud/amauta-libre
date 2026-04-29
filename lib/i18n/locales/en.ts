@@ -419,6 +419,12 @@ export const en: typeof es = {
     step5_desc: 'Books, audio and video that change the way you think. No deadline. Move forward when you can.',
     step6_title: 'What brought you here',
     step6_desc: 'The goal you wrote when you started shows up here every day. On the hard days, it\'s what reminds you why.',
+    push_title: 'A daily reminder to keep your streak',
+    push_desc: 'We\'ll send you a nudge every morning at 8am and one at night to close your day. You can turn it off anytime from your profile.',
+    push_activar: 'Activate reminder',
+    push_ahora_no: 'Not now',
+    push_activando: 'Activating...',
+    push_listo: '✓ You\'re in 🔔',
   },
   rating: {
     racha: '{n}-day streak',

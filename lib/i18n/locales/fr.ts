@@ -419,6 +419,12 @@ export const fr: typeof es = {
     step5_desc: 'Livres, audios et vidéos qui changent ta façon de penser. Sans date limite. Tu avances quand tu peux.',
     step6_title: "Ce qui t'a amené ici",
     step6_desc: "L'objectif que tu as écrit en entrant apparaît ici chaque jour. Dans les jours difficiles, c'est ce qui te rappelle le pourquoi.",
+    push_title: 'Un rappel quotidien pour garder ton élan',
+    push_desc: "On t'envoie une notification à 8h du matin et une le soir pour clôturer la journée. Tu peux la désactiver à tout moment depuis ton profil.",
+    push_activar: 'Activer le rappel',
+    push_ahora_no: 'Pas maintenant',
+    push_activando: 'Activation...',
+    push_listo: "✓ C'est fait 🔔",
   },
   rating: {
     racha: '{n} jours de série',

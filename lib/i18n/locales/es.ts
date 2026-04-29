@@ -463,6 +463,12 @@ export const es = {
     step5_desc: 'Ideas sueltas, tareas con fecha y estado, y un calendario con todo junto. Lo que no entra en los hábitos de todos los días va acá. Encontrás esto en la barra de navegación.',
     step6_title: 'Aprendizaje',
     step6_desc: '16 materiales — libros, audios y videos — que cambian la forma en que pensás. Cada uno viene con una reflexión. Avanzás a tu ritmo, sin apuro. Está en la barra de navegación.',
+    push_title: 'Un recordatorio para no perder la racha',
+    push_desc: 'Te mandamos un aviso a las 8 de la mañana y otro a la noche para que cerrés el día. Podés cambiarlo cuando quieras desde tu perfil.',
+    push_activar: 'Activar recordatorio',
+    push_ahora_no: 'Ahora no',
+    push_activando: 'Activando...',
+    push_listo: '✓ Listo, te avisamos 🔔',
   },
   rating: {
     racha: '{n} días de racha',

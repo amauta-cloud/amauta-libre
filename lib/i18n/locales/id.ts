@@ -419,6 +419,12 @@ export const id: typeof es = {
     step5_desc: 'Buku, audio, dan video yang mengubah cara pikirmu. Tanpa tenggat. Kamu maju kapan bisa.',
     step6_title: 'Yang membawamu sampai sini',
     step6_desc: 'Tujuan yang kamu tulis saat masuk muncul di sini setiap hari. Di hari-hari berat, itu yang mengingatkanmu kenapa kamu mulai.',
+    push_title: 'Pengingat harian agar streak-mu terjaga',
+    push_desc: 'Kami kirim notifikasi setiap pagi jam 8 dan malam hari untuk menutup harimu. Kamu bisa matikan kapan saja dari profilmu.',
+    push_activar: 'Aktifkan pengingat',
+    push_ahora_no: 'Nanti saja',
+    push_activando: 'Mengaktifkan...',
+    push_listo: '✓ Siap, kami ingatkan 🔔',
   },
   rating: {
     racha: '{n} hari beruntun',

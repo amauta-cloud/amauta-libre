@@ -419,6 +419,12 @@ export const pt: typeof es = {
     step5_desc: 'Livros, áudios e vídeos que mudam a forma como você pensa. Sem prazo. Você avança quando puder.',
     step6_title: 'O que te trouxe até aqui',
     step6_desc: 'A meta que você escreveu ao entrar aparece aqui todos os dias. Nos dias difíceis, é isso que te lembra o porquê.',
+    push_title: 'Um lembrete para não perder a sequência',
+    push_desc: 'Enviamos uma notificação às 8 da manhã e outra à noite para fechar o dia. Você pode desativar quando quiser no seu perfil.',
+    push_activar: 'Ativar lembrete',
+    push_ahora_no: 'Agora não',
+    push_activando: 'Ativando...',
+    push_listo: '✓ Pronto, te avisamos 🔔',
   },
   rating: {
     racha: '{n} dias de sequência',
