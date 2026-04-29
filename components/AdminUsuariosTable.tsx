@@ -104,7 +104,7 @@ export default function AdminUsuariosTable({
             else if (activo30d) { actividadColor = '#9ca3af' }
             else if (u.ultimaActividad) { actividadColor = '#6b7280' }
             const streakColor = u.streak >= 30 ? '#f59e0b' : u.streak >= 7 ? '#a78bfa' : u.streak > 0 ? '#6b7280' : '#374151'
-            const eduColor = u.educacionEtapa >= 11 ? '#10b981' : u.educacionEtapa >= 5 ? '#a78bfa' : u.educacionEtapa > 0 ? '#6b7280' : '#374151'
+            const eduColor = u.educacionEtapa >= 16 ? '#10b981' : u.educacionEtapa >= 5 ? '#a78bfa' : u.educacionEtapa > 0 ? '#6b7280' : '#374151'
             return (
               <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                 <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
@@ -124,7 +124,7 @@ export default function AdminUsuariosTable({
                 </td>
                 <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
                   <span style={{ color: eduColor, fontSize: '0.78rem', fontWeight: 600 }}>
-                    {u.educacionEtapa}/11
+                    {u.educacionEtapa}/16
                   </span>
                 </td>
                 <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>

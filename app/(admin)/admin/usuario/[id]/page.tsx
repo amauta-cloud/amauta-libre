@@ -105,12 +105,11 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
     d.setDate(d.getDate() - daysBack)
     return dateStr(d)
   }
+  // Si hoy no está completo aún, racha empieza en 0 pero el loop sigue contando hacia atrás
   let streak = esDiaBueno(today) ? 1 : 0
-  if (streak === 1) {
-    for (let i = 1; i <= 90; i++) {
-      if (esDiaBueno(offsetDate(today, i))) streak++
-      else break
-    }
+  for (let i = 1; i <= 90; i++) {
+    if (esDiaBueno(offsetDate(today, i))) streak++
+    else break
   }
 
   // Días activos en 90 días (al menos 1 hábito completado)
@@ -188,7 +187,7 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
           <MiniCard label="Racha actual" value={streak > 0 ? `${streak}d` : '0'} color={streak >= 30 ? '#f59e0b' : streak >= 7 ? '#a78bfa' : '#6b7280'} sub={streak >= 7 ? '🔥 activo' : streak > 0 ? '⚡ activo' : 'sin racha'} />
           <MiniCard label="Días activo (90d)" value={String(diasActivos90)} color="#10b981" sub="con al menos 1 hábito" />
           <MiniCard label="Hábitos activos" value={String(habitosActivos.length)} color="#60a5fa" sub={`${habitos.length} total`} />
-          <MiniCard label="Aprendizaje" value={`${educacion?.etapa_actual ?? 0}/11`} color={educacion?.etapa_actual === 11 ? '#10b981' : '#F5C518'} sub={educacion?.etapa_actual === 11 ? 'Completado ✓' : 'en progreso'} />
+          <MiniCard label="Aprendizaje" value={`${educacion?.etapa_actual ?? 0}/16`} color={educacion?.etapa_actual === 16 ? '#10b981' : '#F5C518'} sub={educacion?.etapa_actual === 16 ? 'Completado ✓' : 'en progreso'} />
           <MiniCard label="Metas escritas" value={metas ? '✓' : '—'} color={metas?.meta30 ? '#10b981' : '#374151'} sub={metas?.meta30 ? 'tiene metas' : 'sin metas aún'} />
           <MiniCard
             label="Tareas pendientes"
@@ -274,7 +273,7 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
           <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem' }}>
             <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 1rem 0' }}>Aprendizaje</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {Array.from({ length: 11 }, (_, i) => {
+              {Array.from({ length: 16 }, (_, i) => {
                 const paso = i + 1
                 const completado = (educacion?.etapa_actual ?? 0) >= paso
                 return (

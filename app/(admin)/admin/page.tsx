@@ -146,7 +146,7 @@ export default async function AdminPage() {
     .sort((a, b) => b[1] - a[1])
 
   // Aprendizaje (educación)
-  const completadosEdu = (educacionRes.data ?? []).filter(e => e.etapa_actual >= 11).length
+  const completadosEdu = (educacionRes.data ?? []).filter(e => e.etapa_actual >= 16).length
   const pctEdu = totalUsuarios > 0 ? Math.round((completadosEdu / totalUsuarios) * 100) : 0
   const retencion7 = totalUsuarios > 0 ? Math.round((activos7 / totalUsuarios) * 100) : 0
   const retencionColor = retencion7 >= 40 ? '#10b981' : retencion7 >= 20 ? '#f59e0b' : '#ef4444'
@@ -221,13 +221,13 @@ export default async function AdminPage() {
   const streakMap: Record<string, number> = {}
   for (const u of usuarios) {
     const fechas = userDateSets[u.id] ?? new Set<string>()
-    let streak = 0
-    const d = new Date(Date.now() - 3 * 60 * 60 * 1000) // UTC-3 Argentina
-    while (true) {
+    // Si hoy no está completo aún, empieza en 0 pero sigue contando días anteriores
+    let streak = fechas.has(today) ? 1 : 0
+    for (let i = 1; i <= 90; i++) {
+      const d = new Date(Date.now() - 3 * 60 * 60 * 1000 - i * 24 * 60 * 60 * 1000)
       const f = dateStr(d)
-      if (!fechas.has(f)) break
-      streak++
-      d.setDate(d.getDate() - 1)
+      if (fechas.has(f)) streak++
+      else break
     }
     streakMap[u.id] = streak
   }
