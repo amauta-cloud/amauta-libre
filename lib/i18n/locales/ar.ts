@@ -20,15 +20,7 @@ export const ar: typeof es = {
   },
   nav: {
     tablero: 'لوحة التحكم',
-      push: {
-    titulo: '🔔 تذكير يومي',
-    activado: 'مفعّل — سنخطرك كل يوم',
-    desactivar: 'إيقاف',
-    bloqueado: 'لقد حظرت الإشعارات. فعّلها من إعدادات المتصفح.',
-    activando: 'جارٍ التفعيل...',
-    activar: 'تفعيل التذكير اليومي',
-  },
-  planificacion: 'التخطيط',
+    planificacion: 'التخطيط',
     educacion: 'التعليم',
     salir: 'تسجيل الخروج',
     language: 'اللغة',
@@ -240,6 +232,7 @@ export const ar: typeof es = {
       cat_plantillas_titulo: '📋 قوالب الفئات',
       cat_plantillas_desc: 'اضغط على قالب لإضافته. لن تتكرر الفئات الموجودة.',
       cat_ya_tenes: 'مضافة مسبقاً',
+    },
     logro: {
       compartir: 'مشاركة',
       gracias: 'شكراً!',
@@ -266,7 +259,14 @@ export const ar: typeof es = {
       aprender: '📚 التعلم',
       social: '👥 الاجتماعي',
     },
-    },
+  },
+  push: {
+    titulo: '🔔 تذكير يومي',
+    activado: 'مفعّل — سنخطرك كل يوم',
+    desactivar: 'إيقاف',
+    bloqueado: 'لقد حظرت الإشعارات. فعّلها من إعدادات المتصفح.',
+    activando: 'جارٍ التفعيل...',
+    activar: 'تفعيل التذكير اليومي',
   },
   planificacion: {
     espacio: 'مساحتك الشخصية',

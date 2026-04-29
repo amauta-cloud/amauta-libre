@@ -20,15 +20,7 @@ export const pt: typeof es = {
   },
   nav: {
     tablero: 'Painel',
-      push: {
-    titulo: '🔔 Lembrete diário',
-    activado: 'Ativado — te avisamos todo dia',
-    desactivar: 'Desativar',
-    bloqueado: 'Você bloqueou as notificações. Ative-as nas configurações do navegador.',
-    activando: 'Ativando...',
-    activar: 'Ativar lembrete diário',
-  },
-  planificacion: 'Planejamento',
+    planificacion: 'Planejamento',
     educacion: 'Educação',
     salir: 'Sair',
     language: 'Idioma',
@@ -240,6 +232,7 @@ export const pt: typeof es = {
       cat_plantillas_titulo: '📋 Modelos de categorias',
       cat_plantillas_desc: 'Toque em um para adicionar. Duplicatas são ignoradas.',
       cat_ya_tenes: 'já adicionado',
+    },
     logro: {
       compartir: 'Compartilhar',
       gracias: 'Obrigado!',
@@ -266,7 +259,14 @@ export const pt: typeof es = {
       aprender: '📚 Aprender',
       social: '👥 Social',
     },
-    },
+  },
+  push: {
+    titulo: '🔔 Lembrete diário',
+    activado: 'Ativado — te avisamos todo dia',
+    desactivar: 'Desativar',
+    bloqueado: 'Você bloqueou as notificações. Ative-as nas configurações do navegador.',
+    activando: 'Ativando...',
+    activar: 'Ativar lembrete diário',
   },
   planificacion: {
     espacio: 'Seu espaço pessoal',

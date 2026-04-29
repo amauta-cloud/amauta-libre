@@ -20,15 +20,7 @@ export const ru: typeof es = {
   },
   nav: {
     tablero: 'Панель',
-      push: {
-    titulo: '🔔 Ежедневное напоминание',
-    activado: 'Включено — будем уведомлять каждый день',
-    desactivar: 'Отключить',
-    bloqueado: 'Вы заблокировали уведомления. Включите их в настройках браузера.',
-    activando: 'Включение...',
-    activar: 'Включить ежедневное напоминание',
-  },
-  planificacion: 'Планирование',
+    planificacion: 'Планирование',
     educacion: 'Образование',
     salir: 'Выйти',
     language: 'Язык',
@@ -240,6 +232,7 @@ export const ru: typeof es = {
       cat_plantillas_titulo: '📋 Шаблоны категорий',
       cat_plantillas_desc: 'Нажми, чтобы добавить. Дубликаты пропускаются.',
       cat_ya_tenes: 'уже добавлена',
+    },
     logro: {
       compartir: 'Поделиться',
       gracias: 'Спасибо!',
@@ -266,7 +259,14 @@ export const ru: typeof es = {
       aprender: '📚 Обучение',
       social: '👥 Социальное',
     },
-    },
+  },
+  push: {
+    titulo: '🔔 Ежедневное напоминание',
+    activado: 'Включено — будем уведомлять каждый день',
+    desactivar: 'Отключить',
+    bloqueado: 'Вы заблокировали уведомления. Включите их в настройках браузера.',
+    activando: 'Включение...',
+    activar: 'Включить ежедневное напоминание',
   },
   planificacion: {
     espacio: 'Твоё личное пространство',

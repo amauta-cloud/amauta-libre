@@ -20,15 +20,7 @@ export const hi: typeof es = {
   },
   nav: {
     tablero: 'डैशबोर्ड',
-      push: {
-    titulo: '🔔 दैनिक रिमाइंडर',
-    activado: 'सक्रिय — हम आपको हर दिन सूचित करेंगे',
-    desactivar: 'बंद करें',
-    bloqueado: 'आपने नोटिफिकेशन ब्लॉक किए हैं। ब्राउज़र सेटिंग में सक्षम करें।',
-    activando: 'सक्रिय हो रहा है...',
-    activar: 'दैनिक रिमाइंडर सक्रिय करें',
-  },
-  planificacion: 'योजना',
+    planificacion: 'योजना',
     educacion: 'शिक्षा',
     salir: 'साइन आउट',
     language: 'भाषा',
@@ -240,6 +232,7 @@ export const hi: typeof es = {
       cat_plantillas_titulo: '📋 श्रेणी टेम्पलेट',
       cat_plantillas_desc: 'जोड़ने के लिए किसी एक पर टैप करें। डुप्लिकेट छोड़ दिए जाते हैं।',
       cat_ya_tenes: 'पहले से जोड़ा',
+    },
     logro: {
       compartir: 'शेयर करें',
       gracias: 'धन्यवाद!',
@@ -266,7 +259,14 @@ export const hi: typeof es = {
       aprender: '📚 सीखना',
       social: '👥 सामाजिक',
     },
-    },
+  },
+  push: {
+    titulo: '🔔 दैनिक रिमाइंडर',
+    activado: 'सक्रिय — हम आपको हर दिन सूचित करेंगे',
+    desactivar: 'बंद करें',
+    bloqueado: 'आपने नोटिफिकेशन ब्लॉक किए हैं। ब्राउज़र सेटिंग में सक्षम करें।',
+    activando: 'सक्रिय हो रहा है...',
+    activar: 'दैनिक रिमाइंडर सक्रिय करें',
   },
   planificacion: {
     espacio: 'आपका निजी स्थान',

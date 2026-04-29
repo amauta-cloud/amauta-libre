@@ -20,15 +20,7 @@ export const ja: typeof es = {
   },
   nav: {
     tablero: 'ダッシュボード',
-      push: {
-    titulo: '🔔 毎日のリマインダー',
-    activado: '有効 — 毎日通知します',
-    desactivar: '無効にする',
-    bloqueado: '通知をブロックしています。ブラウザの設定で有効にしてください。',
-    activando: '有効化中...',
-    activar: '毎日のリマインダーを有効にする',
-  },
-  planificacion: '計画',
+    planificacion: '計画',
     educacion: '教育',
     salir: 'ログアウト',
     language: '言語',
@@ -240,6 +232,7 @@ export const ja: typeof es = {
       cat_plantillas_titulo: '📋 カテゴリテンプレート',
       cat_plantillas_desc: 'タップして追加。重複はスキップされます。',
       cat_ya_tenes: '追加済み',
+    },
     logro: {
       compartir: 'シェア',
       gracias: 'ありがとう！',
@@ -266,7 +259,14 @@ export const ja: typeof es = {
       aprender: '📚 学習',
       social: '👥 社会',
     },
-    },
+  },
+  push: {
+    titulo: '🔔 毎日のリマインダー',
+    activado: '有効 — 毎日通知します',
+    desactivar: '無効にする',
+    bloqueado: '通知をブロックしています。ブラウザの設定で有効にしてください。',
+    activando: '有効化中...',
+    activar: '毎日のリマインダーを有効にする',
   },
   planificacion: {
     espacio: 'あなたの個人スペース',

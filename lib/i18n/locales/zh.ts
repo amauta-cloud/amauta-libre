@@ -20,15 +20,7 @@ export const zh: typeof es = {
   },
   nav: {
     tablero: '仪表盘',
-      push: {
-    titulo: '🔔 每日提醒',
-    activado: '已启用 — 我们每天通知您',
-    desactivar: '禁用',
-    bloqueado: '您已屏蔽通知。请在浏览器设置中启用。',
-    activando: '启用中...',
-    activar: '启用每日提醒',
-  },
-  planificacion: '规划',
+    planificacion: '规划',
     educacion: '教育',
     salir: '退出',
     language: '语言',
@@ -240,6 +232,7 @@ export const zh: typeof es = {
       cat_plantillas_titulo: '📋 类别模板',
       cat_plantillas_desc: '点击一个以添加。重复项将被跳过。',
       cat_ya_tenes: '已添加',
+    },
     logro: {
       compartir: '分享',
       gracias: '谢谢！',
@@ -266,7 +259,14 @@ export const zh: typeof es = {
       aprender: '📚 学习',
       social: '👥 社交',
     },
-    },
+  },
+  push: {
+    titulo: '🔔 每日提醒',
+    activado: '已启用 — 我们每天通知您',
+    desactivar: '禁用',
+    bloqueado: '您已屏蔽通知。请在浏览器设置中启用。',
+    activando: '启用中...',
+    activar: '启用每日提醒',
   },
   planificacion: {
     espacio: '你的个人空间',
