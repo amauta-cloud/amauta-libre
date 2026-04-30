@@ -3,8 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import PlanificacionClient from './PlanificacionClient'
 
 function todayStr() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
 }
 
 export default async function PlanificacionPage() {

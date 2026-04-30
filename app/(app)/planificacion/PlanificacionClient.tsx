@@ -383,7 +383,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
               onChange={e => setTareaTexto(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addTarea()}
               placeholder={t('planificacion.tarea_placeholder')}
-              style={{ width: '100%', background: 'transparent', border: 'none', color: '#fff', fontSize: '0.9rem', outline: 'none', marginBottom: '0.75rem' }}
+              style={{ width: '100%', background: 'rgba(0,0,0,0.35)', border: '1.5px solid rgba(139,92,246,0.35)', borderRadius: '10px', color: '#fff', fontSize: '0.9rem', outline: 'none', padding: '0.65rem 0.85rem', marginBottom: '0.75rem', boxSizing: 'border-box' }}
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <input type="date" value={tareaFecha} min={today} onChange={e => setTareaFecha(e.target.value)}
