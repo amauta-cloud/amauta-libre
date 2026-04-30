@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import TablizableClient from './TablizableClient'
@@ -98,8 +97,6 @@ export default async function TablizablePage() {
   const nombre = usuarioRes.data?.nombre?.split(' ')[0] ?? ''
   type MetasData = { meta30: string; meta90: string; meta180: string } | null
   const metasData = (metasRes as { data: MetasData }).data
-  const tieneMetas = metasData && (metasData.meta30?.trim() || metasData.meta90?.trim() || metasData.meta180?.trim())
-  if (!tieneMetas) redirect('/metas')
   const meta30 = metasData?.meta30 ?? null
 
   const regMap = Object.fromEntries(registros.map(r => [r.habito_id, { ...r, nota: r.nota ?? null }]))
