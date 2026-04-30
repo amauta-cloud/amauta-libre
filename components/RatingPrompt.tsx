@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useLocale } from '@/lib/i18n/LocaleContext'
 
 // Actualizar estas URLs cuando la app esté publicada
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=cloud.amauta.libre'
+const PLAY_STORE_URL = '' // pendiente publicar en Play Store
 const APP_STORE_URL = '' // pendiente publicar en App Store
 
 const STORAGE_KEY_DISMISSED = 'amauta_rating_dismissed'

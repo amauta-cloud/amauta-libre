@@ -36,6 +36,8 @@ export async function middleware(request: NextRequest) {
     pathname === '/login' ||
     pathname === '/manifest.webmanifest' ||
     pathname === '/manifest' ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/api/') ||
     pathname.startsWith('/privacidad') ||
