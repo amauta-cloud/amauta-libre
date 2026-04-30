@@ -54,6 +54,7 @@ export const en: typeof es = {
     cancel: 'Cancel',
     save: 'Save',
     add: '+ Add',
+    error_guardar: 'Error saving. Check your connection.',
   },
   tablero: {
     saludo: {
@@ -287,6 +288,7 @@ export const en: typeof es = {
     ideas_empty: 'No saved ideas yet 💡',
     ideas_empty_sub: 'Write down anything that comes to mind.',
     ideas_eliminar: 'Delete this idea?',
+    tarea_eliminar: 'Delete this task?',
     tarea_placeholder: 'New task...',
     tarea_agregar: 'Add',
     tarea_vencidas: 'Overdue',

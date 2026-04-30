@@ -54,6 +54,7 @@ export const ar: typeof es = {
     cancel: 'إلغاء',
     save: 'حفظ',
     add: '+ إضافة',
+    error_guardar: 'خطأ في الحفظ. تحقق من اتصالك.',
   },
   tablero: {
     saludo: {
@@ -287,6 +288,7 @@ export const ar: typeof es = {
     ideas_empty: 'لا توجد أفكار محفوظة بعد 💡',
     ideas_empty_sub: 'دوّن أي شيء يخطر على بالك.',
     ideas_eliminar: 'حذف هذه الفكرة؟',
+    tarea_eliminar: 'حذف هذه المهمة؟',
     tarea_placeholder: 'مهمة جديدة...',
     tarea_agregar: 'إضافة',
     tarea_vencidas: 'متأخرة',

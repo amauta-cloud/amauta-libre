@@ -439,7 +439,8 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   async function deleteFinanzaItem(id: string) {
-    await supabase.from('finanzas_items').delete().eq('id', id)
+    const { error } = await supabase.from('finanzas_items').delete().eq('id', id)
+    if (error) return
     const newItems = finanzaItems.filter(i => i.id !== id)
     setFinanzaItems(newItems)
     await syncFinanzasDiarias(newItems)

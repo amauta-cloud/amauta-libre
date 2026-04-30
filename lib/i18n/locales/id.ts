@@ -54,6 +54,7 @@ export const id: typeof es = {
     cancel: 'Batal',
     save: 'Simpan',
     add: '+ Tambah',
+    error_guardar: 'Gagal menyimpan. Periksa koneksi Anda.',
   },
   tablero: {
     saludo: {
@@ -287,6 +288,7 @@ export const id: typeof es = {
     ideas_empty: 'Belum ada ide tersimpan 💡',
     ideas_empty_sub: 'Catat apa saja yang terlintas di pikiranmu.',
     ideas_eliminar: 'Hapus ide ini?',
+    tarea_eliminar: 'Hapus tugas ini?',
     tarea_placeholder: 'Tugas baru...',
     tarea_agregar: 'Tambah',
     tarea_vencidas: 'Terlambat',

@@ -52,6 +52,7 @@ export const es = {
     cancel: 'Cancelar',
     save: 'Guardar',
     add: '+ Agregar',
+    error_guardar: 'Error al guardar. Revisá tu conexión.',
   },
   tablero: {
     saludo: {
@@ -285,6 +286,7 @@ export const es = {
     ideas_empty: 'No tenés ideas guardadas 💡',
     ideas_empty_sub: 'Anotá cualquier cosa que se te ocurra.',
     ideas_eliminar: '¿Eliminar esta idea?',
+    tarea_eliminar: '¿Eliminar esta tarea?',
     tarea_placeholder: 'Nueva tarea...',
     tarea_agregar: 'Agregar',
     tarea_vencidas: 'Vencidas',

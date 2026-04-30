@@ -195,6 +195,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
   }
 
   async function deleteTarea(id: string) {
+    if (!confirm(t('planificacion.tarea_eliminar'))) return
     await supabase.from('tareas').delete().eq('id', id)
     loadTareas()
   }

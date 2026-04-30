@@ -54,6 +54,7 @@ export const hi: typeof es = {
     cancel: 'रद्द करें',
     save: 'सहेजें',
     add: '+ जोड़ें',
+    error_guardar: 'सेव करने में त्रुटि। कनेक्शन जांचें।',
   },
   tablero: {
     saludo: {
@@ -287,6 +288,7 @@ export const hi: typeof es = {
     ideas_empty: 'अभी कोई सहेजा हुआ विचार नहीं 💡',
     ideas_empty_sub: 'मन में जो भी आए वो लिख लें।',
     ideas_eliminar: 'इस विचार को हटाएं?',
+    tarea_eliminar: 'इस कार्य को हटाएं?',
     tarea_placeholder: 'नया काम...',
     tarea_agregar: 'जोड़ें',
     tarea_vencidas: 'देरी से',

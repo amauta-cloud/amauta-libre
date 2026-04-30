@@ -54,6 +54,7 @@ export const pt: typeof es = {
     cancel: 'Cancelar',
     save: 'Salvar',
     add: '+ Adicionar',
+    error_guardar: 'Erro ao salvar. Verifique sua conexão.',
   },
   tablero: {
     saludo: {
@@ -287,6 +288,7 @@ export const pt: typeof es = {
     ideas_empty: 'Nenhuma ideia salva ainda 💡',
     ideas_empty_sub: 'Anote qualquer coisa que vier à mente.',
     ideas_eliminar: 'Excluir esta ideia?',
+    tarea_eliminar: 'Excluir esta tarefa?',
     tarea_placeholder: 'Nova tarefa...',
     tarea_agregar: 'Adicionar',
     tarea_vencidas: 'Atrasadas',

@@ -54,6 +54,7 @@ export const zh: typeof es = {
     cancel: '取消',
     save: '保存',
     add: '+ 添加',
+    error_guardar: '保存失败，请检查网络连接。',
   },
   tablero: {
     saludo: {
@@ -287,6 +288,7 @@ export const zh: typeof es = {
     ideas_empty: '暂无已保存的想法 💡',
     ideas_empty_sub: '记录任何浮现在脑海中的想法。',
     ideas_eliminar: '删除这个想法？',
+    tarea_eliminar: '删除此任务？',
     tarea_placeholder: '新任务...',
     tarea_agregar: '添加',
     tarea_vencidas: '已逾期',

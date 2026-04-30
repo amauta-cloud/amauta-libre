@@ -54,6 +54,7 @@ export const ru: typeof es = {
     cancel: 'Отмена',
     save: 'Сохранить',
     add: '+ Добавить',
+    error_guardar: 'Ошибка сохранения. Проверьте соединение.',
   },
   tablero: {
     saludo: {
@@ -287,6 +288,7 @@ export const ru: typeof es = {
     ideas_empty: 'Нет сохранённых идей 💡',
     ideas_empty_sub: 'Записывай всё, что приходит в голову.',
     ideas_eliminar: 'Удалить эту идею?',
+    tarea_eliminar: 'Удалить эту задачу?',
     tarea_placeholder: 'Новая задача...',
     tarea_agregar: 'Добавить',
     tarea_vencidas: 'Просроченные',

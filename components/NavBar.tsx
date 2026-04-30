@@ -35,6 +35,7 @@ export default function NavBar({ nombre: initialNombre, avatar, userId, educacio
   const [nombreSaving, setNombreSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState(false)
   const [avatarFailed, setAvatarFailed] = useState(false)
   const [presetId, setPresetId] = useState<string | null>(null)
   const [pickingAvatar, setPickingAvatar] = useState(false)
@@ -70,12 +71,17 @@ export default function NavBar({ nombre: initialNombre, avatar, userId, educacio
 
   async function handleDeleteAccount() {
     setDeleting(true)
+    setDeleteError(false)
     try {
       const res = await fetch('/api/delete-account', { method: 'DELETE' })
       if (res.ok) {
         await supabase.auth.signOut()
         router.push('/login')
+      } else {
+        setDeleteError(true)
       }
+    } catch {
+      setDeleteError(true)
     } finally {
       setDeleting(false)
     }
@@ -385,6 +391,11 @@ export default function NavBar({ nombre: initialNombre, avatar, userId, educacio
                   {deleting ? t('nav.eliminando') : t('nav.eliminar_confirmar')}
                 </button>
               </div>
+              {deleteError && (
+                <p style={{ margin: '0.5rem 0 0', color: '#ef4444', fontSize: '0.72rem', textAlign: 'center' }}>
+                  {t('common.error_guardar')}
+                </p>
+              )}
             </div>
           )}
         </div>

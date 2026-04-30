@@ -54,6 +54,7 @@ export const ja: typeof es = {
     cancel: 'キャンセル',
     save: '保存',
     add: '+ 追加',
+    error_guardar: '保存エラー。接続をご確認ください。',
   },
   tablero: {
     saludo: {
@@ -287,6 +288,7 @@ export const ja: typeof es = {
     ideas_empty: '保存されたアイデアはありません 💡',
     ideas_empty_sub: '思いついたことを何でも書き留めてください。',
     ideas_eliminar: 'このアイデアを削除しますか？',
+    tarea_eliminar: 'このタスクを削除しますか？',
     tarea_placeholder: '新しいタスク...',
     tarea_agregar: '追加',
     tarea_vencidas: '期限切れ',

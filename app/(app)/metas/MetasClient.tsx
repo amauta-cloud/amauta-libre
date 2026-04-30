@@ -44,7 +44,7 @@ export default function MetasClient({ userId }: { userId: string }) {
   async function guardar() {
     if (!meta30.trim() && !meta90.trim() && !meta180.trim()) return
     setSaving(true)
-    await supabase.from('metas').upsert({
+    const { error } = await supabase.from('metas').upsert({
       usuario_id: userId,
       meta30: meta30.trim(),
       meta90: meta90.trim(),
@@ -52,6 +52,11 @@ export default function MetasClient({ userId }: { userId: string }) {
       actualizado_en: new Date().toISOString(),
     }, { onConflict: 'usuario_id' })
     setSaving(false)
+    if (error) {
+      setToast(t('common.error_guardar'))
+      setTimeout(() => setToast(''), 3000)
+      return
+    }
     setToast(t('metas.guardado_toast'))
     setTimeout(() => {
       setToast('')
