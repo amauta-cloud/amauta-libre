@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/push/noche-recordatorio",
-      "schedule": "0 0 * * *"
+      "schedule": "0 1 * * *"
     }
   ]
 }
