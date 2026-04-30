@@ -43,9 +43,8 @@ export async function GET(req: NextRequest) {
   const subscriptions = Array.from(seen.values())
 
   // Build per-user dias activos esta semana
-  const hace7 = new Date()
-  hace7.setDate(hace7.getDate() - 7)
-  const hace7Str = hace7.toISOString().split('T')[0]
+  const hace7Str = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    .toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
 
   const { data: registros } = await supabase
     .from('habito_registros')

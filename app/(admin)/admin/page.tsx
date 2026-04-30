@@ -113,6 +113,7 @@ export default async function AdminPage() {
   const pushSubs = (pushSubsRes.data ?? []).length
 
   const authUsers = authUsersRes.data?.users ?? []
+  const authUserMap = new Map(authUsers.map(u => [u.id, u.created_at]))
   const hace7Date = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   const hace14Date = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
   const hace30Date = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
@@ -249,7 +250,7 @@ export default async function AdminPage() {
     .map(u => ({
       ...u,
       ultimaActividad: ultimaActMap[u.id] ?? null,
-      authUser: authUsers.find(a => a.id === u.id) ? { created_at: authUsers.find(a => a.id === u.id)!.created_at } : null,
+      authUser: authUserMap.has(u.id) ? { created_at: authUserMap.get(u.id)! } : null,
       streak: streakMap[u.id] ?? 0,
       habitosHoy: hoyPorUsuario[u.id]?.length ?? 0,
       educacionEtapa: eduMap[u.id] ?? 0,
