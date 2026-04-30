@@ -17,7 +17,7 @@ export default async function EducacionPage() {
 
   const [{ data }, { data: perfil }] = await Promise.all([
     supabase.from('educacion_etapas').select('*').eq('activo', true).order('orden'),
-    supabase.from('usuarios').select('nombre').eq('id', user!.id).single(),
+    supabase.from('usuarios').select('nombre').eq('id', user!.id).maybeSingle(),
   ])
 
   const etapas: Etapa[] = data || []

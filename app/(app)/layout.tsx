@@ -12,9 +12,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user) redirect('/login')
 
   const [{ data: perfil }, { data: educacionData }] = await Promise.all([
-    supabase.from('usuarios').select('nombre').eq('id', user.id).single(),
+    supabase.from('usuarios').select('nombre').eq('id', user.id).maybeSingle(),
     supabase.from('educacion_estado').select('etapa_actual').eq('usuario_id', user.id).maybeSingle(),
   ])
+
+  // Garantiza que el registro usuarios exista para nuevos usuarios
+  if (!perfil) {
+    await supabase.from('usuarios').upsert(
+      { id: user.id, email: user.email ?? '', nombre: user.user_metadata?.full_name ?? user.user_metadata?.name ?? '' },
+      { onConflict: 'id', ignoreDuplicates: true }
+    )
+  }
   const educacionPaso = educacionData?.etapa_actual ?? 0
 
   const meta = user.user_metadata || {}
