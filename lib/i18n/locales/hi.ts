@@ -154,6 +154,8 @@ export const hi: typeof es = {
       resultado_neto: 'शुद्ध नतीजा',
       desglose_gastos: 'खर्चों का विवरण',
       inversion_label: '📈 निवेश',
+      sin_actividad: '{mes} में अभी तक कोई गतिविधि नहीं।',
+      ver_mes_anterior: 'पिछला महीना देखें',
     },
     habitos: {
       base: 'मूल आदतें',

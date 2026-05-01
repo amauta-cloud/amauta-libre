@@ -154,6 +154,8 @@ export const zh: typeof es = {
       resultado_neto: '净结果',
       desglose_gastos: '支出明细',
       inversion_label: '📈 投资',
+      sin_actividad: '{mes}暂无活动记录。',
+      ver_mes_anterior: '查看上个月',
     },
     habitos: {
       base: '基础习惯',

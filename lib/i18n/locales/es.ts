@@ -152,6 +152,8 @@ export const es = {
       resultado_neto: 'Resultado neto',
       desglose_gastos: 'Desglose de gastos',
       inversion_label: '📈 Inversión',
+      sin_actividad: 'Todavía no hay actividad en {mes}.',
+      ver_mes_anterior: 'Ver mes anterior',
     },
     habitos: {
       base: 'Hábitos base',

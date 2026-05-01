@@ -154,6 +154,8 @@ export const ja: typeof es = {
       resultado_neto: '純結果',
       desglose_gastos: '支出の内訳',
       inversion_label: '📈 投資',
+      sin_actividad: '{mes}はまだ活動記録がありません。',
+      ver_mes_anterior: '前の月を見る',
     },
     habitos: {
       base: '基本習慣',

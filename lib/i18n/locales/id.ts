@@ -154,6 +154,8 @@ export const id: typeof es = {
       resultado_neto: 'Hasil bersih',
       desglose_gastos: 'Rincian pengeluaran',
       inversion_label: '📈 Investasi',
+      sin_actividad: 'Belum ada aktivitas di {mes}.',
+      ver_mes_anterior: 'Lihat bulan sebelumnya',
     },
     habitos: {
       base: 'Kebiasaan dasar',

@@ -154,6 +154,8 @@ export const ar: typeof es = {
       resultado_neto: 'الصافي',
       desglose_gastos: 'تفاصيل النفقات',
       inversion_label: '📈 الاستثمار',
+      sin_actividad: 'لا يوجد نشاط حتى الآن في {mes}.',
+      ver_mes_anterior: 'عرض الشهر السابق',
     },
     habitos: {
       base: 'العادات الأساسية',

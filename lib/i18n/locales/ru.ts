@@ -154,6 +154,8 @@ export const ru: typeof es = {
       resultado_neto: 'Чистый результат',
       desglose_gastos: 'Детализация расходов',
       inversion_label: '📈 Инвестиции',
+      sin_actividad: 'В {mes} пока нет активности.',
+      ver_mes_anterior: 'Посмотреть предыдущий месяц',
     },
     habitos: {
       base: 'Базовые привычки',

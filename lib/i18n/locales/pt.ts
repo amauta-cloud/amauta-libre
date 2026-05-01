@@ -154,6 +154,8 @@ export const pt: typeof es = {
       resultado_neto: 'Resultado líquido',
       desglose_gastos: 'Detalhes das despesas',
       inversion_label: '📈 Investimento',
+      sin_actividad: 'Ainda não há atividade em {mes}.',
+      ver_mes_anterior: 'Ver mês anterior',
     },
     habitos: {
       base: 'Hábitos base',

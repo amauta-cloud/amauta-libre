@@ -1307,6 +1307,19 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1rem' }}>{t('metas.error_carga')}</p>
               <button onClick={loadMonthData} style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: 'rgba(139,92,246,0.2)', color: '#a78bfa', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>{t('metas.reintentar')}</button>
             </div>
+          ) : totalDias === 0 && totalIngresos === 0 && totalGastos === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ fontSize: '2.5rem' }}>📭</div>
+              <div style={{ color: '#9ca3af', fontSize: '0.88rem', lineHeight: 1.6 }}>
+                {t('tablero.mes.sin_actividad', { mes: mesNombre.charAt(0).toUpperCase() + mesNombre.slice(1) })}
+              </div>
+              <button
+                onClick={() => { if (month === 1) { setMonth(12); setYear(y => y - 1) } else setMonth(m => m - 1) }}
+                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: 'rgba(139,92,246,0.2)', color: '#a78bfa', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+              >
+                ‹ {t('tablero.mes.ver_mes_anterior')}
+              </button>
+            </div>
           ) : (
             <>
               {/* Stats cards */}
