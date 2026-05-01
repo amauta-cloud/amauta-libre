@@ -48,6 +48,7 @@ export async function GET(req: NextRequest) {
     title: 'Cierre del día 🌙',
     body: 'Marcá tus hábitos antes de dormir.',
     url: '/tablero',
+    campaign: 'noche-recordatorio',
   })
 
   let sent = 0

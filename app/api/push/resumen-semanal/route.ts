@@ -79,6 +79,7 @@ export async function GET(req: NextRequest) {
       title: 'Tu semana en Amauta 📊',
       body,
       url: '/tablero',
+      campaign: 'resumen-semanal',
     })
 
     try {

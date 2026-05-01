@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amauta-libre-v1'
+const CACHE_NAME = 'amauta-libre-v2'
 const STATIC_ASSETS = [
   '/favicon.ico',
   '/android-chrome-192x192.png',
@@ -48,18 +48,27 @@ self.addEventListener('push', (event) => {
     body: data.body ?? '¿Registraste tus hábitos hoy?',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-192x192.png',
-    data: { url: data.url ?? '/tablero' },
+    data: { url: data.url ?? '/tablero', campaign: data.campaign ?? 'unknown' },
   }
   event.waitUntil(self.registration.showNotification(title, options))
 })
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
+  const campaign = event.notification.data?.campaign ?? 'unknown'
+  const targetUrl = event.notification.data?.url ?? '/tablero'
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      const existing = clientList.find(c => c.url.includes('/tablero'))
-      if (existing) return existing.focus()
-      return clients.openWindow(event.notification.data?.url ?? '/tablero')
-    })
+    fetch('/api/push/click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ campaign }),
+      credentials: 'include',
+    }).catch(() => {}).then(() =>
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+        const existing = clientList.find(c => c.url.includes('/tablero'))
+        if (existing) return existing.focus()
+        return clients.openWindow(targetUrl)
+      })
+    )
   )
 })

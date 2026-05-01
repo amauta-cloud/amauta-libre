@@ -46,6 +46,7 @@ export async function GET(req: NextRequest) {
     title: 'Último día del mes 📅',
     body: 'Cerrá el mes — mirá tu análisis de finanzas y revisá tus metas.',
     url: '/tablero',
+    campaign: 'cierre-mes',
   })
 
   let sent = 0

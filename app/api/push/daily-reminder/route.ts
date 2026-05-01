@@ -49,6 +49,7 @@ export async function GET(req: NextRequest) {
     title: 'Amauta — pensamiento del día',
     body: getQuoteOfDay(),
     url: '/tablero',
+    campaign: 'daily-reminder',
   })
 
   let sent = 0

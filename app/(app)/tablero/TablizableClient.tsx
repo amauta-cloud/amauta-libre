@@ -151,6 +151,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [loading, setLoading] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'hoy' | 'mes' | 'habitos' | 'finanzas' | 'metas'>('hoy')
   const [habitoFeedback, setHabitoFeedback] = useState<string | null>(null)
+  const [errToast, setErrToast] = useState<string | null>(null)
+
+  function showErrToast(msg: string) {
+    setErrToast(msg)
+    setTimeout(() => setErrToast(null), 3500)
+  }
 
   // Numeric habit stepper values (controlled)
   const [numValues, setNumValues] = useState<Record<string, number>>(
@@ -278,14 +284,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', today).order('creado_en'),
       supabase.from('finanzas_diarias').select('ahorro').eq('usuario_id', userId).eq('fecha', today).maybeSingle(),
     ]).then(([{ data: itemsData, error: err1 }, { data: dailyRec }]) => {
-      if (err1) return
+      if (err1) { showErrToast(t('common.error_guardar')); return }
       const items = (itemsData || []) as FinanzaItem[]
       setFinanzaItems(items)
       const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
       const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
       const ahorro = (dailyRec as { ahorro: boolean } | null)?.ahorro ?? false
       setFinanzas({ ingresos, gastos, ahorro })
-    }).catch(() => {})
+    }).catch(() => { showErrToast(t('common.error_guardar')) })
   }, [userId, today]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load month data
@@ -332,10 +338,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       setTimeout(() => setHabitoFeedback(null), 1200)
     }
     setLoading(habito.id)
-    await supabase.from('habito_registros').upsert({
+    const { error } = await supabase.from('habito_registros').upsert({
       usuario_id: userId, habito_id: habito.id, fecha: today, valor_bool: newVal,
     }, { onConflict: 'habito_id,fecha' })
     setLoading(null)
+    if (error) {
+      setRegMap(prev => ({ ...prev, [habito.id]: { habito_id: habito.id, valor_bool: current, valor_numero: null, nota: prev[habito.id]?.nota ?? null } }))
+      showErrToast(t('common.error_guardar'))
+    }
   }
 
   async function stepNumero(habito: Habito, delta: number) {
@@ -343,9 +353,10 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     const newVal = Math.max(0, current + delta)
     setNumValues(prev => ({ ...prev, [habito.id]: newVal }))
     setRegMap(prev => ({ ...prev, [habito.id]: { habito_id: habito.id, valor_bool: null, valor_numero: newVal, nota: prev[habito.id]?.nota ?? null } }))
-    await supabase.from('habito_registros').upsert({
+    const { error } = await supabase.from('habito_registros').upsert({
       usuario_id: userId, habito_id: habito.id, fecha: today, valor_numero: newVal,
     }, { onConflict: 'habito_id,fecha' })
+    if (error) showErrToast(t('common.error_guardar'))
   }
 
   async function setNumero(habito: Habito, val: string) {
@@ -356,19 +367,21 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   async function saveNumero(habito: Habito) {
     const newVal = numValues[habito.id] ?? 0
-    await supabase.from('habito_registros').upsert({
+    const { error } = await supabase.from('habito_registros').upsert({
       usuario_id: userId, habito_id: habito.id, fecha: today, valor_numero: newVal,
     }, { onConflict: 'habito_id,fecha' })
+    if (error) showErrToast(t('common.error_guardar'))
   }
 
   async function saveNota(habito: Habito) {
     const nota = notaInputs[habito.id] ?? ''
     setNotaSaving(habito.id)
     setRegMap(prev => ({ ...prev, [habito.id]: { ...(prev[habito.id] ?? { habito_id: habito.id, valor_bool: null, valor_numero: null }), nota: nota || null } }))
-    await supabase.from('habito_registros').upsert({
+    const { error } = await supabase.from('habito_registros').upsert({
       usuario_id: userId, habito_id: habito.id, fecha: today, nota: nota || null,
     }, { onConflict: 'habito_id,fecha' })
     setNotaSaving(null)
+    if (error) { showErrToast(t('common.error_guardar')); return }
     if (!nota.trim()) setNotaOpen(null)
   }
 
@@ -2433,6 +2446,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               }}>
                 🔥 {t('tablero.logro.dias', { n: logroVisible })}
               </div>
+      {errToast && (
+        <div style={{ position: 'fixed', bottom: '5rem', left: '50%', transform: 'translateX(-50%)', background: '#ef4444', color: 'white', padding: '0.6rem 1.25rem', borderRadius: '99px', fontSize: '0.82rem', fontWeight: 700, zIndex: 1000, boxShadow: '0 4px 20px rgba(239,68,68,0.4)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>
+          ⚠ {errToast}
+        </div>
+      )}
+
               <div style={{ display: 'flex', gap: '0.625rem', width: '100%', marginTop: '0.25rem' }}>
                 <button
                   onClick={() => {
