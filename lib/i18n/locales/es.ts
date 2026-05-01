@@ -225,6 +225,7 @@ export const es = {
       agregar: 'Agregar',
       historial: 'Historial',
       sin_registrar: 'sin registrar',
+      eliminar_item: '¿Eliminar este movimiento?',
     },
     finanzas: {
       resultado: 'Resultado',

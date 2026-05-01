@@ -227,6 +227,7 @@ export const ar: typeof es = {
       agregar: 'إضافة',
       historial: 'التاريخ',
       sin_registrar: 'غير مسجل',
+      eliminar_item: 'حذف هذه الحركة؟',
     },
     finanzas: {
       resultado: 'النتيجة',

@@ -227,6 +227,7 @@ export const ru: typeof es = {
       agregar: 'Добавить',
       historial: 'История',
       sin_registrar: 'не записано',
+      eliminar_item: 'Удалить эту запись?',
     },
     finanzas: {
       resultado: 'Результат',

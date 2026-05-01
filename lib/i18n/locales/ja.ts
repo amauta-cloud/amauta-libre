@@ -227,6 +227,7 @@ export const ja: typeof es = {
       agregar: '追加',
       historial: '履歴',
       sin_registrar: '未記録',
+      eliminar_item: 'この記録を削除しますか？',
     },
     finanzas: {
       resultado: '結果',

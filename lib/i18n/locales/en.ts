@@ -227,6 +227,7 @@ export const en: typeof es = {
       agregar: 'Add',
       historial: 'History',
       sin_registrar: 'untracked',
+      eliminar_item: 'Delete this entry?',
     },
     finanzas: {
       resultado: 'Result',

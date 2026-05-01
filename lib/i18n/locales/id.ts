@@ -227,6 +227,7 @@ export const id: typeof es = {
       agregar: 'Tambah',
       historial: 'Riwayat',
       sin_registrar: 'belum tercatat',
+      eliminar_item: 'Hapus entri ini?',
     },
     finanzas: {
       resultado: 'Hasil',

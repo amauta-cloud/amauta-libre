@@ -227,6 +227,7 @@ export const pt: typeof es = {
       agregar: 'Adicionar',
       historial: 'Histórico',
       sin_registrar: 'sem registro',
+      eliminar_item: 'Excluir este lançamento?',
     },
     finanzas: {
       resultado: 'Resultado',

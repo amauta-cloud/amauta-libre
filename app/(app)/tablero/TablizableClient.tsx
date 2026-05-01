@@ -200,6 +200,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [monthFinanzas, setMonthFinanzas] = useState<{ fecha: string; ingresos: number; gastos: number; ahorro: boolean }[]>([])
   const [monthItems, setMonthItems] = useState<{ tipo: string; monto: number; categoria: string | null }[]>([])
   const [monthLoading, setMonthLoading] = useState(false)
+  const [monthError, setMonthError] = useState(false)
 
   // Edit past day
   const [editingDay, setEditingDay] = useState<string | null>(null)
@@ -290,6 +291,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   // Load month data
   const loadMonthData = useCallback(async () => {
     setMonthLoading(true)
+    setMonthError(false)
     try {
       const daysInMonth = new Date(year, month, 0).getDate()
       const from = `${year}-${String(month).padStart(2, '0')}-01`
@@ -299,11 +301,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
         supabase.from('finanzas_diarias').select('fecha,ingresos,gastos,ahorro').eq('usuario_id', userId).gte('fecha', from).lte('fecha', to),
         supabase.from('finanzas_items').select('tipo,monto,categoria').eq('usuario_id', userId).gte('fecha', from).lte('fecha', to),
       ])
+      if (regRes.error || finRes.error || itemsRes.error) throw new Error('load failed')
       setMonthRegistros(regRes.data || [])
       setMonthFinanzas((finRes.data || []) as { fecha: string; ingresos: number; gastos: number; ahorro: boolean }[])
       setMonthItems((itemsRes.data || []) as { tipo: string; monto: number; categoria: string | null }[])
     } catch {
-      // datos del mes no disponibles, la UI muestra vacío
+      setMonthError(true)
     } finally {
       setMonthLoading(false)
     }
@@ -439,6 +442,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   async function deleteFinanzaItem(id: string) {
+    if (!confirm(t('tablero.edit_day.eliminar_item'))) return
     const { error } = await supabase.from('finanzas_items').delete().eq('id', id)
     if (error) return
     const newItems = finanzaItems.filter(i => i.id !== id)
@@ -577,7 +581,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   async function deleteEditDayItem(id: string) {
-    await supabase.from('finanzas_items').delete().eq('id', id)
+    if (!confirm(t('tablero.edit_day.eliminar_item'))) return
+    const { error } = await supabase.from('finanzas_items').delete().eq('id', id)
+    if (error) return
     const newItems = editDayItems.filter(i => i.id !== id)
     setEditDayItems(newItems)
     await syncEditDayFinanzas(newItems)
@@ -1296,6 +1302,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
           {monthLoading ? (
             <div style={{ textAlign: 'center', color: '#6b7280', padding: '2rem', fontSize: '0.85rem' }}>{t('common.loading')}</div>
+          ) : monthError ? (
+            <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+              <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1rem' }}>{t('metas.error_carga')}</p>
+              <button onClick={loadMonthData} style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: 'rgba(139,92,246,0.2)', color: '#a78bfa', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>{t('metas.reintentar')}</button>
+            </div>
           ) : (
             <>
               {/* Stats cards */}
@@ -1713,6 +1724,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           {/* Resumen del mes */}
           {monthLoading ? (
             <div style={{ textAlign: 'center', color: '#6b7280', padding: '1.5rem', fontSize: '0.85rem' }}>{t('common.loading')}</div>
+          ) : monthError ? (
+            <div style={{ textAlign: 'center', padding: '1.5rem 1rem' }}>
+              <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1rem' }}>{t('metas.error_carga')}</p>
+              <button onClick={loadMonthData} style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: 'rgba(139,92,246,0.2)', color: '#a78bfa', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>{t('metas.reintentar')}</button>
+            </div>
           ) : (totalIngresos > 0 || totalGastos > 0) ? (
             <div style={{ background: '#1a1730', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem' }}>
               <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>

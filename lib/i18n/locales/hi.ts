@@ -227,6 +227,7 @@ export const hi: typeof es = {
       agregar: 'जोड़ें',
       historial: 'इतिहास',
       sin_registrar: 'अनट्रैक्ड',
+      eliminar_item: 'इस एंट्री को हटाएं?',
     },
     finanzas: {
       resultado: 'परिणाम',

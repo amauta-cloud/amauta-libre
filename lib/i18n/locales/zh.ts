@@ -227,6 +227,7 @@ export const zh: typeof es = {
       agregar: '添加',
       historial: '历史',
       sin_registrar: '未记录',
+      eliminar_item: '删除此记录？',
     },
     finanzas: {
       resultado: '结果',
