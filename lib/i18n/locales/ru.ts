@@ -325,6 +325,8 @@ export const ru: typeof es = {
     badge_tarea: 'ЗАДАЧА',
     badge_completada: '✓ Выполнена',
     pasar_a_tarea: 'Сделать задачей',
+    sin_eventos_dia: 'На этот день событий нет.',
+    ver_todo_mes: 'Показать весь месяц ×',
   },
   metas: {
     loading: 'Минуту...',

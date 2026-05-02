@@ -451,17 +451,19 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
           ...tareas.filter(t => t.fecha_limite && t.estado !== 'completada').map(t => t.fecha_limite!),
         ])
 
-        // Pending items (filtered by selectedDay if set)
+        const monthPrefix = `${calYear}-${String(calMonth).padStart(2, '0')}`
+
+        // Pending items (filtered by selectedDay if set, otherwise by current month)
         type CalItem = { kind: 'evento'; data: Evento; sortKey: string } | { kind: 'tarea'; data: Tarea; sortKey: string }
         const activeItems: CalItem[] = [
-          ...eventos.filter(ev => !ev.realizado && (!selectedDay || ev.fecha === selectedDay))
+          ...eventos.filter(ev => !ev.realizado && (selectedDay ? ev.fecha === selectedDay : ev.fecha.startsWith(monthPrefix)))
             .map(ev => ({ kind: 'evento' as const, data: ev, sortKey: ev.fecha + (ev.hora || '99:99') })),
-          ...tareas.filter(t => t.fecha_limite && t.estado !== 'completada' && (!selectedDay || t.fecha_limite === selectedDay))
+          ...tareas.filter(t => t.fecha_limite && t.estado !== 'completada' && (selectedDay ? t.fecha_limite === selectedDay : t.fecha_limite!.startsWith(monthPrefix)))
             .map(t => ({ kind: 'tarea' as const, data: t, sortKey: t.fecha_limite! + (t.hora_limite || '99:99') })),
         ].sort((a, b) => a.sortKey < b.sortKey ? -1 : 1)
 
-        // Completed events (realizados)
-        const realizados = eventos.filter(ev => ev.realizado && (!selectedDay || ev.fecha === selectedDay))
+        // Completed events (realizados) filtered by selectedDay or current month
+        const realizados = eventos.filter(ev => ev.realizado && (selectedDay ? ev.fecha === selectedDay : ev.fecha.startsWith(monthPrefix)))
 
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
@@ -512,7 +514,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
               {selectedDay && (
                 <button onClick={() => setSelectedDay(null)}
                   style={{ width: '100%', marginTop: '0.625rem', padding: '0.25rem', background: 'none', border: 'none', color: '#6b7280', fontSize: '0.72rem', cursor: 'pointer' }}>
-                  Ver todo el mes ×
+                  {t('planificacion.ver_todo_mes')}
                 </button>
               )}
             </div>
@@ -556,7 +558,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
             {/* ── Empty state ── */}
             {!eventosLoading && !tareasLoading && activeItems.length === 0 && realizados.length === 0 && !evShowForm && (
               <div style={{ textAlign: 'center', color: '#4b5563', padding: '2rem 1rem', fontSize: '0.85rem' }}>
-                {selectedDay ? 'Sin eventos este día.' : t('planificacion.evento_empty')}<br />
+                {selectedDay ? t('planificacion.sin_eventos_dia') : t('planificacion.evento_empty')}<br />
                 <span style={{ fontSize: '0.75rem' }}>{t('planificacion.evento_empty_sub')}</span>
               </div>
             )}

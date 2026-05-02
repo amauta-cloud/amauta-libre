@@ -325,6 +325,8 @@ export const ja: typeof es = {
     badge_tarea: 'タスク',
     badge_completada: '✓ 完了',
     pasar_a_tarea: 'タスクにする',
+    sin_eventos_dia: 'この日のイベントはありません。',
+    ver_todo_mes: '月全体を表示 ×',
   },
   metas: {
     loading: '少々お待ちください...',

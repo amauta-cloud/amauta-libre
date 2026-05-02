@@ -325,6 +325,8 @@ export const hi: typeof es = {
     badge_tarea: 'कार्य',
     badge_completada: '✓ पूर्ण',
     pasar_a_tarea: 'कार्य में बदलें',
+    sin_eventos_dia: 'इस दिन कोई घटना नहीं।',
+    ver_todo_mes: 'पूरा महीना देखें ×',
   },
   metas: {
     loading: 'एक पल...',

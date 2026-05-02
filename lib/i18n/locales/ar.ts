@@ -325,6 +325,8 @@ export const ar: typeof es = {
     badge_tarea: 'مهمة',
     badge_completada: '✓ مكتمل',
     pasar_a_tarea: 'تحويل إلى مهمة',
+    sin_eventos_dia: 'لا توجد أحداث في هذا اليوم.',
+    ver_todo_mes: 'عرض الشهر كاملاً ×',
   },
   metas: {
     loading: 'لحظة...',

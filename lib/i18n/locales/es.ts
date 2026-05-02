@@ -323,6 +323,8 @@ export const es = {
     badge_tarea: 'TAREA',
     badge_completada: '✓ Completada',
     pasar_a_tarea: 'Pasar a tarea',
+    sin_eventos_dia: 'Sin eventos este día.',
+    ver_todo_mes: 'Ver todo el mes ×',
   },
   metas: {
     loading: 'Un momento...',

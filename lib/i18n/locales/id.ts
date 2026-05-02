@@ -325,6 +325,8 @@ export const id: typeof es = {
     badge_tarea: 'TUGAS',
     badge_completada: '✓ Selesai',
     pasar_a_tarea: 'Ubah jadi tugas',
+    sin_eventos_dia: 'Tidak ada acara hari ini.',
+    ver_todo_mes: 'Lihat seluruh bulan ×',
   },
   metas: {
     loading: 'Sebentar...',

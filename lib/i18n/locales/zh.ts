@@ -325,6 +325,8 @@ export const zh: typeof es = {
     badge_tarea: '任务',
     badge_completada: '✓ 已完成',
     pasar_a_tarea: '变为任务',
+    sin_eventos_dia: '这天没有事件。',
+    ver_todo_mes: '查看整月 ×',
   },
   metas: {
     loading: '请稍候...',

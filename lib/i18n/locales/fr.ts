@@ -325,6 +325,8 @@ export const fr: typeof es = {
     badge_tarea: 'TÂCHE',
     badge_completada: '✓ Terminée',
     pasar_a_tarea: 'Passer en tâche',
+    sin_eventos_dia: 'Aucun événement ce jour.',
+    ver_todo_mes: 'Voir tout le mois ×',
   },
   metas: {
     loading: 'Un instant...',
