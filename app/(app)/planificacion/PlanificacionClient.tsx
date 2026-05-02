@@ -441,7 +441,11 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
         const daysInMonth = new Date(calYear, calMonth, 0).getDate()
         const firstDow = new Date(calYear, calMonth - 1, 1).getDay()
         const localeCode = locale === 'es' ? 'es-AR' : locale
-        const dayNames = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB']
+        const dayNames = Array.from({ length: 7 }, (_, i) =>
+          new Intl.DateTimeFormat(localeCode, { weekday: 'short' })
+            .format(new Date(2025, 0, 5 + i))
+            .replace('.', '').toUpperCase().slice(0, 3)
+        )
         const monthName = new Intl.DateTimeFormat(localeCode, { month: 'long' }).format(new Date(calYear, calMonth - 1, 1))
         const monthLabel = monthName.charAt(0).toUpperCase() + monthName.slice(1) + ' ' + calYear
 

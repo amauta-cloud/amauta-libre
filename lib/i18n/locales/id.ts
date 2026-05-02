@@ -107,6 +107,7 @@ export const id: typeof es = {
       regla10_aplicar: '📈 Terapkan',
       inversion_tipo: '📈 Investasi (pengeluaran)',
       ver_analisis: 'Lihat analisis bulanan →',
+    sin_categoria_aviso: 'Pilih kategori untuk mengatur keuangan Anda lebih baik',
       mejor_dia: 'Hari terbaik:',
       mejor_dia_pct: 'dengan {pct}%',
       racha_cero: 'Mulai hari ini untuk membangun streak Anda',

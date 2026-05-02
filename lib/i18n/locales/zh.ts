@@ -107,6 +107,7 @@ export const zh: typeof es = {
       regla10_aplicar: '📈 应用',
       inversion_tipo: '📈 投资（支出）',
       ver_analisis: '查看月度分析 →',
+    sin_categoria_aviso: '选择一个类别以更好地组织您的财务',
       mejor_dia: '最佳日：',
       mejor_dia_pct: '{pct}%',
       racha_cero: '今天开始建立您的连续记录',

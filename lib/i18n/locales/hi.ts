@@ -107,6 +107,7 @@ export const hi: typeof es = {
       regla10_aplicar: '📈 लागू करें',
       inversion_tipo: '📈 निवेश (व्यय)',
       ver_analisis: 'मासिक विश्लेषण देखें →',
+    sin_categoria_aviso: 'अपने वित्त को बेहतर ढंग से व्यवस्थित करने के लिए एक श्रेणी चुनें',
       mejor_dia: 'सर्वश्रेष्ठ दिन:',
       mejor_dia_pct: '{pct}% के साथ',
       racha_cero: 'अपनी लकीर बनाने के लिए आज शुरू करें',

@@ -107,6 +107,7 @@ export const en: typeof es = {
       regla10_aplicar: '📈 Apply',
       inversion_tipo: '📈 Investment (expense)',
       ver_analisis: 'View monthly analysis →',
+    sin_categoria_aviso: 'Select a category to better organize your finances',
       mejor_dia: 'Best day:',
       mejor_dia_pct: '{pct}%',
       racha_cero: 'Start today to build your streak',

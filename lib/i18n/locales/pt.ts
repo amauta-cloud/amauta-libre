@@ -107,6 +107,7 @@ export const pt: typeof es = {
       regla10_aplicar: '📈 Registrar',
       inversion_tipo: '📈 Investimento (despesa)',
       ver_analisis: 'Ver análise mensal →',
+    sin_categoria_aviso: 'Selecione uma categoria para organizar melhor suas finanças',
       mejor_dia: 'Melhor dia:',
       mejor_dia_pct: 'com {pct}%',
       racha_cero: 'Comece hoje para construir sua sequência',

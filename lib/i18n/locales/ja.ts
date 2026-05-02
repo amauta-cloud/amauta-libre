@@ -107,6 +107,7 @@ export const ja: typeof es = {
       regla10_aplicar: '📈 適用',
       inversion_tipo: '📈 投資（支出）',
       ver_analisis: '月次分析を見る →',
+    sin_categoria_aviso: 'カテゴリを選んで財務をより良く整理しましょう',
       mejor_dia: 'ベストデイ:',
       mejor_dia_pct: '{pct}%',
       racha_cero: '今日から連続記録を始めましょう',

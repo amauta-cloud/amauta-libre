@@ -107,6 +107,7 @@ export const ar: typeof es = {
       regla10_aplicar: '📈 تطبيق',
       inversion_tipo: '📈 استثمار (نفقة)',
       ver_analisis: 'عرض التحليل الشهري ←',
+    sin_categoria_aviso: 'اختر فئة لتنظيم أموالك بشكل أفضل',
       mejor_dia: 'أفضل يوم:',
       mejor_dia_pct: '{pct}%',
       racha_cero: 'ابدأ اليوم لبناء سلسلتك',

@@ -107,6 +107,7 @@ export const ru: typeof es = {
       regla10_aplicar: '📈 Применить',
       inversion_tipo: '📈 Инвестиции (расход)',
       ver_analisis: 'Смотреть анализ за месяц →',
+    sin_categoria_aviso: 'Выберите категорию для лучшей организации финансов',
       mejor_dia: 'Лучший день:',
       mejor_dia_pct: '{pct}%',
       racha_cero: 'Начните сегодня, чтобы построить серию',

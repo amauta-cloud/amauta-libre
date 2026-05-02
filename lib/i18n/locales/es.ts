@@ -105,6 +105,7 @@ export const es = {
       regla10_aplicar: '📈 Registrar',
       inversion_tipo: '📈 Inversión (gasto)',
       ver_analisis: 'Ver análisis mensual →',
+    sin_categoria_aviso: 'Seleccioná una categoría para organizar mejor tus finanzas',
       mejor_dia: 'Mejor día:',
       mejor_dia_pct: 'con {pct}%',
       racha_cero: 'Arrancá hoy para construir tu racha',
