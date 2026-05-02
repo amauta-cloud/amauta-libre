@@ -644,5 +644,9 @@ export const es = {
     cta_footer: 'Una app de Amauta — hecha en Argentina, para el mundo.',
     footer_privacidad: 'Privacidad',
     footer_terminos: 'Términos',
+    proof_users_label: 'personas activas',
+    proof_habits_label: 'hábitos registrados',
+    proof_langs_label: 'idiomas disponibles',
+    proof_redes: 'Seguinos en',
   },
 }

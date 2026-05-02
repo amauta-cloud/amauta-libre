@@ -600,5 +600,9 @@ export const ru: typeof es = {
     cta_footer: 'Приложение от Amauta — сделано в Аргентине, для всего мира.',
     footer_privacidad: 'Конфиденциальность',
     footer_terminos: 'Условия',
+    proof_users_label: 'активных пользователей',
+    proof_habits_label: 'привычек зарегистрировано',
+    proof_langs_label: 'доступных языков',
+    proof_redes: 'Подписывайтесь',
   },
 }

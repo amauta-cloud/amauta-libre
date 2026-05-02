@@ -600,5 +600,9 @@ export const fr: typeof es = {
     cta_footer: 'Une appli d\'Amauta — faite en Argentine, pour le monde.',
     footer_privacidad: 'Confidentialité',
     footer_terminos: 'Conditions',
+    proof_users_label: 'utilisateurs actifs',
+    proof_habits_label: 'habitudes enregistrées',
+    proof_langs_label: 'langues disponibles',
+    proof_redes: 'Suivez-nous sur',
   },
 }

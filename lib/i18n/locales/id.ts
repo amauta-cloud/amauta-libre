@@ -600,5 +600,9 @@ export const id: typeof es = {
     cta_footer: 'Aplikasi dari Amauta — dibuat di Argentina, untuk dunia.',
     footer_privacidad: 'Privasi',
     footer_terminos: 'Syarat',
+    proof_users_label: 'pengguna aktif',
+    proof_habits_label: 'kebiasaan tercatat',
+    proof_langs_label: 'bahasa tersedia',
+    proof_redes: 'Ikuti kami di',
   },
 }

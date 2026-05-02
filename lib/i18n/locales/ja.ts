@@ -600,5 +600,9 @@ export const ja: typeof es = {
     cta_footer: 'Amautaのアプリ — アルゼンチン製、世界へ。',
     footer_privacidad: 'プライバシー',
     footer_terminos: '利用規約',
+    proof_users_label: 'アクティブユーザー',
+    proof_habits_label: '記録された習慣',
+    proof_langs_label: '対応言語',
+    proof_redes: 'フォローしてください',
   },
 }

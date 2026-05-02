@@ -600,5 +600,9 @@ export const zh: typeof es = {
     cta_footer: 'Amauta 的应用——在阿根廷制造，面向全世界。',
     footer_privacidad: '隐私',
     footer_terminos: '条款',
+    proof_users_label: '活跃用户',
+    proof_habits_label: '已记录习惯',
+    proof_langs_label: '可用语言',
+    proof_redes: '关注我们',
   },
 }

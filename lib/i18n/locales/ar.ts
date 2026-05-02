@@ -600,5 +600,9 @@ export const ar: typeof es = {
     cta_footer: 'تطبيق من Amauta — صُنع في الأرجنتين، للعالم.',
     footer_privacidad: 'الخصوصية',
     footer_terminos: 'الشروط',
+    proof_users_label: 'مستخدم نشط',
+    proof_habits_label: 'عادة مسجلة',
+    proof_langs_label: 'لغة متاحة',
+    proof_redes: 'تابعنا على',
   },
 }

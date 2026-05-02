@@ -600,5 +600,9 @@ export const pt: typeof es = {
     cta_footer: 'Um app da Amauta — feito na Argentina, para o mundo.',
     footer_privacidad: 'Privacidade',
     footer_terminos: 'Termos',
+    proof_users_label: 'pessoas ativas',
+    proof_habits_label: 'hábitos registrados',
+    proof_langs_label: 'idiomas disponíveis',
+    proof_redes: 'Siga-nos em',
   },
 }

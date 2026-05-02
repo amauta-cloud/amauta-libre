@@ -600,5 +600,9 @@ export const hi: typeof es = {
     cta_footer: 'Amauta का एक ऐप — अर्जेंटीना में बना, दुनिया के लिए।',
     footer_privacidad: 'गोपनीयता',
     footer_terminos: 'नियम',
+    proof_users_label: 'सक्रिय उपयोगकर्ता',
+    proof_habits_label: 'दर्ज की गई आदतें',
+    proof_langs_label: 'उपलब्ध भाषाएं',
+    proof_redes: 'हमें फॉलो करें',
   },
 }
