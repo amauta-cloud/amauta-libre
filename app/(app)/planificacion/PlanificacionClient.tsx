@@ -357,12 +357,17 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
               {ideaToTask?.id === idea.id && (
                 <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '10px', padding: '0.75rem', marginTop: '0.5rem' }}>
                   <p style={{ margin: '0 0 0.6rem', fontSize: '0.75rem', color: '#a78bfa', fontWeight: 600 }}>{t('planificacion.idea_fecha_hint')}</p>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
                     <input type="date" value={ideaToTaskFecha} min={today} onChange={e => setIdeaToTaskFecha(e.target.value)}
                       style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: '#9ca3af', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark' }} />
                     <input type="time" step="1" value={ideaToTaskHora} onChange={e => setIdeaToTaskHora(e.target.value)} disabled={!ideaToTaskFecha}
                       style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: ideaToTaskFecha ? '#9ca3af' : '#4b5563', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark', cursor: ideaToTaskFecha ? 'auto' : 'not-allowed' }} />
                   </div>
+                  {!ideaToTaskFecha && (
+                    <p style={{ margin: '0 0 0.6rem', fontSize: '0.7rem', color: '#4b5563', fontStyle: 'italic' }}>
+                      Sin fecha no aparecerá en el Calendario.
+                    </p>
+                  )}
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button onClick={convertIdeaToTask} disabled={ideaToTaskAdding}
                       style={{ ...BTN_BASE, flex: 1, background: '#8b5cf6', color: 'white', fontSize: '0.78rem' }}>
@@ -514,6 +519,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
 
             {/* ── Add Event Form / Button ── */}
             {evShowForm ? (
+
               <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: '12px', padding: '1rem' }}>
                 <input value={evTitulo} onChange={e => setEvTitulo(e.target.value)} placeholder={t('planificacion.evento_titulo_placeholder')} autoFocus
                   style={{ ...INPUT_STYLE, marginBottom: '0.625rem' }} />
@@ -539,7 +545,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                 </div>
               </div>
             ) : (
-              <AddBtn onClick={() => { setEvShowForm(true); setEvEditing(null) }} />
+              <AddBtn onClick={() => { setEvShowForm(true); setEvEditing(null); if (selectedDay) setEvFecha(selectedDay) }} />
             )}
 
             {/* ── Loading ── */}
