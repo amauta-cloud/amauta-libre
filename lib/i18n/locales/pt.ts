@@ -94,7 +94,7 @@ export const pt: typeof es = {
       nota_placeholder: 'Anote algo sobre esse hábito hoje...',
       nota_title: 'Adicionar nota',
       historial_title: 'Ver histórico',
-      sin_habitos: 'Seus hábitos carregam automaticamente ao se cadastrar.',
+      sin_habitos: 'Você ainda não configurou nenhum hábito.',
       sin_habitos_sub: 'Adicione seus primeiros hábitos e comece a construir o seu dia.',
       sin_habitos_cta: 'Ir para meus hábitos →',
       dia_rojo: 'Dia vermelho. Semana verde. Continue.',
@@ -144,7 +144,7 @@ export const pt: typeof es = {
       total_gastos: 'Total de gastos do mês',
       desglose_titulo: 'Distribuição por categoria',
       total_ingresos_mes: 'Total de receitas do mês',
-      mapa: 'Mapa de hábitos: toque em um dia para editar',
+      mapa: 'Mapa de hábitos',
       mapa_hint: 'toque em um dia para editar',
       menos: 'Menos',
       mas: 'Mais',
@@ -408,68 +408,114 @@ export const pt: typeof es = {
     paso_listo: 'Passo {n} concluído. Vamos.',
     pasos: [
       {
+        // [0] Nightingale
         mensajeIntro: 'Earl Nightingale gravou esse áudio há mais de 60 anos. Ainda é o mais direto sobre o assunto. 30 minutos que vão sacudir sua cabeça.',
         preguntaTransicion: 'O que você entendeu por "o segredo mais estranho"? Como isso se aplica à sua vida hoje?',
         teaserProximo: 'A Vaca · Camilo Cruz',
         mensajeProximo: 'A Vaca é uma história curta sobre a desculpa que te prende. Todo mundo tem uma. A questão é se você está disposto a vê-la.',
       },
       {
+        // [1] Cruz — A Vaca
         mensajeIntro: 'Uma história curta sobre a desculpa que te prende. Todo mundo tem uma vaca. A questão é se você está disposto a vê-la e abatê-la.',
         preguntaTransicion: 'Qual era a sua vaca? O que você decidiu fazer com ela depois de ler?',
         teaserProximo: 'Engula o Sapo! · Brian Tracy',
         mensajeProximo: 'Se A Vaca te mostrou a desculpa, este livro te dá o método. O "sapo" é aquela tarefa que você fica adiando. Engoli-lo primeiro muda o dia inteiro.',
       },
       {
+        // [2] Tracy — Engula o Sapo
         mensajeIntro: 'Se A Vaca te mostrou a desculpa, Engula o Sapo te dá o método. O sapo é aquela tarefa que você fica adiando. Fazer isso primeiro muda tudo.',
         preguntaTransicion: 'Qual foi o sapo que você engoliu? O que aconteceu depois?',
         teaserProximo: 'Detox Financeiro · Fernando Palacio',
         mensajeProximo: 'O dinheiro não é o problema. Sua relação com o dinheiro é o problema. Detox Financeiro ajuda a identificar as crenças que te freiam financeiramente.',
       },
       {
+        // [3] Palacio — Detox Financeiro
         mensajeIntro: 'O dinheiro não é o problema, sua relação com o dinheiro é o problema. Este livro te ajuda a limpar as crenças que te freiam financeiramente, muitas delas desde a infância.',
         preguntaTransicion: 'Que crença sobre dinheiro você identificou? Como planeja trabalhar nisso?',
         teaserProximo: 'Quebrando o Hábito de Ser Você Mesmo · Joe Dispenza',
         mensajeProximo: 'Dispenza vai mais fundo. Ele explica como o cérebro constrói a realidade e por que certos padrões se repetem não importa o quanto você tente mudar.',
       },
       {
+        // [4] Dispenza — Quebrando o Hábito (Áudio)
         mensajeIntro: 'Dispenza vai mais fundo do que qualquer outro autor nessa jornada. Ele explica como o cérebro constrói a realidade e por que certos padrões se repetem não importa o quanto você tente mudar. Prepare-se.',
         preguntaTransicion: 'Que padrão você identificou em si mesmo? Qual exercício do livro foi mais poderoso para você?',
+        teaserProximo: 'REWIRED · Dr. Joe Dispenza',
+        mensajeProximo: 'Dispenza em vídeo é outra experiência. REWIRED explica como reconectar o cérebro para que suas novas decisões se tornem automáticas em vez de uma luta constante.',
+      },
+      {
+        // [5] Dispenza — REWIRED (Vídeo)
+        mensajeIntro: 'Dispenza em vídeo é outra experiência. REWIRED explica como reconectar o cérebro para que suas novas decisões se tornem automáticas, em vez de uma luta constante.',
+        preguntaTransicion: 'Que prática do vídeo você vai adotar? Quando começa?',
         teaserProximo: 'A Libertação da Alma · Michael Singer',
         mensajeProximo: 'Singer não fala em fazer mais. Ele fala em soltar o que te pesa. Poucos livros te movem como este.',
       },
       {
+        // [6] Singer — A Libertação da Alma
         mensajeIntro: 'Singer não fala em fazer mais. Ele fala em soltar o que te pesa. Poucos livros te movem como este.',
         preguntaTransicion: 'Tem algo que você estava agarrando e decidiu soltar? O que mudou quando fez isso?',
         teaserProximo: 'Seu Desejo é Sua Ordem · Kevin Trudeau',
         mensajeProximo: 'Trudeau explica por que o que você deseja com mais clareza é o que acaba criando, e por que a maioria das pessoas nunca consegue.',
       },
       {
+        // [7] Trudeau — Seu Desejo é Sua Ordem
         mensajeIntro: 'Trudeau explica por que o que você deseja com mais clareza é o que acaba atraindo, e por que a maioria nunca consegue. Ouça quando puder se concentrar de verdade.',
-        preguntaTransicion: 'Qual foi o conceito que mais te impactou? O que você vai fazer diferente com o que aprendeu?',
-        teaserProximo: 'REWIRED · Dr. Joe Dispenza',
-        mensajeProximo: 'Dispenza em vídeo é outra experiência. REWIRED explica como reconectar o cérebro para que suas novas decisões se tornem automáticas em vez de uma luta constante.',
-      },
-      {
-        mensajeIntro: 'Dispenza em vídeo é outra experiência. REWIRED explica como reconectar o cérebro para que suas novas decisões se tornem automáticas, em vez de uma luta constante.',
-        preguntaTransicion: 'Que prática do vídeo você vai adotar? Quando começa?',
-        teaserProximo: 'Biblioteca · Desenvolvimento de Consciência',
-        mensajeProximo: 'Você chegou à biblioteca. O material que aprofunda tudo que você vem trabalhando.',
-      },
-      {
-        mensajeIntro: 'Você chegou à biblioteca. Aqui você encontra o material que aprofunda tudo que vem trabalhando.',
-        preguntaTransicion: 'Em que área da sua vida você sente que mais cresceu desde que começou essa jornada? O que ainda quer continuar trabalhando?',
+        preguntaTransicion: 'Descreva em detalhes como seria alcançar o que você mais deseja. O que você vê, o que sente, quem está lá.',
         teaserProximo: 'Fênix · Brian Tracy',
         mensajeProximo: 'Tracy em vídeo, o processo de renascer como pessoa e como profissional. A Fênix não volta sendo a mesma.',
       },
       {
+        // [8] Tracy — Fênix (Vídeo)
         mensajeIntro: 'Tracy em vídeo, o processo de renascer como pessoa e como profissional. A Fênix não volta sendo a mesma. Esse vídeo te ajuda a entender o que precisa ser liberado para isso acontecer.',
-        preguntaTransicion: 'Em que aspecto da sua vida você sente que renasceu? O que você deixou ir para isso acontecer?',
-        teaserProximo: 'Método Silva',
-        mensajeProximo: 'O último passo: o Método Silva. Mais de 50 anos de prática, resultados concretos. Isso fecha o círculo.',
+        preguntaTransicion: 'Que parte de você precisa morrer para que nasça quem você quer ser?',
+        teaserProximo: 'Não se Preocupe, Confie em Deus · Brian Tracy',
+        mensajeProximo: 'Tracy gravou esse áudio como se fosse uma conversa, não uma palestra. Em 47 minutos ele deixa claro por que o controle que você acha que tem é o que mais te freia.',
       },
       {
-        mensajeIntro: 'O Método Silva tem mais de 50 anos. Ainda é uma das técnicas mais concretas para usar a mente com propósito. Isso fecha o círculo.',
-        preguntaTransicion: 'Como você vai integrar tudo que aprendeu à sua vida cotidiana?',
+        // [9] Tracy — Não se Preocupe, Confie em Deus (Áudio)
+        mensajeIntro: 'Brian Tracy gravou esse áudio como se fosse uma conversa, não uma palestra. Em 47 minutos ele deixa claro por que o controle que você acha que tem é o que mais te freia.',
+        preguntaTransicion: 'Onde você está se agarrando em vez de confiar?',
+        teaserProximo: 'Método Silva',
+        mensajeProximo: 'O Método Silva tem mais de 50 anos. Ainda é uma das técnicas mais concretas para usar a mente com propósito.',
+      },
+      {
+        // [10] Método Silva
+        mensajeIntro: 'O Método Silva tem mais de 50 anos. Ainda é uma das técnicas mais concretas para usar a mente com propósito. Com isso você fecha o ciclo da reprogramação.',
+        preguntaTransicion: 'Pratique o nível Alfa esta noite antes de dormir. Amanhã anote o que observou.',
+        teaserProximo: 'O Sistema da Chave Mestra · Charles F. Haanel',
+        mensajeProximo: 'Haanel escreveu isso em 1912. Um dos textos mais precisos sobre como a mente funciona quando se concentra. Não é motivação, é mecânica mental.',
+      },
+      {
+        // [11] Haanel — O Sistema da Chave Mestra
+        mensajeIntro: 'Haanel escreveu isso em 1912 e ainda é um dos textos mais precisos sobre como a mente funciona quando se concentra. Não é motivação, é mecânica mental.',
+        preguntaTransicion: 'Escreva seu objetivo principal no presente, como se já fosse realidade. Use a primeira pessoa.',
+        teaserProximo: 'Autobiografia de um Iogue · Paramahansa Yogananda',
+        mensajeProximo: 'Yogananda viveu o que escreveu. O único livro que Steve Jobs tinha em seu iPad e pediu para distribuir em seu funeral.',
+      },
+      {
+        // [12] Yogananda — Autobiografia de um Iogue
+        mensajeIntro: 'Este é o único livro que Steve Jobs tinha em seu iPad e pediu para distribuir em seu funeral. Yogananda não teoriza, conta o que viveu. Leia com calma, vale a pena.',
+        preguntaTransicion: 'Que experiências da sua vida te fazem acreditar que existe algo maior do que você?',
+        teaserProximo: 'Mistérios Desvendados · Guy Ballard e Saint Germain',
+        mensajeProximo: 'Ballard documenta algo difícil de categorizar. Uma história que é mais do que uma história.',
+      },
+      {
+        // [13] Ballard — Mistérios Desvendados
+        mensajeIntro: 'Ballard documenta encontros que não se encaixam no mundo que você conhece. Não importa se você acredita ou não no que ele descreve. O que importa é o que te faz perguntar.',
+        preguntaTransicion: 'Em que área da sua vida você se sente chamado a servir?',
+        teaserProximo: 'As Últimas 30 Vidas de Alcyone · CW Leadbeater',
+        mensajeProximo: 'Leadbeater descreve 30 vidas em sequência, desde a antiguidade até hoje. Um mapa de como a alma se constrói ao longo do tempo.',
+      },
+      {
+        // [14] Leadbeater — As Últimas 30 Vidas de Alcyone
+        mensajeIntro: 'Leadbeater era clarividente e isso é o que ele viu. Um registro de 30 vidas de uma mesma consciência através de diferentes épocas. É o material mais profundo do caminho.',
+        preguntaTransicion: 'Que padrão você reconhece em si mesmo que vem repetindo há muito tempo?',
+        teaserProximo: 'Biblioteca · Desenvolvimento de Consciência',
+        mensajeProximo: 'A Biblioteca é o fim do caminho estruturado. O começo de algo que não tem mais estrutura. Tudo que reunimos para que você continue por conta própria.',
+      },
+      {
+        // [15] Biblioteca — Desenvolvimento de Consciência
+        mensajeIntro: 'Você chegou à biblioteca. Aqui você encontra o material que aprofunda tudo que vem trabalhando.',
+        preguntaTransicion: 'Em que área da sua vida você sente que mais cresceu desde que começou essa jornada? O que ainda quer continuar trabalhando?',
         teaserProximo: null,
         mensajeProximo: null,
       },
