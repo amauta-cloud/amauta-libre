@@ -21,7 +21,7 @@ export const en: typeof es = {
   nav: {
     tablero: 'Dashboard',
     planificacion: 'Planning',
-    educacion: 'Education',
+    educacion: 'Learning',
     salir: 'Sign out',
     language: 'Language',
     config: 'Settings',
@@ -359,7 +359,7 @@ export const en: typeof es = {
     reintentar: 'Retry',
   },
   educacion: {
-    titulo: '📚 Education',
+    titulo: '📚 Learning',
     hola: "Hey {name}. Let's go.",
     paso_progreso: 'Step {paso} of {total} · {name}',
     back_portal: '← Dashboard',
@@ -408,68 +408,114 @@ export const en: typeof es = {
     paso_listo: 'Step {n} done. Keep going.',
     pasos: [
       {
+        // [0] Nightingale — The Strangest Secret
         mensajeIntro: "Earl Nightingale recorded this audio over 60 years ago. Still the most direct take on the subject. 30 minutes that will shake your mind.",
         preguntaTransicion: 'What did you understand by "the strangest secret"? How does it apply to your life today?',
         teaserProximo: 'The Cow · Camilo Cruz',
         mensajeProximo: 'The Cow is a short story about the excuse that is holding you back. Everyone has one. The question is whether you are willing to see it.',
       },
       {
+        // [1] Cruz — The Cow
         mensajeIntro: 'A short story about the excuse that is holding you back. Everyone has a cow. The question is whether you are willing to see it and let it go.',
         preguntaTransicion: 'What was your cow? What did you decide to do with it after reading?',
         teaserProximo: 'Eat That Frog! · Brian Tracy',
         mensajeProximo: 'If The Cow showed you the excuse, this book gives you the method. The "frog" is the task you keep putting off. Doing it first changes the whole day.',
       },
       {
+        // [2] Tracy — Eat That Frog
         mensajeIntro: 'If The Cow showed you the excuse, Eat That Frog gives you the method. The frog is the task you keep postponing. Doing it first changes everything.',
         preguntaTransicion: 'What frog did you eat? What happened after you did it?',
         teaserProximo: 'Financial Detox · Fernando Palacio',
         mensajeProximo: "Money is not the problem. Your relationship with money is. Financial Detox helps identify the beliefs that are holding you back financially.",
       },
       {
+        // [3] Palacio — Financial Detox
         mensajeIntro: "Money is not the problem, your relationship with money is. This book helps you clear the beliefs holding you back financially, many from childhood.",
         preguntaTransicion: 'What money belief did you identify? How do you plan to work on it?',
         teaserProximo: 'Breaking the Habit of Being Yourself · Joe Dispenza',
         mensajeProximo: 'Dispenza goes deeper. He explains how the brain constructs reality and why certain patterns repeat no matter how hard you try to change them.',
       },
       {
+        // [4] Dispenza — Breaking the Habit of Being Yourself (Audio)
         mensajeIntro: 'Dispenza goes deeper than any other author on this journey. He explains how the brain constructs reality and why certain patterns repeat no matter how hard you try to change. Get ready.',
         preguntaTransicion: 'What pattern did you identify in yourself? Which exercise in the book was most powerful for you?',
+        teaserProximo: 'REWIRED · Dr. Joe Dispenza',
+        mensajeProximo: 'Dispenza on video is a different experience. REWIRED explains how to rewire the brain so your new decisions become automatic instead of a constant struggle.',
+      },
+      {
+        // [5] Dispenza — REWIRED (Video)
+        mensajeIntro: 'Dispenza on video is a different experience. REWIRED explains how to rewire the brain so your new decisions become automatic, instead of a constant struggle.',
+        preguntaTransicion: 'What practice from the video will you adopt? When do you start?',
         teaserProximo: 'The Untethered Soul · Michael Singer',
         mensajeProximo: "Singer doesn't talk about doing more. He talks about letting go of what weighs you down. Few books move you like this one.",
       },
       {
+        // [6] Singer — The Untethered Soul
         mensajeIntro: "Singer doesn't talk about doing more. He talks about letting go of what weighs you down. Few books move you like this one.",
         preguntaTransicion: 'Is there something you were holding on to that you decided to let go? What changed when you did?',
         teaserProximo: 'Your Wish Is Your Command · Kevin Trudeau',
         mensajeProximo: 'Trudeau explains why what you desire with the most clarity is what you end up creating, and why most people never achieve it.',
       },
       {
+        // [7] Trudeau — Your Wish Is Your Command
         mensajeIntro: 'Trudeau explains why what you desire with the most clarity is what you end up attracting, and why most people never achieve it. Listen when you can truly focus.',
-        preguntaTransicion: 'What concept impacted you most? What will you do differently with what you learned?',
-        teaserProximo: 'REWIRED · Dr. Joe Dispenza',
-        mensajeProximo: 'Dispenza on video is a different experience. REWIRED explains how to rewire the brain so your new decisions become automatic instead of a constant struggle.',
-      },
-      {
-        mensajeIntro: 'Dispenza on video is a different experience. REWIRED explains how to rewire the brain so your new decisions become automatic, instead of a constant struggle.',
-        preguntaTransicion: 'What practice from the video will you adopt? When do you start?',
-        teaserProximo: 'Library · Consciousness Development',
-        mensajeProximo: "You've reached the library. The material that deepens everything you've been working on.",
-      },
-      {
-        mensajeIntro: "You've reached the library. Here you'll find the material that deepens everything you've been working on.",
-        preguntaTransicion: 'In what area of your life do you feel you have grown the most since you started this journey? What do you still want to keep working on?',
+        preguntaTransicion: 'Describe in detail how it feels to achieve what you want most. What do you see, what do you feel, who is there?',
         teaserProximo: 'Phoenix · Brian Tracy',
         mensajeProximo: "Tracy on video, the process of rebirth as a person and a professional. The Phoenix doesn't return the same.",
       },
       {
+        // [8] Tracy — Phoenix (Video)
         mensajeIntro: "Tracy on video, the process of rebirth as a person and a professional. The Phoenix doesn't return the same. This video helps you understand what needs to be released for that to happen.",
-        preguntaTransicion: 'In what aspect of your life do you feel you have been reborn? What did you let go for that to happen?',
-        teaserProximo: 'The Silva Method',
-        mensajeProximo: "The last step: The Silva Method. Over 50 years of practice, concrete results. This closes the circle.",
+        preguntaTransicion: 'What part of you has to die for who you want to be to be born?',
+        teaserProximo: "Don't Worry, Trust God · Brian Tracy",
+        mensajeProximo: "Tracy recorded this audio like a conversation, not a lecture. In 47 minutes he makes it clear why the control you think you have is what holds you back the most.",
       },
       {
-        mensajeIntro: 'The Silva Method has over 50 years behind it. It remains one of the most concrete techniques for using the mind with purpose. This closes the circle.',
-        preguntaTransicion: 'How will you integrate everything you have learned into your daily life?',
+        // [9] Tracy — Don't Worry, Trust God (Audio)
+        mensajeIntro: "Brian Tracy recorded this audio like a conversation, not a lecture. In 47 minutes he makes it clear why the control you think you have is what holds you back the most.",
+        preguntaTransicion: 'Where are you holding on instead of trusting?',
+        teaserProximo: 'The Silva Method',
+        mensajeProximo: 'The Silva Method is over 50 years old. Still one of the most concrete techniques for using the mind with purpose.',
+      },
+      {
+        // [10] The Silva Method
+        mensajeIntro: 'The Silva Method has over 50 years behind it. It remains one of the most concrete techniques for using the mind with purpose.',
+        preguntaTransicion: 'Practice the Alpha level tonight before you sleep. Tomorrow write down what you noticed.',
+        teaserProximo: 'The Master Key System · Charles F. Haanel',
+        mensajeProximo: 'Haanel wrote this in 1912. One of the most precise texts on how the mind works when truly focused. Not motivation — mental mechanics.',
+      },
+      {
+        // [11] Haanel — The Master Key System
+        mensajeIntro: "Haanel wrote this in 1912 and it remains one of the most precise texts on how the mind works when truly focused. This is not motivation — it is mental mechanics.",
+        preguntaTransicion: 'Write your main goal in the present tense, as if it were already real. Use the first person.',
+        teaserProximo: 'Autobiography of a Yogi · Paramahansa Yogananda',
+        mensajeProximo: "Yogananda lived what he wrote. The only book Steve Jobs had on his iPad — and asked to be distributed at his funeral.",
+      },
+      {
+        // [12] Yogananda — Autobiography of a Yogi
+        mensajeIntro: "This is the only book Steve Jobs had on his iPad and asked to be distributed at his funeral. Yogananda does not theorize — he tells what he lived. Take your time with it.",
+        preguntaTransicion: 'What experiences in your life make you believe there is something greater than yourself?',
+        teaserProximo: 'Unveiled Mysteries · Guy Ballard and Saint Germain',
+        mensajeProximo: 'Ballard documents something hard to categorize. A story that is more than a story.',
+      },
+      {
+        // [13] Ballard — Unveiled Mysteries
+        mensajeIntro: "Ballard documents encounters that do not fit the world you know. It does not matter whether you believe what he describes. What matters is what it makes you ask yourself.",
+        preguntaTransicion: 'In what area of your life do you feel called to serve?',
+        teaserProximo: 'The Last 30 Lives of Alcyone · CW Leadbeater',
+        mensajeProximo: 'Leadbeater describes 30 lives in sequence, from ancient times to today. A map of how the soul builds itself through time.',
+      },
+      {
+        // [14] Leadbeater — The Last 30 Lives of Alcyone
+        mensajeIntro: "Leadbeater was clairvoyant, and this is what he saw. A record of 30 lives of the same consciousness across different eras. This is the deepest material on the path.",
+        preguntaTransicion: 'What pattern do you recognize in yourself that you have been repeating for a long time?',
+        teaserProximo: 'Library · Consciousness Development',
+        mensajeProximo: "The Library is the end of the structured path. The beginning of something that no longer has structure. Everything we gathered so you can keep going on your own.",
+      },
+      {
+        // [15] Library — Consciousness Development
+        mensajeIntro: "You've reached the library. Here you'll find the material that deepens everything you've been working on.",
+        preguntaTransicion: 'In what area of your life do you feel you have grown the most since you started this journey? What do you still want to keep working on?',
         teaserProximo: null,
         mensajeProximo: null,
       },
