@@ -94,7 +94,7 @@ export const fr: typeof es = {
       nota_placeholder: "Notez quelque chose sur cette habitude aujourd'hui...",
       nota_title: 'Ajouter une note',
       historial_title: "Voir l'historique",
-      sin_habitos: 'Tu n'as pas encore configuré d'habitudes.',
+      sin_habitos: "Tu n'as pas encore configuré d'habitudes.",
       sin_habitos_sub: 'Ajoute tes premières habitudes et commence à construire ta journée.',
       sin_habitos_cta: 'Aller à mes habitudes →',
       dia_rojo: 'Jour rouge. Semaine verte. Continue.',
