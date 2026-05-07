@@ -1,6 +1,10 @@
 [{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "cloud.amauta.libre",
-        "sha256_cert_fingerprints": ["0E:44:A2:7E:F9:18:64:FB:E1:C7:DD:AB:9C:43:3A:65:83:BE:B5:4F:A4:1B:91:AB:34:8E:AA:5E:3
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "cloud.amauta.libre",
+    "sha256_cert_fingerprints": [
+      "0E:44:A2:7E:F9:18:64:FB:E1:C7:DD:AB:9C:43:3A:65:83:BE:B5:4F:A4:1B:91:AB:34:8E:AA:5E:3C:ED:42:98"
+    ]
+  }
+}]
