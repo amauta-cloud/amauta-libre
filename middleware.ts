@@ -38,6 +38,7 @@ export async function middleware(request: NextRequest) {
     pathname === '/manifest' ||
     pathname === '/robots.txt' ||
     pathname === '/sitemap.xml' ||
+    pathname.startsWith('/.well-known/') ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/api/') ||
     pathname.startsWith('/privacidad') ||
