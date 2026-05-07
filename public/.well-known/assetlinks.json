@@ -4,7 +4,8 @@
     "namespace": "android_app",
     "package_name": "cloud.amauta.libre",
     "sha256_cert_fingerprints": [
-      "0E:44:A2:7E:F9:18:64:FB:E1:C7:DD:AB:9C:43:3A:65:83:BE:B5:4F:A4:1B:91:AB:34:8E:AA:5E:3C:ED:42:98"
+      "0E:44:A2:7E:F9:18:64:FB:E1:C7:DD:AB:9C:43:3A:65:83:BE:B5:4F:A4:1B:91:AB:34:8E:AA:5E:3C:ED:42:98",
+      "20:37:0F:CB:AD:4B:10:EB:35:3D:3E:3C:9C:27:0D:B5:45:BC:02:C6:34:77:15:EC:49:F4:18:64:A7:68:EC:DE"
     ]
   }
 }]
