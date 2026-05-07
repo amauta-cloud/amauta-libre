@@ -6,6 +6,7 @@ import { useLocale, LOCALES, type Locale } from '@/lib/i18n/LocaleContext'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
+  const [loginError, setLoginError] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const supabase = createClient()
   const { t, locale, setLocale } = useLocale()
@@ -14,12 +15,19 @@ export default function LoginPage() {
 
   async function handleGoogle() {
     setLoading(true)
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${location.origin}/auth/callback`,
-      },
-    })
+    setLoginError(false)
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${location.origin}/auth/callback`,
+        },
+      })
+      if (error) throw error
+    } catch {
+      setLoading(false)
+      setLoginError(true)
+    }
   }
 
   function handleLang(code: Locale) {
@@ -170,6 +178,12 @@ export default function LoginPage() {
           </svg>
           {loading ? t('login.button_loading') : t('login.button')}
         </button>
+
+        {loginError && (
+          <p style={{ color: '#f87171', fontSize: '0.78rem', marginTop: '0.5rem', textAlign: 'center' }}>
+            {t('login.error_oauth')}
+          </p>
+        )}
 
         {/* Trust signal */}
         <p style={{ color: '#6b7280', fontSize: '0.72rem', marginTop: '0.75rem', marginBottom: '0' }}>
