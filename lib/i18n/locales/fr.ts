@@ -21,6 +21,7 @@ export const fr: typeof es = {
   },
   nav: {
     tablero: 'Tableau de bord',
+    metas: 'Objectifs',
     planificacion: 'Planification',
     educacion: 'Éducation',
     salir: 'Se déconnecter',

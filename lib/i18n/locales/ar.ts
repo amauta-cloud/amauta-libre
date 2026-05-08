@@ -21,6 +21,7 @@ export const ar: typeof es = {
   },
   nav: {
     tablero: 'لوحة التحكم',
+    metas: 'الأهداف',
     planificacion: 'التخطيط',
     educacion: 'التعليم',
     salir: 'تسجيل الخروج',

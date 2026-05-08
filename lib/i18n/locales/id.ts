@@ -21,6 +21,7 @@ export const id: typeof es = {
   },
   nav: {
     tablero: 'Dasbor',
+    metas: 'Target',
     planificacion: 'Perencanaan',
     educacion: 'Pendidikan',
     salir: 'Keluar',

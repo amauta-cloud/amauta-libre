@@ -21,6 +21,7 @@ export const ru: typeof es = {
   },
   nav: {
     tablero: 'Панель',
+    metas: 'Цели',
     planificacion: 'Планирование',
     educacion: 'Образование',
     salir: 'Выйти',

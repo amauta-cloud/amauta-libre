@@ -21,6 +21,7 @@ export const ja: typeof es = {
   },
   nav: {
     tablero: 'ダッシュボード',
+    metas: '目標',
     planificacion: '計画',
     educacion: '教育',
     salir: 'ログアウト',

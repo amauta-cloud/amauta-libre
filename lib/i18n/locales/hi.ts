@@ -21,6 +21,7 @@ export const hi: typeof es = {
   },
   nav: {
     tablero: 'डैशबोर्ड',
+    metas: 'लक्ष्य',
     planificacion: 'योजना',
     educacion: 'शिक्षा',
     salir: 'साइन आउट',

@@ -19,6 +19,7 @@ export const es = {
   },
   nav: {
     tablero: 'Tablero',
+    metas: 'Metas',
     planificacion: 'Planificación',
     educacion: 'Aprendizaje',
     salir: 'Salir',

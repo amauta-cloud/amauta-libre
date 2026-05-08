@@ -21,6 +21,7 @@ export const pt: typeof es = {
   },
   nav: {
     tablero: 'Painel',
+    metas: 'Metas',
     planificacion: 'Planejamento',
     educacion: 'Educação',
     salir: 'Sair',

@@ -21,6 +21,7 @@ export const zh: typeof es = {
   },
   nav: {
     tablero: '仪表盘',
+    metas: '目标',
     planificacion: '规划',
     educacion: '教育',
     salir: '退出',
