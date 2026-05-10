@@ -60,7 +60,6 @@ export default function NavBar({ nombre: initialNombre, avatar, userId, educacio
   const eduBadge = educacionPaso > 0 && educacionPaso < 16 ? `${educacionPaso}/16` : null
   const NAV = [
     { href: '/tablero',       label: t('nav.tablero'),       icon: '⚡',  badge: null },
-    { href: '/metas',         label: t('nav.metas'),         icon: '🎯',  badge: null },
     { href: '/planificacion', label: t('nav.planificacion'),  icon: '✅',  badge: null },
     { href: '/educacion',     label: t('nav.educacion'),      icon: '📚', badge: eduBadge },
   ]
