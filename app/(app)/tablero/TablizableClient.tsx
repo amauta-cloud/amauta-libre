@@ -221,6 +221,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [editSaving, setEditSaving] = useState(false)
   const [editSaved, setEditSaved] = useState(false)
 
+  // Inline edit existing finance item
+  const [inlineEditId, setInlineEditId] = useState<string | null>(null)
+  const [inlineEditTipo, setInlineEditTipo] = useState<'ingreso' | 'gasto'>('gasto')
+  const [inlineEditMonto, setInlineEditMonto] = useState('')
+  const [inlineEditDesc, setInlineEditDesc] = useState('')
+  const [inlineEditCat, setInlineEditCat] = useState<string | null>(null)
+  const [savingInlineEdit, setSavingInlineEdit] = useState(false)
+
   // Habitos management — filter out the legacy "Ahorro" base habit (replaced by finanzas section)
   const [localHabitos, setLocalHabitos] = useState<Habito[]>(
     habitos.filter(h => !(h.obligatorio && h.nombre?.toLowerCase().includes('ahorro')))
@@ -461,6 +469,40 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     const newItems = finanzaItems.filter(i => i.id !== id)
     setFinanzaItems(newItems)
     await syncFinanzasDiarias(newItems)
+  }
+
+  function startInlineEdit(item: FinanzaItem) {
+    setInlineEditId(item.id)
+    setInlineEditTipo(item.tipo)
+    setInlineEditMonto(String(item.monto))
+    setInlineEditDesc(item.descripcion ?? '')
+    setInlineEditCat(item.categoria)
+  }
+
+  async function saveInlineItemEdit(source: 'hoy' | 'day') {
+    if (!inlineEditId) return
+    const monto = parseFloat(inlineEditMonto)
+    if (!monto) return
+    setSavingInlineEdit(true)
+    const tipoFinal: 'ingreso' | 'gasto' = inlineEditCat === 'Inversión' ? 'gasto' : inlineEditTipo
+    const { error } = await supabase.from('finanzas_items').update({
+      tipo: tipoFinal, monto, descripcion: inlineEditDesc.trim() || null, categoria: inlineEditCat,
+    }).eq('id', inlineEditId)
+    if (!error) {
+      if (source === 'hoy') {
+        const updated = finanzaItems.map(i => i.id === inlineEditId
+          ? { ...i, tipo: tipoFinal, monto, descripcion: inlineEditDesc.trim() || null, categoria: inlineEditCat }
+          : i)
+        setFinanzaItems(updated)
+        await syncFinanzasDiarias(updated)
+      } else {
+        setEditDayItems(prev => prev.map(i => i.id === inlineEditId
+          ? { ...i, tipo: tipoFinal, monto, descripcion: inlineEditDesc.trim() || null, categoria: inlineEditCat }
+          : i))
+      }
+      setInlineEditId(null)
+    }
+    setSavingInlineEdit(false)
   }
 
   async function addCategoria() {
@@ -1172,26 +1214,87 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   const itemColor = item.tipo === 'ingreso' ? '#10b981' : isInv ? '#F5C518' : '#ef4444'
                   const itemBg = item.tipo === 'ingreso' ? 'rgba(16,185,129,0.06)' : isInv ? 'rgba(245,197,24,0.06)' : 'rgba(239,68,68,0.06)'
                   const itemBorder = item.tipo === 'ingreso' ? 'rgba(16,185,129,0.18)' : isInv ? 'rgba(245,197,24,0.25)' : 'rgba(239,68,68,0.18)'
+                  if (inlineEditId === item.id) {
+                    return (
+                      <div key={item.id} style={{ padding: '0.625rem 0.75rem', borderRadius: '8px', background: itemBg, border: `1px solid ${itemBorder}`, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {inlineEditCat !== 'Inversión' && (
+                          <div style={{ display: 'flex', gap: '0.375rem' }}>
+                            {(['ingreso', 'gasto'] as const).map(tipoBtnVal => (
+                              <button key={tipoBtnVal} onClick={() => setInlineEditTipo(tipoBtnVal)} style={{
+                                flex: 1, padding: '0.3rem', borderRadius: '6px', fontSize: '0.72rem', border: '1px solid', cursor: 'pointer',
+                                borderColor: inlineEditTipo === tipoBtnVal ? (tipoBtnVal === 'ingreso' ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)') : 'rgba(255,255,255,0.08)',
+                                background: inlineEditTipo === tipoBtnVal ? (tipoBtnVal === 'ingreso' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)') : 'transparent',
+                                color: inlineEditTipo === tipoBtnVal ? (tipoBtnVal === 'ingreso' ? '#10b981' : '#ef4444') : '#6b7280',
+                                fontWeight: inlineEditTipo === tipoBtnVal ? 700 : 400,
+                              }}>
+                                {tipoBtnVal === 'ingreso' ? t('tablero.hoy.ingreso_btn') : t('tablero.hoy.gasto_btn')}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                          {finanzaCategorias.filter(c => c.activo).map(cat => (
+                            <button key={cat.id} onClick={() => setInlineEditCat(inlineEditCat === cat.nombre ? null : cat.nombre)} style={{
+                              padding: '0.2rem 0.5rem', borderRadius: '5px', fontSize: '0.68rem', cursor: 'pointer',
+                              border: `1px solid ${inlineEditCat === cat.nombre ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.07)'}`,
+                              background: inlineEditCat === cat.nombre ? 'rgba(139,92,246,0.2)' : 'transparent',
+                              color: inlineEditCat === cat.nombre ? '#a78bfa' : '#6b7280',
+                            }}>
+                              {cat.emoji} {cat.nombre}
+                            </button>
+                          ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                          <input type="number" value={inlineEditMonto} onChange={e => setInlineEditMonto(e.target.value)}
+                            style={{ width: '80px', padding: '0.4rem 0.5rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#f3f0ff', fontSize: '0.85rem', outline: 'none', flexShrink: 0 }} />
+                          <textarea value={inlineEditDesc} onChange={e => setInlineEditDesc(e.target.value)}
+                            placeholder={t('tablero.hoy.detalle_placeholder')}
+                            rows={Math.max(2, Math.ceil(inlineEditDesc.length / 35))}
+                            style={{ flex: 1, padding: '0.4rem 0.5rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#d1d5db', fontSize: '0.78rem', outline: 'none', resize: 'none', lineHeight: 1.4 }} />
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.375rem' }}>
+                          <button onClick={() => saveInlineItemEdit('hoy')} disabled={savingInlineEdit || !inlineEditMonto} style={{
+                            flex: 1, padding: '0.4rem', borderRadius: '6px', border: 'none',
+                            background: inlineEditMonto ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.05)',
+                            color: inlineEditMonto ? '#a78bfa' : '#4b5563', fontSize: '0.75rem', fontWeight: 700, cursor: inlineEditMonto ? 'pointer' : 'default',
+                          }}>
+                            {savingInlineEdit ? '...' : t('common.save')}
+                          </button>
+                          <button onClick={() => setInlineEditId(null)} style={{
+                            padding: '0.4rem 0.625rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent',
+                            color: '#6b7280', fontSize: '0.75rem', cursor: 'pointer',
+                          }}>{t('common.cancel')}</button>
+                          <button onClick={() => { setInlineEditId(null); deleteFinanzaItem(item.id) }} style={{
+                            padding: '0.4rem 0.625rem', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.2)', background: 'transparent',
+                            color: '#ef4444', fontSize: '0.8rem', cursor: 'pointer',
+                          }}>🗑</button>
+                        </div>
+                      </div>
+                    )
+                  }
                   return (
                     <div key={item.id} style={{
-                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      display: 'flex', alignItems: 'flex-start', gap: '0.5rem',
                       padding: '0.5rem 0.75rem', borderRadius: '8px',
                       background: itemBg, border: `1px solid ${itemBorder}`,
                     }}>
-                      <span style={{ fontSize: '0.95rem', fontWeight: 800, color: itemColor, flexShrink: 0 }}>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 800, color: itemColor, flexShrink: 0, marginTop: '1px' }}>
                         {item.tipo === 'ingreso' ? '+' : '-'}{fmt(item.monto)}
                       </span>
                       {item.categoria && (
-                        <span style={{ fontSize: '0.68rem', color: '#6b7280', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '0.1rem 0.4rem', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.68rem', color: '#6b7280', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '0.1rem 0.4rem', flexShrink: 0, marginTop: '2px' }}>
                           {finanzaCategorias.find(c => c.nombre === item.categoria)?.emoji} {item.categoria}
                         </span>
                       )}
                       {item.descripcion && (
-                        <span style={{ fontSize: '0.78rem', color: '#9ca3af', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: '0.78rem', color: '#9ca3af', flex: 1, wordBreak: 'break-word' }}>
                           {item.descripcion}
                         </span>
                       )}
-                      <button onClick={() => deleteFinanzaItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '1rem', padding: '0 2px', marginLeft: 'auto', flexShrink: 0 }}>×</button>
+                      <div style={{ display: 'flex', gap: '2px', marginLeft: 'auto', flexShrink: 0 }}>
+                        <button onClick={() => startInlineEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.75rem', padding: '0 3px', lineHeight: 1 }}>✏️</button>
+                        <button onClick={() => deleteFinanzaItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '1rem', padding: '0 2px' }}>×</button>
+                      </div>
                     </div>
                   )
                 })}
@@ -2235,26 +2338,87 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     const itemColor = item.tipo === 'ingreso' ? '#10b981' : isInv ? '#F5C518' : '#ef4444'
                     const itemBg = item.tipo === 'ingreso' ? 'rgba(16,185,129,0.06)' : isInv ? 'rgba(245,197,24,0.06)' : 'rgba(239,68,68,0.06)'
                     const itemBorder = item.tipo === 'ingreso' ? 'rgba(16,185,129,0.18)' : isInv ? 'rgba(245,197,24,0.25)' : 'rgba(239,68,68,0.18)'
+                    if (inlineEditId === item.id) {
+                      return (
+                        <div key={item.id} style={{ padding: '0.5rem 0.7rem', borderRadius: '7px', background: itemBg, border: `1px solid ${itemBorder}`, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                          {inlineEditCat !== 'Inversión' && (
+                            <div style={{ display: 'flex', gap: '0.375rem' }}>
+                              {(['ingreso', 'gasto'] as const).map(tipoBtnVal => (
+                                <button key={tipoBtnVal} onClick={() => setInlineEditTipo(tipoBtnVal)} style={{
+                                  flex: 1, padding: '0.25rem', borderRadius: '5px', fontSize: '0.7rem', border: '1px solid', cursor: 'pointer',
+                                  borderColor: inlineEditTipo === tipoBtnVal ? (tipoBtnVal === 'ingreso' ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)') : 'rgba(255,255,255,0.08)',
+                                  background: inlineEditTipo === tipoBtnVal ? (tipoBtnVal === 'ingreso' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)') : 'transparent',
+                                  color: inlineEditTipo === tipoBtnVal ? (tipoBtnVal === 'ingreso' ? '#10b981' : '#ef4444') : '#6b7280',
+                                  fontWeight: inlineEditTipo === tipoBtnVal ? 700 : 400,
+                                }}>
+                                  {tipoBtnVal === 'ingreso' ? t('tablero.hoy.ingreso_btn') : t('tablero.hoy.gasto_btn')}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                            {finanzaCategorias.filter(c => c.activo).map(cat => (
+                              <button key={cat.id} onClick={() => setInlineEditCat(inlineEditCat === cat.nombre ? null : cat.nombre)} style={{
+                                padding: '0.15rem 0.45rem', borderRadius: '5px', fontSize: '0.65rem', cursor: 'pointer',
+                                border: `1px solid ${inlineEditCat === cat.nombre ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.07)'}`,
+                                background: inlineEditCat === cat.nombre ? 'rgba(139,92,246,0.2)' : 'transparent',
+                                color: inlineEditCat === cat.nombre ? '#a78bfa' : '#6b7280',
+                              }}>
+                                {cat.emoji} {cat.nombre}
+                              </button>
+                            ))}
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                            <input type="number" value={inlineEditMonto} onChange={e => setInlineEditMonto(e.target.value)}
+                              style={{ width: '75px', padding: '0.35rem 0.45rem', borderRadius: '5px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#f3f0ff', fontSize: '0.82rem', outline: 'none', flexShrink: 0 }} />
+                            <textarea value={inlineEditDesc} onChange={e => setInlineEditDesc(e.target.value)}
+                              placeholder={t('tablero.hoy.detalle_placeholder')}
+                              rows={Math.max(2, Math.ceil(inlineEditDesc.length / 35))}
+                              style={{ flex: 1, padding: '0.35rem 0.45rem', borderRadius: '5px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#d1d5db', fontSize: '0.75rem', outline: 'none', resize: 'none', lineHeight: 1.4 }} />
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.375rem' }}>
+                            <button onClick={() => saveInlineItemEdit('day')} disabled={savingInlineEdit || !inlineEditMonto} style={{
+                              flex: 1, padding: '0.35rem', borderRadius: '5px', border: 'none',
+                              background: inlineEditMonto ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.05)',
+                              color: inlineEditMonto ? '#a78bfa' : '#4b5563', fontSize: '0.72rem', fontWeight: 700, cursor: inlineEditMonto ? 'pointer' : 'default',
+                            }}>
+                              {savingInlineEdit ? '...' : t('common.save')}
+                            </button>
+                            <button onClick={() => setInlineEditId(null)} style={{
+                              padding: '0.35rem 0.5rem', borderRadius: '5px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent',
+                              color: '#6b7280', fontSize: '0.72rem', cursor: 'pointer',
+                            }}>{t('common.cancel')}</button>
+                            <button onClick={() => { setInlineEditId(null); deleteEditDayItem(item.id) }} style={{
+                              padding: '0.35rem 0.5rem', borderRadius: '5px', border: '1px solid rgba(239,68,68,0.2)', background: 'transparent',
+                              color: '#ef4444', fontSize: '0.75rem', cursor: 'pointer',
+                            }}>🗑</button>
+                          </div>
+                        </div>
+                      )
+                    }
                     return (
                       <div key={item.id} style={{
-                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        display: 'flex', alignItems: 'flex-start', gap: '0.5rem',
                         padding: '0.45rem 0.7rem', borderRadius: '7px',
                         background: itemBg, border: `1px solid ${itemBorder}`,
                       }}>
-                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: itemColor, flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: itemColor, flexShrink: 0, marginTop: '1px' }}>
                           {item.tipo === 'ingreso' ? '+' : '-'}{fmt(item.monto)}
                         </span>
                         {item.categoria && (
-                          <span style={{ fontSize: '0.65rem', color: '#6b7280', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '0.1rem 0.35rem', flexShrink: 0 }}>
+                          <span style={{ fontSize: '0.65rem', color: '#6b7280', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '0.1rem 0.35rem', flexShrink: 0, marginTop: '2px' }}>
                             {finanzaCategorias.find(c => c.nombre === item.categoria)?.emoji} {item.categoria}
                           </span>
                         )}
                         {item.descripcion && (
-                          <span style={{ fontSize: '0.75rem', color: '#9ca3af', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#9ca3af', flex: 1, wordBreak: 'break-word' }}>
                             {item.descripcion}
                           </span>
                         )}
-                        <button onClick={() => deleteEditDayItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '0.95rem', padding: '0 2px', marginLeft: 'auto', flexShrink: 0 }}>×</button>
+                        <div style={{ display: 'flex', gap: '2px', marginLeft: 'auto', flexShrink: 0 }}>
+                          <button onClick={() => startInlineEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.7rem', padding: '0 3px', lineHeight: 1 }}>✏️</button>
+                          <button onClick={() => deleteEditDayItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '0.95rem', padding: '0 2px' }}>×</button>
+                        </div>
                       </div>
                     )
                   })}
