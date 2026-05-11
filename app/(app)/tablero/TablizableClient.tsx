@@ -1273,28 +1273,26 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     )
                   }
                   return (
-                    <div key={item.id} style={{
-                      display: 'flex', alignItems: 'flex-start', gap: '0.5rem',
-                      padding: '0.5rem 0.75rem', borderRadius: '8px',
-                      background: itemBg, border: `1px solid ${itemBorder}`,
-                    }}>
-                      <span style={{ fontSize: '0.95rem', fontWeight: 800, color: itemColor, flexShrink: 0, marginTop: '1px' }}>
-                        {item.tipo === 'ingreso' ? '+' : '-'}{fmt(item.monto)}
-                      </span>
-                      {item.categoria && (
-                        <span style={{ fontSize: '0.68rem', color: '#6b7280', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '0.1rem 0.4rem', flexShrink: 0, marginTop: '2px' }}>
-                          {finanzaCategorias.find(c => c.nombre === item.categoria)?.emoji} {item.categoria}
+                    <div key={item.id} style={{ padding: '0.45rem 0.75rem', borderRadius: '8px', background: itemBg, border: `1px solid ${itemBorder}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.95rem', fontWeight: 800, color: itemColor, flexShrink: 0 }}>
+                          {item.tipo === 'ingreso' ? '+' : '-'}{fmt(item.monto)}
                         </span>
-                      )}
-                      {item.descripcion && (
-                        <span style={{ fontSize: '0.78rem', color: '#9ca3af', flex: 1, wordBreak: 'break-word' }}>
-                          {item.descripcion}
-                        </span>
-                      )}
-                      <div style={{ display: 'flex', gap: '2px', marginLeft: 'auto', flexShrink: 0 }}>
-                        <button onClick={() => startInlineEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.75rem', padding: '0 3px', lineHeight: 1 }}>✏️</button>
-                        <button onClick={() => deleteFinanzaItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '1rem', padding: '0 2px' }}>×</button>
+                        {item.categoria && (
+                          <span style={{ fontSize: '0.68rem', color: '#6b7280', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '0.1rem 0.4rem', flexShrink: 0 }}>
+                            {finanzaCategorias.find(c => c.nombre === item.categoria)?.emoji} {item.categoria}
+                          </span>
+                        )}
+                        <div style={{ display: 'flex', gap: '2px', marginLeft: 'auto', flexShrink: 0 }}>
+                          <button onClick={() => startInlineEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.75rem', padding: '0 3px', lineHeight: 1 }}>✏️</button>
+                          <button onClick={() => deleteFinanzaItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '1rem', padding: '0 2px' }}>×</button>
+                        </div>
                       </div>
+                      {item.descripcion && (
+                        <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginTop: '0.2rem', lineHeight: 1.4 }}>
+                          {item.descripcion}
+                        </div>
+                      )}
                     </div>
                   )
                 })}
@@ -2397,28 +2395,26 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                       )
                     }
                     return (
-                      <div key={item.id} style={{
-                        display: 'flex', alignItems: 'flex-start', gap: '0.5rem',
-                        padding: '0.45rem 0.7rem', borderRadius: '7px',
-                        background: itemBg, border: `1px solid ${itemBorder}`,
-                      }}>
-                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: itemColor, flexShrink: 0, marginTop: '1px' }}>
-                          {item.tipo === 'ingreso' ? '+' : '-'}{fmt(item.monto)}
-                        </span>
-                        {item.categoria && (
-                          <span style={{ fontSize: '0.65rem', color: '#6b7280', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '0.1rem 0.35rem', flexShrink: 0, marginTop: '2px' }}>
-                            {finanzaCategorias.find(c => c.nombre === item.categoria)?.emoji} {item.categoria}
+                      <div key={item.id} style={{ padding: '0.4rem 0.7rem', borderRadius: '7px', background: itemBg, border: `1px solid ${itemBorder}` }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.88rem', fontWeight: 800, color: itemColor, flexShrink: 0 }}>
+                            {item.tipo === 'ingreso' ? '+' : '-'}{fmt(item.monto)}
                           </span>
-                        )}
-                        {item.descripcion && (
-                          <span style={{ fontSize: '0.75rem', color: '#9ca3af', flex: 1, wordBreak: 'break-word' }}>
-                            {item.descripcion}
-                          </span>
-                        )}
-                        <div style={{ display: 'flex', gap: '2px', marginLeft: 'auto', flexShrink: 0 }}>
-                          <button onClick={() => startInlineEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.7rem', padding: '0 3px', lineHeight: 1 }}>✏️</button>
-                          <button onClick={() => deleteEditDayItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '0.95rem', padding: '0 2px' }}>×</button>
+                          {item.categoria && (
+                            <span style={{ fontSize: '0.65rem', color: '#6b7280', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '0.1rem 0.35rem', flexShrink: 0 }}>
+                              {finanzaCategorias.find(c => c.nombre === item.categoria)?.emoji} {item.categoria}
+                            </span>
+                          )}
+                          <div style={{ display: 'flex', gap: '2px', marginLeft: 'auto', flexShrink: 0 }}>
+                            <button onClick={() => startInlineEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.7rem', padding: '0 3px', lineHeight: 1 }}>✏️</button>
+                            <button onClick={() => deleteEditDayItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', fontSize: '0.95rem', padding: '0 2px' }}>×</button>
+                          </div>
                         </div>
+                        {item.descripcion && (
+                          <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginTop: '0.18rem', lineHeight: 1.4 }}>
+                            {item.descripcion}
+                          </div>
+                        )}
                       </div>
                     )
                   })}
