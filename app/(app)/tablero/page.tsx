@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import TablizableClient from './TablizableClient'
 import TableroMiniCards from './TableroMiniCards'
@@ -75,8 +74,7 @@ function calcularRacha(historial: RegistroHistorial[], habitos: Habito[], today:
 export default async function TablizablePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const cookieStore = await cookies()
-  const today = cookieStore.get('amauta-date')?.value || todayStr()
+  const today = todayStr()
   const hace60dias = dateStrOffset(today, 60)
 
   const [habitosRes, registrosRes, historialRes, tareasRes, educacionRes, usuarioRes, metasRes] = await Promise.all([

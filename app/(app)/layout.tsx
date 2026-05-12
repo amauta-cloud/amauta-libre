@@ -2,7 +2,6 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import NavBar from '@/components/NavBar'
-import LocalDateSync from '@/components/LocalDateSync'
 import MetaPixelEvents from '@/components/MetaPixelEvents'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -37,7 +36,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         userId={user.id}
         educacionPaso={educacionPaso}
       />
-      <LocalDateSync />
       <Suspense fallback={null}><MetaPixelEvents /></Suspense>
       <main style={{
         flex: 1,
