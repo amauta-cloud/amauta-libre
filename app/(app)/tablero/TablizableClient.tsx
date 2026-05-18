@@ -579,26 +579,29 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   async function openEditDay(dateStr: string) {
-    if (dateStr > today) return
+    if (dateStr > today || editDayLoading) return
     setEditDayLoading(true)
-    const [{ data: regs }, { data: fin }, { data: items }] = await Promise.all([
-      supabase.from('habito_registros').select('habito_id,valor_bool,valor_numero').eq('usuario_id', userId).eq('fecha', dateStr),
-      supabase.from('finanzas_diarias').select('ingresos,gastos,ahorro').eq('usuario_id', userId).eq('fecha', dateStr).maybeSingle(),
-      supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', dateStr).order('creado_en'),
-    ])
-    const rm: Record<string, Registro> = {}
-    for (const r of (regs || [])) rm[r.habito_id] = { ...r, nota: null }
-    setEditDayRegMap(rm)
-    const loadedItems = (items || []) as FinanzaItem[]
-    setEditDayItems(loadedItems)
-    const ingresos = loadedItems.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
-    const gastos = loadedItems.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
-    const ahorro = (fin as { ahorro: boolean } | null)?.ahorro ?? false
-    setEditDayFin({ ingresos, gastos, ahorro })
-    setEditItemTipo('ingreso'); setEditItemMonto(''); setEditItemDesc(''); setEditItemCategoria(null)
-    setEditDayLoading(false)
-    setEditingDay(dateStr)
-    setEditSaved(false)
+    try {
+      const [{ data: regs }, { data: fin }, { data: items }] = await Promise.all([
+        supabase.from('habito_registros').select('habito_id,valor_bool,valor_numero').eq('usuario_id', userId).eq('fecha', dateStr),
+        supabase.from('finanzas_diarias').select('ingresos,gastos,ahorro').eq('usuario_id', userId).eq('fecha', dateStr).maybeSingle(),
+        supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', dateStr).order('creado_en'),
+      ])
+      const rm: Record<string, Registro> = {}
+      for (const r of (regs || [])) rm[r.habito_id] = { ...r, nota: null }
+      setEditDayRegMap(rm)
+      const loadedItems = (items || []) as FinanzaItem[]
+      setEditDayItems(loadedItems)
+      const ingresos = loadedItems.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
+      const gastos = loadedItems.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
+      const ahorro = (fin as { ahorro: boolean } | null)?.ahorro ?? false
+      setEditDayFin({ ingresos, gastos, ahorro })
+      setEditItemTipo('ingreso'); setEditItemMonto(''); setEditItemDesc(''); setEditItemCategoria(null)
+      setEditingDay(dateStr)
+      setEditSaved(false)
+    } finally {
+      setEditDayLoading(false)
+    }
   }
 
   async function syncEditDayFinanzas(items: FinanzaItem[]) {
@@ -2217,7 +2220,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#e5e7eb' }}>{t('tablero.edit_day.titulo')}</div>
-                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.15rem' }}>{editingDay}</div>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.15rem' }}>
+                  {editingDay ? new Date(editingDay + 'T12:00:00').toLocaleDateString(locale === 'es' ? 'es-AR' : locale, { weekday: 'long', day: 'numeric', month: 'long' }) : ''}
+                </div>
               </div>
               <button onClick={() => setEditingDay(null)} style={{ border: 'none', background: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
             </div>
