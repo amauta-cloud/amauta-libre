@@ -96,6 +96,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
   const [tareaHora, setTareaHora] = useState('')
   const [tareaAdding, setTareaAdding] = useState(false)
   const [showCompleted, setShowCompleted] = useState(false)
+  const [showCompletedIdeas, setShowCompletedIdeas] = useState(false)
 
   // ── CALENDARIO ──
   const [eventos, setEventos] = useState<Evento[]>([])
@@ -234,6 +235,10 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
     loadEventos()
   }
 
+  // ── IDEAS groups ──
+  const ideasPendientes = ideas.filter(i => !i.realizado)
+  const ideasRealizadas = ideas.filter(i => i.realizado)
+
   // ── TAREAS groups ──
   const vencidas = tareas.filter(t => t.fecha_limite && t.fecha_limite < today && t.estado !== 'completada')
   const hoy = tareas.filter(t => t.fecha_limite === today && t.estado !== 'completada')
@@ -312,7 +317,7 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
             </div>
           )}
 
-          {ideas.map(idea => (
+          {ideasPendientes.map(idea => (
             <div key={idea.id}>
               {ideaEditing?.id === idea.id ? (
                 <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '12px', padding: '1rem' }}>
@@ -327,20 +332,16 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                 </div>
               ) : (
                 <div style={{
-                  background: idea.realizado ? 'rgba(16,185,129,0.05)' : '#1a1730',
-                  border: `1px solid ${idea.realizado ? 'rgba(16,185,129,0.2)' : 'rgba(139,92,246,0.1)'}`,
+                  background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)',
                   borderRadius: '12px', padding: '0.875rem 1rem',
                   display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
                 }}>
                   <button onClick={() => toggleIdea(idea)} style={{
                     width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0, marginTop: '1px',
-                    border: idea.realizado ? 'none' : '2px solid rgba(139,92,246,0.4)',
-                    background: idea.realizado ? '#10b981' : 'transparent',
+                    border: '2px solid rgba(139,92,246,0.4)', background: 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                  }}>
-                    {idea.realizado && <span style={{ fontSize: '0.65rem', color: 'white' }}>✓</span>}
-                  </button>
-                  <p style={{ flex: 1, margin: 0, fontSize: '0.875rem', color: idea.realizado ? '#6b7280' : '#e5e7eb', textDecoration: idea.realizado ? 'line-through' : 'none', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                  }} />
+                  <p style={{ flex: 1, margin: 0, fontSize: '0.875rem', color: '#e5e7eb', lineHeight: 1.5, wordBreak: 'break-word' }}>
                     {idea.texto}
                   </p>
                   <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
@@ -380,6 +381,39 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
               )}
             </div>
           ))}
+
+          {ideasRealizadas.length > 0 && (
+            <div>
+              <button onClick={() => setShowCompletedIdeas(v => !v)}
+                style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.75rem', marginBottom: '0.5rem', padding: '0' }}>
+                {showCompletedIdeas ? '▾' : '▸'} {t('planificacion.tarea_completadas')} ({ideasRealizadas.length})
+              </button>
+              {showCompletedIdeas && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {ideasRealizadas.map(idea => (
+                    <div key={idea.id} style={{
+                      background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)',
+                      borderRadius: '12px', padding: '0.875rem 1rem',
+                      display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
+                    }}>
+                      <button onClick={() => toggleIdea(idea)} style={{
+                        width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0, marginTop: '1px',
+                        border: 'none', background: '#10b981',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                      }}>
+                        <span style={{ fontSize: '0.65rem', color: 'white' }}>✓</span>
+                      </button>
+                      <p style={{ flex: 1, margin: 0, fontSize: '0.875rem', color: '#6b7280', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                        {idea.texto}
+                      </p>
+                      <button onClick={() => deleteIdea(idea.id)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.4)', fontSize: '0.8rem', padding: '2px 4px', flexShrink: 0 }}>🗑️</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
