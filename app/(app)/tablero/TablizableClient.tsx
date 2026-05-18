@@ -580,6 +580,13 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   async function openEditDay(dateStr: string) {
     if (dateStr > today || editDayLoading) return
+    // Open modal immediately — show skeleton inside while data loads
+    setEditDayRegMap({})
+    setEditDayItems([])
+    setEditDayFin({ ingresos: 0, gastos: 0, ahorro: false })
+    setEditItemTipo('ingreso'); setEditItemMonto(''); setEditItemDesc(''); setEditItemCategoria(null)
+    setEditSaved(false)
+    setEditingDay(dateStr)
     setEditDayLoading(true)
     try {
       const [{ data: regs }, { data: fin }, { data: items }] = await Promise.all([
@@ -596,9 +603,6 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       const gastos = loadedItems.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
       const ahorro = (fin as { ahorro: boolean } | null)?.ahorro ?? false
       setEditDayFin({ ingresos, gastos, ahorro })
-      setEditItemTipo('ingreso'); setEditItemMonto(''); setEditItemDesc(''); setEditItemCategoria(null)
-      setEditingDay(dateStr)
-      setEditSaved(false)
     } finally {
       setEditDayLoading(false)
     }
@@ -2227,7 +2231,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               <button onClick={() => setEditingDay(null)} style={{ border: 'none', background: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
+            {editDayLoading && (
+              <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#6b7280', fontSize: '0.85rem' }}>
+                <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', opacity: 0.6 }}>⏳</div>
+                Cargando...
+              </div>
+            )}
+
+            {!editDayLoading && <><div style={{ marginBottom: '1rem' }}>
               <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.625rem' }}>{t('tablero.edit_day.habitos')}</div>
               {localHabitos.length === 0 && (
                 <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', textAlign: 'center' }}>
@@ -2480,6 +2491,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
             }}>
               {editSaving ? t('common.saving') : editSaved ? t('tablero.edit_day.guardado') : t('tablero.edit_day.guardar')}
             </button>
+            </>}
           </div>
         </div>
       )}
