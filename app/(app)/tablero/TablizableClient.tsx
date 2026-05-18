@@ -220,6 +220,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [editItemAdding, setEditItemAdding] = useState(false)
   const [editSaving, setEditSaving] = useState(false)
   const [editSaved, setEditSaved] = useState(false)
+  const [editDayLoading, setEditDayLoading] = useState(false)
 
   // Inline edit existing finance item
   const [inlineEditId, setInlineEditId] = useState<string | null>(null)
@@ -579,6 +580,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   async function openEditDay(dateStr: string) {
     if (dateStr > today) return
+    setEditDayLoading(true)
     const [{ data: regs }, { data: fin }, { data: items }] = await Promise.all([
       supabase.from('habito_registros').select('habito_id,valor_bool,valor_numero').eq('usuario_id', userId).eq('fecha', dateStr),
       supabase.from('finanzas_diarias').select('ingresos,gastos,ahorro').eq('usuario_id', userId).eq('fecha', dateStr).maybeSingle(),
@@ -594,6 +596,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     const ahorro = (fin as { ahorro: boolean } | null)?.ahorro ?? false
     setEditDayFin({ ingresos, gastos, ahorro })
     setEditItemTipo('ingreso'); setEditItemMonto(''); setEditItemDesc(''); setEditItemCategoria(null)
+    setEditDayLoading(false)
     setEditingDay(dateStr)
     setEditSaved(false)
   }
@@ -1492,8 +1495,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                           aspectRatio: '1', borderRadius: '4px', background: getDayBg(dayPct),
                           border: dateStr === today ? '1.5px solid #8B5CF6' : '1px solid rgba(255,255,255,0.05)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '0.55rem', color: '#6b7280',
+                          fontSize: '0.55rem', color: editDayLoading ? '#a78bfa' : '#6b7280',
                           cursor: isPast ? 'pointer' : 'default',
+                          opacity: editDayLoading ? 0.6 : 1,
                         }}
                       >{day}</div>
                     )
@@ -2220,6 +2224,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
             <div style={{ marginBottom: '1rem' }}>
               <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.625rem' }}>{t('tablero.edit_day.habitos')}</div>
+              {localHabitos.length === 0 && (
+                <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#6b7280' }}>No tenés hábitos activos.</div>
+                  <div style={{ fontSize: '0.72rem', color: '#4b5563', marginTop: '0.2rem' }}>Creá uno desde la pestaña Hábitos.</div>
+                </div>
+              )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                 {localHabitos.map(h => {
                   const reg = editDayRegMap[h.id]
