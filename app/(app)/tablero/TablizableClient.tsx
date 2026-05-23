@@ -221,6 +221,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [editSaving, setEditSaving] = useState(false)
   const [editSaved, setEditSaved] = useState(false)
   const [editDayLoading, setEditDayLoading] = useState(false)
+  const [editOpenedAt, setEditOpenedAt] = useState(0)
 
   // Inline edit existing finance item
   const [inlineEditId, setInlineEditId] = useState<string | null>(null)
@@ -581,6 +582,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   async function openEditDay(dateStr: string) {
     if (dateStr > today || editDayLoading) return
     // Open modal immediately — show skeleton inside while data loads
+    setEditOpenedAt(Date.now())
     setEditDayRegMap({})
     setEditDayItems([])
     setEditDayFin({ ingresos: 0, gastos: 0, ahorro: false })
@@ -1496,7 +1498,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     const dayPct = getDayPct(dateStr)
                     const isPast = dateStr <= today
                     return (
-                      <div key={day} onClick={() => openEditDay(dateStr)}
+                      <button key={day} type="button"
+                        onTouchEnd={(e) => { if (isPast) { e.preventDefault(); openEditDay(dateStr) } }}
+                        onClick={() => { if (isPast) openEditDay(dateStr) }}
                         title={isPast ? `${dateStr} · ${dayPct}%` : undefined}
                         style={{
                           aspectRatio: '1', borderRadius: '4px', background: getDayBg(dayPct),
@@ -1505,8 +1509,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                           fontSize: '0.55rem', color: editDayLoading ? '#a78bfa' : '#6b7280',
                           cursor: isPast ? 'pointer' : 'default',
                           opacity: editDayLoading ? 0.6 : 1,
+                          padding: 0, fontFamily: 'inherit', lineHeight: 1, touchAction: 'manipulation',
                         }}
-                      >{day}</div>
+                      >{day}</button>
                     )
                   })}
                 </div>
@@ -2215,8 +2220,8 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
       {/* Modal editar día pasado */}
       {editingDay && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '1rem' }}
-          onClick={() => setEditingDay(null)}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '1rem', touchAction: 'manipulation' }}
+          onClick={() => { if (Date.now() - editOpenedAt > 500) { setEditingDay(null) } }}>
           <div onClick={e => e.stopPropagation()} style={{
             width: '100%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto',
             background: '#0f0a2e', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '16px 16px 12px 12px', padding: '1.5rem',
