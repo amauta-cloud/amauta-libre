@@ -59,7 +59,14 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem('amauta-locale') as Locale | null
-    if (saved && TRANSLATIONS[saved]) setLocaleState(saved)
+    if (saved && TRANSLATIONS[saved]) {
+      setLocaleState(saved)
+      return
+    }
+    // First visit: detect from browser language
+    const browserLang = navigator.language?.toLowerCase() ?? ''
+    const match = LOCALES.find(l => browserLang.startsWith(l.code))
+    if (match) setLocaleState(match.code)
   }, [])
 
   function setLocale(l: Locale) {

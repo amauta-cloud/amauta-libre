@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useLocale } from '@/lib/i18n/LocaleContext'
+import { useState } from 'react'
+import { useLocale, LOCALES, type Locale } from '@/lib/i18n/LocaleContext'
 
 const purple = '#8B5CF6'
 const gold = '#F5C518'
@@ -16,7 +17,14 @@ const borderSubtle = 'rgba(255,255,255,0.07)'
 const borderPurple = 'rgba(139,92,246,0.2)'
 
 export default function LandingPage() {
-  const { t } = useLocale()
+  const { t, locale, setLocale } = useLocale()
+  const [langOpen, setLangOpen] = useState(false)
+  const currentLocale = LOCALES.find(l => l.code === locale) ?? LOCALES[0]
+
+  function handleLang(code: Locale) {
+    setLocale(code)
+    setLangOpen(false)
+  }
 
   const screenshots = [
     { src: '/screenshots/screenshot_1_habitos.png', label: t('landing.screenshot_1_label'), desc: t('landing.screenshot_1_desc') },
@@ -132,6 +140,61 @@ export default function LandingPage() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.27 8.27 0 004.84 1.56V6.79a4.85 4.85 0 01-1.07-.1z"/></svg>
               </a>
             </div>
+
+            {/* Language selector */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setLangOpen(o => !o)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
+                  background: langOpen ? 'rgba(139,92,246,0.15)' : 'rgba(255,255,255,0.06)',
+                  color: textMuted, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
+                  transition: 'all 0.15s',
+                }}
+              >
+                <span style={{ fontSize: '1rem' }}>{currentLocale.flag}</span>
+                <span style={{ fontSize: '0.75rem' }}>{currentLocale.code.toUpperCase()}</span>
+                <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>{langOpen ? '▲' : '▼'}</span>
+              </button>
+              {langOpen && (
+                <>
+                  {/* Backdrop to close */}
+                  <div
+                    onClick={() => setLangOpen(false)}
+                    style={{ position: 'fixed', inset: 0, zIndex: 49 }}
+                  />
+                  <div style={{
+                    position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 50,
+                    background: '#1a1730', border: '1px solid rgba(139,92,246,0.25)',
+                    borderRadius: 12, padding: '6px', minWidth: 160,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                    display: 'flex', flexDirection: 'column', gap: 2,
+                  }}>
+                    {LOCALES.map(l => (
+                      <button
+                        key={l.code}
+                        onClick={() => handleLang(l.code)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '7px 10px', borderRadius: 8, border: 'none',
+                          background: l.code === locale ? 'rgba(139,92,246,0.2)' : 'transparent',
+                          color: l.code === locale ? '#a78bfa' : '#9ca3af',
+                          fontWeight: l.code === locale ? 700 : 400,
+                          fontSize: '0.82rem', cursor: 'pointer', textAlign: 'left',
+                          transition: 'all 0.1s', width: '100%',
+                        }}
+                      >
+                        <span style={{ fontSize: '1rem' }}>{l.flag}</span>
+                        <span>{l.label}</span>
+                        {l.code === locale && <span style={{ marginLeft: 'auto', fontSize: '0.7rem' }}>✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
             <Link href="/login" className="btn-cta" style={{ padding: '8px 20px', fontSize: '0.875rem' }}>
               {t('landing.nav_entrar')}
             </Link>
