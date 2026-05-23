@@ -993,7 +993,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                             value={numValues[h.id] ?? 0}
                             onChange={e => setNumero(h, e.target.value)}
                             onBlur={() => saveNumero(h)}
-                            style={{ width: '52px', padding: '0.35rem 0.4rem', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', color: '#fff', fontSize: '0.95rem', fontWeight: 700, outline: 'none', textAlign: 'center' }} />
+                            style={{ width: '52px', padding: '0.35rem 0.4rem', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', color: '#fff', fontSize: '1rem', fontWeight: 700, outline: 'none', textAlign: 'center' }} />
                           <button onClick={() => stepNumero(h, 1)}
                             style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid rgba(139,92,246,0.25)', background: 'rgba(139,92,246,0.15)', color: '#a78bfa', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
                           {h.unidad && <span style={{ color: '#6b7280', fontSize: '0.78rem' }}>{h.unidad}</span>}
@@ -1022,7 +1022,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                           placeholder={t('tablero.hoy.nota_placeholder')}
                           rows={2}
                           autoFocus
-                          style={{ width: '100%', padding: '0.5rem 0.625rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(139,92,246,0.2)', color: '#e5e7eb', fontSize: '0.8rem', outline: 'none', resize: 'none', fontFamily: 'inherit', lineHeight: 1.5, boxSizing: 'border-box' }}
+                          style={{ width: '100%', padding: '0.5rem 0.625rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(139,92,246,0.2)', color: '#e5e7eb', fontSize: '1rem', outline: 'none', resize: 'none', fontFamily: 'inherit', lineHeight: 1.5, boxSizing: 'border-box' }}
                         />
                         <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.375rem' }}>
                           <button onClick={() => saveNota(h)} disabled={notaSaving === h.id}
@@ -1056,12 +1056,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                     )}
                     <button onClick={() => setNotaOpen(notaOpen === h.id ? null : h.id)}
                       title={t('tablero.hoy.nota_title')}
-                      style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: notaInputs[h.id] ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.04)', color: notaInputs[h.id] ? '#a78bfa' : '#4b5563', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      style={{ width: '36px', height: '36px', borderRadius: '6px', border: 'none', background: notaInputs[h.id] ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.04)', color: notaInputs[h.id] ? '#a78bfa' : '#4b5563', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       📝
                     </button>
                     <button onClick={() => setHistorialOpen(h.id)}
                       title={t('tablero.hoy.historial_title')}
-                      style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.04)', color: '#4b5563', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      style={{ width: '36px', height: '36px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.04)', color: '#4b5563', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       📊
                     </button>
                   </div>
@@ -1256,11 +1256,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
                           <input type="number" value={inlineEditMonto} onChange={e => setInlineEditMonto(e.target.value)}
-                            style={{ width: '80px', padding: '0.4rem 0.5rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#f3f0ff', fontSize: '0.85rem', outline: 'none', flexShrink: 0 }} />
+                            style={{ width: '80px', padding: '0.4rem 0.5rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#f3f0ff', fontSize: '1rem', outline: 'none', flexShrink: 0 }} />
                           <textarea value={inlineEditDesc} onChange={e => setInlineEditDesc(e.target.value)}
                             placeholder={t('tablero.hoy.detalle_placeholder')}
                             rows={Math.max(2, Math.ceil(inlineEditDesc.length / 35))}
-                            style={{ flex: 1, padding: '0.4rem 0.5rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#d1d5db', fontSize: '0.78rem', outline: 'none', resize: 'none', lineHeight: 1.4 }} />
+                            style={{ flex: 1, padding: '0.4rem 0.5rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#d1d5db', fontSize: '1rem', outline: 'none', resize: 'none', lineHeight: 1.4 }} />
                         </div>
                         <div style={{ display: 'flex', gap: '0.375rem' }}>
                           <button onClick={() => saveInlineItemEdit('hoy')} disabled={savingInlineEdit || !inlineEditMonto} style={{
@@ -2394,11 +2394,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                           </div>
                           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
                             <input type="number" value={inlineEditMonto} onChange={e => setInlineEditMonto(e.target.value)}
-                              style={{ width: '75px', padding: '0.35rem 0.45rem', borderRadius: '5px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#f3f0ff', fontSize: '0.82rem', outline: 'none', flexShrink: 0 }} />
+                              style={{ width: '75px', padding: '0.35rem 0.45rem', borderRadius: '5px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#f3f0ff', fontSize: '1rem', outline: 'none', flexShrink: 0 }} />
                             <textarea value={inlineEditDesc} onChange={e => setInlineEditDesc(e.target.value)}
                               placeholder={t('tablero.hoy.detalle_placeholder')}
                               rows={Math.max(2, Math.ceil(inlineEditDesc.length / 35))}
-                              style={{ flex: 1, padding: '0.35rem 0.45rem', borderRadius: '5px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#d1d5db', fontSize: '0.75rem', outline: 'none', resize: 'none', lineHeight: 1.4 }} />
+                              style={{ flex: 1, padding: '0.35rem 0.45rem', borderRadius: '5px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#d1d5db', fontSize: '1rem', outline: 'none', resize: 'none', lineHeight: 1.4 }} />
                           </div>
                           <div style={{ display: 'flex', gap: '0.375rem' }}>
                             <button onClick={() => saveInlineItemEdit('day')} disabled={savingInlineEdit || !inlineEditMonto} style={{

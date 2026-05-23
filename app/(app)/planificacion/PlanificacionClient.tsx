@@ -35,7 +35,7 @@ interface Evento {
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%', padding: '0.65rem 0.875rem', borderRadius: '8px',
   background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(139,92,246,0.25)',
-  color: '#f3f0ff', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box',
+  color: '#f3f0ff', fontSize: '1rem', outline: 'none', boxSizing: 'border-box',
 }
 
 const BTN_BASE: React.CSSProperties = {
@@ -360,9 +360,9 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
                   <p style={{ margin: '0 0 0.6rem', fontSize: '0.75rem', color: '#a78bfa', fontWeight: 600 }}>{t('planificacion.idea_fecha_hint')}</p>
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
                     <input type="date" value={ideaToTaskFecha} min={today} onChange={e => setIdeaToTaskFecha(e.target.value)}
-                      style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: '#9ca3af', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark' }} />
+                      style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: '#9ca3af', fontSize: '1rem', outline: 'none', colorScheme: 'dark' }} />
                     <input type="time" step="1" value={ideaToTaskHora} onChange={e => setIdeaToTaskHora(e.target.value)} disabled={!ideaToTaskFecha}
-                      style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: ideaToTaskFecha ? '#9ca3af' : '#4b5563', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark', cursor: ideaToTaskFecha ? 'auto' : 'not-allowed' }} />
+                      style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: ideaToTaskFecha ? '#9ca3af' : '#4b5563', fontSize: '1rem', outline: 'none', colorScheme: 'dark', cursor: ideaToTaskFecha ? 'auto' : 'not-allowed' }} />
                   </div>
                   {!ideaToTaskFecha && (
                     <p style={{ margin: '0 0 0.6rem', fontSize: '0.7rem', color: '#4b5563', fontStyle: 'italic' }}>
@@ -430,9 +430,9 @@ export default function PlanificacionClient({ userId, today, nombre }: { userId:
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <input type="date" value={tareaFecha} min={today} onChange={e => setTareaFecha(e.target.value)}
-                style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: '#9ca3af', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark' }} />
+                style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: '#9ca3af', fontSize: '1rem', outline: 'none', colorScheme: 'dark' }} />
               <input type="time" step="1" value={tareaHora} onChange={e => setTareaHora(e.target.value)} disabled={!tareaFecha}
-                style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: tareaFecha ? '#9ca3af' : '#4b5563', fontSize: '0.78rem', outline: 'none', colorScheme: 'dark', cursor: tareaFecha ? 'auto' : 'not-allowed' }} />
+                style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: tareaFecha ? '#9ca3af' : '#4b5563', fontSize: '1rem', outline: 'none', colorScheme: 'dark', cursor: tareaFecha ? 'auto' : 'not-allowed' }} />
               <button onClick={addTarea} disabled={!tareaTexto.trim() || tareaAdding}
                 style={{ marginLeft: 'auto', padding: '0.45rem 1.1rem', borderRadius: '8px', background: tareaTexto.trim() ? '#8B5CF6' : 'rgba(139,92,246,0.2)', border: 'none', color: '#fff', fontSize: '0.82rem', fontWeight: 600, cursor: tareaTexto.trim() ? 'pointer' : 'default' }}>
                 {tareaAdding ? t('planificacion.guardando') : t('planificacion.tarea_agregar')}
@@ -755,8 +755,8 @@ function TareaSection({ label, color, items, today, onToggle, onDelete, onEdit, 
                   style={{ ...INPUT_STYLE }}
                 />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                  <input type="date" value={editFecha} onChange={e => setEditFecha(e.target.value)} style={{ ...INPUT_STYLE, colorScheme: 'dark', fontSize: '0.8rem' }} />
-                  <input type="time" value={editHora} onChange={e => setEditHora(e.target.value)} disabled={!editFecha} style={{ ...INPUT_STYLE, colorScheme: 'dark', fontSize: '0.8rem', opacity: editFecha ? 1 : 0.4 }} />
+                  <input type="date" value={editFecha} onChange={e => setEditFecha(e.target.value)} style={{ ...INPUT_STYLE, colorScheme: 'dark', fontSize: '1rem' }} />
+                  <input type="time" value={editHora} onChange={e => setEditHora(e.target.value)} disabled={!editFecha} style={{ ...INPUT_STYLE, colorScheme: 'dark', fontSize: '1rem', opacity: editFecha ? 1 : 0.4 }} />
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button onClick={() => saveEdit(tarea)} disabled={!editTexto.trim()} style={{ ...BTN_BASE, flex: 1, background: editTexto.trim() ? '#8b5cf6' : 'rgba(139,92,246,0.3)', color: '#fff' }}>
