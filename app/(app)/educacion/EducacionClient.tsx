@@ -225,8 +225,8 @@ export default function EducacionClient({
             </div>
             <button
               onClick={completarPaso0}
-              disabled={saving || !reflexionInicial.trim()}
-              style={btnPrimary(saving || !reflexionInicial.trim())}
+              disabled={saving}
+              style={btnPrimary(saving)}
             >
               {saving ? t('educacion.paso0_saving') : t('educacion.paso0_btn')}
             </button>
@@ -250,6 +250,29 @@ export default function EducacionClient({
                 <span>{t('educacion.pasos_counter', { paso, total: totalPasos })}</span>
               </div>
             </div>
+
+            {paso === 5 && (
+              <a
+                href="https://amauta.cloud/landing"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'block', textDecoration: 'none', marginBottom: '1.25rem',
+                  background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)',
+                  borderRadius: '12px', padding: '1rem 1.25rem',
+                }}
+              >
+                <div style={{ fontSize: '0.62rem', color: '#a78bfa', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.07em', marginBottom: '0.25rem' }}>
+                  AMAUTA Cloud
+                </div>
+                <div style={{ color: '#e5e7eb', fontWeight: 700, fontSize: '0.88rem', marginBottom: '0.25rem' }}>
+                  {t('educacion.amauta_cloud_titulo')}
+                </div>
+                <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                  Vas por el paso 5. Si querés aplicar esto con alguien que lo guíe → amauta.cloud ↗
+                </div>
+              </a>
+            )}
 
             {reflexionInicial && (
               <details style={{ marginBottom: '1rem' }}>
@@ -342,8 +365,8 @@ export default function EducacionClient({
                       </button>
                       <button
                         onClick={avanzarPaso}
-                        disabled={saving || !reflexionActual.trim()}
-                        style={{ ...btnPrimary(saving || !reflexionActual.trim()), flex: 1 }}
+                        disabled={saving}
+                        style={{ ...btnPrimary(saving), flex: 1 }}
                       >
                         {saving ? t('educacion.paso0_saving') : t('educacion.arrancar_con', { titulo: t(`educacion.pasos.${pasoIdx}.teaserProximo`) })}
                       </button>
@@ -523,6 +546,16 @@ function ContentCard({ etapa, mensajeIntro, paso, t }: {
         <div style={{ fontSize: '0.78rem', color: '#4b5563', fontStyle: 'italic' }}>
           {t('educacion.material_pronto')}
         </div>
+      )}
+      {(etapa.tipo === 'Libro PDF' || etapa.tipo === 'Audiolibro') && (
+        <a
+          href="https://libreria.amauta.cloud"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ display: 'inline-block', marginTop: '0.625rem', fontSize: '0.74rem', color: '#34d399', textDecoration: 'none', fontWeight: 600 }}
+        >
+          📚 ¿Lo querés en papel? → Librería AMAUTA
+        </a>
       )}
     </div>
   )
