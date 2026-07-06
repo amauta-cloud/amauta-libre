@@ -46,6 +46,11 @@ function dateStrOffset(today: string, daysBack: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+// Ventana de historial para calcular la racha. Debe cubrir el hito más alto
+// (365) + margen; con 60 la racha nunca superaba 61 y los logros de 66/100/180/
+// 365 días y las metas de 90/180 eran matemáticamente inalcanzables.
+const RACHA_MAX_DIAS = 400
+
 
 function calcularRacha(historial: RegistroHistorial[], habitos: Habito[], today: string): number {
   if (habitos.length === 0) return 0
@@ -63,7 +68,7 @@ function calcularRacha(historial: RegistroHistorial[], habitos: Habito[], today:
   }
   let racha = 0
   if (esDiaBueno(today)) racha = 1
-  for (let i = 1; i <= 60; i++) {
+  for (let i = 1; i <= RACHA_MAX_DIAS; i++) {
     const fecha = dateStrOffset(today, i)
     if (esDiaBueno(fecha)) racha++
     else break
@@ -75,12 +80,12 @@ export default async function TablizablePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const today = todayStr()
-  const hace60dias = dateStrOffset(today, 60)
+  const historialDesde = dateStrOffset(today, RACHA_MAX_DIAS)
 
   const [habitosRes, registrosRes, historialRes, tareasRes, educacionRes, usuarioRes, metasRes] = await Promise.all([
     supabase.from('habitos').select('*').eq('usuario_id', user!.id).eq('activo', true).order('orden'),
     supabase.from('habito_registros').select('habito_id,valor_bool,valor_numero,nota').eq('usuario_id', user!.id).eq('fecha', today),
-    supabase.from('habito_registros').select('habito_id,fecha,valor_bool,valor_numero').eq('usuario_id', user!.id).gte('fecha', hace60dias),
+    supabase.from('habito_registros').select('habito_id,fecha,valor_bool,valor_numero').eq('usuario_id', user!.id).gte('fecha', historialDesde),
     supabase.from('tareas').select('estado,fecha_limite').eq('usuario_id', user!.id).neq('estado', 'completada'),
     supabase.from('educacion_estado').select('etapa_actual').eq('usuario_id', user!.id).maybeSingle().then(r => r.error ? { data: null } : r),
     supabase.from('usuarios').select('nombre').eq('id', user!.id).maybeSingle(),

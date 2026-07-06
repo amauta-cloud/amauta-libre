@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amauta-libre-v2'
+const CACHE_NAME = 'amauta-libre-v3'
 const STATIC_ASSETS = [
   '/favicon.ico',
   '/android-chrome-192x192.png',
@@ -8,7 +8,15 @@ const STATIC_ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then((cache) =>
+      // Cachear cada asset por separado: si uno da 404, no aborta toda la
+      // instalación del service worker (antes cache.addAll fallaba entero).
+      Promise.all(
+        STATIC_ASSETS.map((asset) =>
+          cache.add(asset).catch(() => {})
+        )
+      )
+    )
   )
   self.skipWaiting()
 })

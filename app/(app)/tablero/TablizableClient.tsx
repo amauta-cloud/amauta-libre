@@ -68,7 +68,7 @@ type MetasData = {
 
 type Finanzas = { ingresos: number; gastos: number; ahorro: boolean }
 type FinanzaItem = { id: string; tipo: 'ingreso' | 'gasto'; monto: number; descripcion: string | null; categoria: string | null; creado_en: string }
-type FinanzaCategoria = { id: string; nombre: string; emoji: string; es_base: boolean; orden: number }
+type FinanzaCategoria = { id: string; nombre: string; emoji: string; es_base: boolean; orden: number; activo?: boolean }
 
 const DEFAULT_CATS_FIN = [
   { nombre: 'Trabajo',    emoji: '💼', es_base: true, orden: 1 },
@@ -197,10 +197,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [editCatEmoji, setEditCatEmoji] = useState('')
   const [showPlantillasCat, setShowPlantillasCat] = useState(false)
 
-  // Mes tab
-  const now = new Date()
-  const [year, setYear] = useState(now.getFullYear())
-  const [month, setMonth] = useState(now.getMonth() + 1)
+  // Mes tab — derivar de `today` (fecha del server, no del dispositivo) para que
+  // el calendario abra en el mismo mes que "hoy". Antes usaba new Date() local:
+  // un usuario en otra timezone podía ver un mes donde ningún día era clickeable.
+  const [year, setYear] = useState(() => parseInt(today.slice(0, 4), 10))
+  const [month, setMonth] = useState(() => parseInt(today.slice(5, 7), 10))
   const mesNombre = new Intl.DateTimeFormat(locale === 'es' ? 'es-AR' : locale, { month: 'long' }).format(new Date(year, month - 1, 1))
   const [monthRegistros, setMonthRegistros] = useState<{ habito_id: string; fecha: string; valor_bool: boolean | null; valor_numero: number | null }[]>([])
   const [monthFinanzas, setMonthFinanzas] = useState<{ fecha: string; ingresos: number; gastos: number; ahorro: boolean }[]>([])
@@ -221,6 +222,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   const [editSaving, setEditSaving] = useState(false)
   const [editSaved, setEditSaved] = useState(false)
   const [editDayLoading, setEditDayLoading] = useState(false)
+  const [editDayLoadError, setEditDayLoadError] = useState(false)
   const [editOpenedAt, setEditOpenedAt] = useState(0)
 
   // Inline edit existing finance item
@@ -275,7 +277,10 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   // Load finance categories (create defaults if empty)
   useEffect(() => {
     async function loadCategorias() {
-      const { data } = await supabase.from('finanzas_categorias').select('*').eq('usuario_id', userId).eq('activo', true).order('orden')
+      const { data, error } = await supabase.from('finanzas_categorias').select('*').eq('usuario_id', userId).eq('activo', true).order('orden')
+      // Si la lectura falla (red), NO insertamos defaults: data sería null por
+      // error, no por estar vacío, y crearíamos categorías duplicadas.
+      if (error) { showErrToast(t('common.error_guardar')); return }
       if (!data || data.length === 0) {
         const { data: created } = await supabase.from('finanzas_categorias').insert(
           DEFAULT_CATS_FIN.map(c => ({ usuario_id: userId, ...c }))
@@ -360,13 +365,19 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
 
   async function stepNumero(habito: Habito, delta: number) {
     const current = numValues[habito.id] ?? 0
+    const prevReg = regMap[habito.id]
     const newVal = Math.max(0, current + delta)
     setNumValues(prev => ({ ...prev, [habito.id]: newVal }))
     setRegMap(prev => ({ ...prev, [habito.id]: { habito_id: habito.id, valor_bool: null, valor_numero: newVal, nota: prev[habito.id]?.nota ?? null } }))
     const { error } = await supabase.from('habito_registros').upsert({
       usuario_id: userId, habito_id: habito.id, fecha: today, valor_numero: newVal,
     }, { onConflict: 'habito_id,fecha' })
-    if (error) showErrToast(t('common.error_guardar'))
+    if (error) {
+      // revertir la UI al valor previo si no se guardó
+      setNumValues(prev => ({ ...prev, [habito.id]: current }))
+      setRegMap(prev => ({ ...prev, [habito.id]: prevReg ?? { habito_id: habito.id, valor_bool: null, valor_numero: null, nota: null } }))
+      showErrToast(t('common.error_guardar'))
+    }
   }
 
   async function setNumero(habito: Habito, val: string) {
@@ -433,9 +444,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   async function syncFinanzasDiarias(items: FinanzaItem[]) {
     const ingresos = items.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
     const gastos = items.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
-    setFinanzas(prev => ({ ...prev, ingresos, gastos }))
+    // Leer el ahorro más fresco vía el updater (no el closure, que puede estar
+    // stale si el usuario tocó el toggle 🐷 justo antes de agregar un ítem).
+    let ahorroActual = finanzas.ahorro
+    setFinanzas(prev => { ahorroActual = prev.ahorro; return { ...prev, ingresos, gastos } })
     await supabase.from('finanzas_diarias').upsert({
-      usuario_id: userId, fecha: today, ingresos, gastos, ahorro: finanzas.ahorro,
+      usuario_id: userId, fecha: today, ingresos, gastos, ahorro: ahorroActual,
     }, { onConflict: 'usuario_id,fecha' })
   }
 
@@ -449,7 +463,8 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   async function addFinanzaItem() {
-    const monto = parseFloat(itemMonto) || 0
+    if (itemAdding) return // guard de reentrada: doble Enter = doble gasto
+    const monto = Math.abs(parseFloat(itemMonto) || 0)
     if (!monto) return
     setItemAdding(true)
     const tipoFinal: 'ingreso' | 'gasto' = itemCategoria === 'Inversión' ? 'gasto' : itemTipo
@@ -482,8 +497,8 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   async function saveInlineItemEdit(source: 'hoy' | 'day') {
-    if (!inlineEditId) return
-    const monto = parseFloat(inlineEditMonto)
+    if (!inlineEditId || savingInlineEdit) return
+    const monto = Math.abs(parseFloat(inlineEditMonto) || 0)
     if (!monto) return
     setSavingInlineEdit(true)
     const tipoFinal: 'ingreso' | 'gasto' = inlineEditCat === 'Inversión' ? 'gasto' : inlineEditTipo
@@ -508,6 +523,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   async function addCategoria() {
+    if (catSaving) return // guard de reentrada
     if (!nuevaCatNombre.trim()) return
     setCatSaving(true)
     const maxOrden = Math.max(...finanzaCategorias.map(c => c.orden), 0)
@@ -567,8 +583,11 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     const dow = new Date(dateStr + 'T12:00:00').getDay()
     const habitosDia = localHabitos.filter(h => isHoy(h, dow))
     if (habitosDia.length === 0) return 0
-    const done = dayRegs.filter(r => r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)).length
-    return Math.round((done / habitosDia.length) * 100)
+    // Contar solo registros de hábitos activos programados ese día. Sin este
+    // filtro, registros de hábitos ya borrados inflaban el numerador (>100%).
+    const idsDia = new Set(habitosDia.map(h => h.id))
+    const done = dayRegs.filter(r => idsDia.has(r.habito_id) && (r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0))).length
+    return Math.min(100, Math.round((done / habitosDia.length) * 100))
   }
 
   function getDayBg(p: number): string {
@@ -590,20 +609,29 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     setEditSaved(false)
     setEditingDay(dateStr)
     setEditDayLoading(true)
+    setEditDayLoadError(false)
     try {
-      const [{ data: regs }, { data: fin }, { data: items }] = await Promise.all([
+      const [regsRes, finRes, itemsRes] = await Promise.all([
         supabase.from('habito_registros').select('habito_id,valor_bool,valor_numero').eq('usuario_id', userId).eq('fecha', dateStr),
         supabase.from('finanzas_diarias').select('ingresos,gastos,ahorro').eq('usuario_id', userId).eq('fecha', dateStr).maybeSingle(),
         supabase.from('finanzas_items').select('*').eq('usuario_id', userId).eq('fecha', dateStr).order('creado_en'),
       ])
+      // Si la carga falla, NO mostramos el día como vacío: sería dato falso y al
+      // "Guardar" se sobrescribiría el día real con ceros. Cerramos con aviso.
+      if (regsRes.error || finRes.error || itemsRes.error) {
+        setEditDayLoadError(true)
+        showErrToast(t('common.error_guardar'))
+        setEditingDay(null)
+        return
+      }
       const rm: Record<string, Registro> = {}
-      for (const r of (regs || [])) rm[r.habito_id] = { ...r, nota: null }
+      for (const r of (regsRes.data || [])) rm[r.habito_id] = { ...r, nota: null }
       setEditDayRegMap(rm)
-      const loadedItems = (items || []) as FinanzaItem[]
+      const loadedItems = (itemsRes.data || []) as FinanzaItem[]
       setEditDayItems(loadedItems)
       const ingresos = loadedItems.filter(i => i.tipo === 'ingreso').reduce((a, i) => a + i.monto, 0)
       const gastos = loadedItems.filter(i => i.tipo === 'gasto').reduce((a, i) => a + i.monto, 0)
-      const ahorro = (fin as { ahorro: boolean } | null)?.ahorro ?? false
+      const ahorro = (finRes.data as { ahorro: boolean } | null)?.ahorro ?? false
       setEditDayFin({ ingresos, gastos, ahorro })
     } finally {
       setEditDayLoading(false)
@@ -631,8 +659,8 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   async function addEditDayItem() {
-    if (!editingDay) return
-    const monto = parseFloat(editItemMonto) || 0
+    if (!editingDay || editItemAdding) return
+    const monto = Math.abs(parseFloat(editItemMonto) || 0)
     if (!monto) return
     setEditItemAdding(true)
     const tipoFinal: 'ingreso' | 'gasto' = editItemCategoria === 'Inversión' ? 'gasto' : editItemTipo
@@ -657,7 +685,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }
 
   async function saveEditDay() {
-    if (!editingDay) return
+    if (!editingDay || editSaving) return
+    // No guardar si la carga del día falló (evita sobrescribir con ceros)
+    if (editDayLoadError) { showErrToast(t('common.error_guardar')); return }
     setEditSaving(true)
     const upserts = localHabitos.map(h => {
       const r = editDayRegMap[h.id]
@@ -667,7 +697,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
         valor_numero: h.tipo === 'numero' ? (r?.valor_numero ?? 0) : null,
       }
     })
-    await supabase.from('habito_registros').upsert(upserts, { onConflict: 'habito_id,fecha' })
+    const { error: saveErr } = await supabase.from('habito_registros').upsert(upserts, { onConflict: 'habito_id,fecha' })
+    if (saveErr) {
+      setEditSaving(false)
+      showErrToast(t('common.error_guardar'))
+      return
+    }
 
     // Sync liveHistorial so weekly summary and racha reflect the edit immediately
     const savedDate = editingDay
@@ -1084,7 +1119,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               const hechos = regsDelDia.filter(r => r.valor_bool === true || (r.valor_numero != null && r.valor_numero > 0)).length
               const habitosDia = localHabitos.filter(h => isHoy(h, d.getDay()))
               const total = habitosDia.length
-              const pct = total > 0 && regsDelDia.length > 0 ? Math.round((hechos / total) * 100) : (fecha === today ? Math.round((completados / total) * 100) : 0)
+              const pct = total > 0 && regsDelDia.length > 0 ? Math.round((hechos / total) * 100) : (fecha === today && total > 0 ? Math.round((completados / total) * 100) : 0)
               semana.push({ fecha, label: i === 0 ? t('tablero.tabs.hoy') : fmtDia(d), pct })
             }
             const semPct = Math.round(semana.reduce((a, d) => a + d.pct, 0) / 7)
@@ -2638,12 +2673,6 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               }}>
                 🔥 {t('tablero.logro.dias', { n: logroVisible })}
               </div>
-      {errToast && (
-        <div style={{ position: 'fixed', bottom: '5rem', left: '50%', transform: 'translateX(-50%)', background: '#ef4444', color: 'white', padding: '0.6rem 1.25rem', borderRadius: '99px', fontSize: '0.82rem', fontWeight: 700, zIndex: 1000, boxShadow: '0 4px 20px rgba(239,68,68,0.4)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>
-          ⚠ {errToast}
-        </div>
-      )}
-
               <div style={{ display: 'flex', gap: '0.625rem', width: '100%', marginTop: '0.25rem' }}>
                 <button
                   onClick={() => {
@@ -2675,6 +2704,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           </div>
         )
       })()}
+
+      {/* Toast de error — a nivel raíz para que sea visible siempre (antes estaba
+          anidado dentro del modal de logros y nunca aparecía). */}
+      {errToast && (
+        <div style={{ position: 'fixed', bottom: '5rem', left: '50%', transform: 'translateX(-50%)', background: '#ef4444', color: 'white', padding: '0.6rem 1.25rem', borderRadius: '99px', fontSize: '0.82rem', fontWeight: 700, zIndex: 1000, boxShadow: '0 4px 20px rgba(239,68,68,0.4)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>
+          ⚠ {errToast}
+        </div>
+      )}
     </>
   )
 }
