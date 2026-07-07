@@ -85,6 +85,8 @@ export const ar: typeof es = {
       going_well: 'تسير بشكل رائع، استمر',
       start_one: 'ابدأ بواحدة',
       racha: 'سلسلة',
+      activacion_titulo: 'خطوتك الأولى 👇',
+      activacion_texto: 'اضغط على دائرة العادة لتحديدها كمُنجزة. هذا كل شيء — هكذا تبدأ سلسلتك.',
       movimientos: '💰 معاملات اليوم',
       ingresos_label: '📈 الدخل',
       gastos_label: '📉 المصروفات',

@@ -85,6 +85,8 @@ export const zh: typeof es = {
       going_well: '进展顺利，继续加油',
       start_one: '从一个开始',
       racha: '连续天数',
+      activacion_titulo: '你的第一步 👇',
+      activacion_texto: '点击习惯的圆圈即可标记完成。就这么简单——你的连续天数就此开始。',
       movimientos: '💰 今日收支',
       ingresos_label: '📈 收入',
       gastos_label: '📉 支出',

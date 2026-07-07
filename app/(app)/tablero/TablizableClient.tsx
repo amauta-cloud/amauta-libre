@@ -266,6 +266,12 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   }).length
   const pct = habitosHoy.length > 0 ? Math.round((completados / habitosHoy.length) * 100) : 0
 
+  // Activación: ¿el usuario marcó ALGÚN hábito alguna vez? (57% de la base
+  // nunca lo hizo). Si nunca activó y hoy no marcó nada, mostramos un nudge
+  // que lo guía a tocar su primer hábito. Desaparece al marcar el primero.
+  const nuncaActivado = !liveHistorial.some(r => r.valor_bool === true || (r.valor_numero != null && r.valor_numero > 0))
+  const mostrarNudgeActivacion = nuncaActivado && completados === 0 && habitosHoy.length > 0
+
   // One-time cleanup: delete the legacy "Ahorro" base habit from DB
   useEffect(() => {
     const ahorroBase = habitos.find(h => h.obligatorio && h.nombre?.toLowerCase().includes('ahorro'))
@@ -996,6 +1002,19 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               >
                 {sharingRacha ? t('tablero.hoy.generando_racha') : t('tablero.hoy.compartir_racha')}
               </button>
+            </div>
+          )}
+
+          {/* Nudge de activación — solo para quien nunca marcó un hábito */}
+          {mostrarNudgeActivacion && (
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(139,92,246,0.18), rgba(236,72,153,0.14))',
+              border: '1px solid rgba(139,92,246,0.4)',
+              borderRadius: '14px', padding: '0.9rem 1.05rem', marginBottom: '0.875rem',
+              display: 'flex', flexDirection: 'column', gap: '0.3rem',
+            }}>
+              <span style={{ color: '#c4b5fd', fontWeight: 700, fontSize: '0.9rem' }}>{t('tablero.hoy.activacion_titulo')}</span>
+              <span style={{ color: '#d1d5db', fontSize: '0.8rem', lineHeight: 1.5 }}>{t('tablero.hoy.activacion_texto')}</span>
             </div>
           )}
 

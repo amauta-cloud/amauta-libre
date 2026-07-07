@@ -85,6 +85,8 @@ export const hi: typeof es = {
       going_well: 'बढ़िया जा रहे हो, जारी रखो',
       start_one: 'एक से शुरू करो',
       racha: 'लकीर',
+      activacion_titulo: 'आपका पहला कदम 👇',
+      activacion_texto: 'किसी आदत के घेरे पर टैप करके उसे पूरा चिह्नित करें। बस इतना ही — इसी से आपकी लकीर शुरू होती है।',
       movimientos: '💰 आज के लेन-देन',
       ingresos_label: '📈 आय',
       gastos_label: '📉 खर्च',

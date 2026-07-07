@@ -85,6 +85,8 @@ export const ja: typeof es = {
       going_well: '順調です、続けましょう',
       start_one: 'ひとつから始めよう',
       racha: '連続',
+      activacion_titulo: '最初の一歩 👇',
+      activacion_texto: '習慣の丸をタップして完了にしましょう。それだけで連続記録が始まります。',
       movimientos: '💰 本日の取引',
       ingresos_label: '📈 収入',
       gastos_label: '📉 支出',

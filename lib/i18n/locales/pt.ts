@@ -85,6 +85,8 @@ export const pt: typeof es = {
       going_well: 'Indo bem, continue assim',
       start_one: 'Comece por um',
       racha: 'sequência',
+      activacion_titulo: 'Seu primeiro passo 👇',
+      activacion_texto: 'Toque no círculo de um hábito para marcá-lo como feito. É só isso — é assim que sua sequência começa.',
       movimientos: '💰 Movimentos do dia',
       ingresos_label: '📈 Receitas',
       gastos_label: '📉 Despesas',

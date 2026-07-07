@@ -85,6 +85,8 @@ export const en: typeof es = {
       going_well: "You're doing great, keep going",
       start_one: 'Start with one',
       racha: 'streak',
+      activacion_titulo: 'Your first step 👇',
+      activacion_texto: 'Tap a habit\'s circle to mark it done. That\'s it — that\'s how your streak begins.',
       movimientos: '💰 Daily transactions',
       ingresos_label: '📈 Income',
       gastos_label: '📉 Expenses',

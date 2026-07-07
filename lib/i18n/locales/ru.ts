@@ -85,6 +85,8 @@ export const ru: typeof es = {
       going_well: 'Отлично идёшь, продолжай',
       start_one: 'Начни с одной',
       racha: 'серия',
+      activacion_titulo: 'Ваш первый шаг 👇',
+      activacion_texto: 'Нажмите на кружок привычки, чтобы отметить её выполненной. Вот и всё — так начинается ваша серия.',
       movimientos: '💰 Операции дня',
       ingresos_label: '📈 Доходы',
       gastos_label: '📉 Расходы',

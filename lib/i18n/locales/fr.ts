@@ -85,6 +85,8 @@ export const fr: typeof es = {
       going_well: 'Tu avances bien, continue',
       start_one: 'Commence par une',
       racha: 'série',
+      activacion_titulo: 'Votre premier pas 👇',
+      activacion_texto: 'Touchez le cercle d\'une habitude pour la marquer comme faite. C\'est tout — voilà comment votre série commence.',
       movimientos: '💰 Mouvements du jour',
       ingresos_label: '📈 Revenus',
       gastos_label: '📉 Dépenses',

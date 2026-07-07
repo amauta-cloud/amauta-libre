@@ -85,6 +85,8 @@ export const id: typeof es = {
       going_well: 'Bagus, terus lanjutkan',
       start_one: 'Mulai dari satu',
       racha: 'streak',
+      activacion_titulo: 'Langkah pertamamu 👇',
+      activacion_texto: 'Ketuk lingkaran kebiasaan untuk menandainya selesai. Itu saja — begitulah streak-mu dimulai.',
       movimientos: '💰 Transaksi hari ini',
       ingresos_label: '📈 Pendapatan',
       gastos_label: '📉 Pengeluaran',

@@ -83,6 +83,8 @@ export const es = {
       going_well: 'Vas bien, seguí',
       start_one: 'Empezá por uno',
       racha: 'racha',
+      activacion_titulo: 'Tu primer paso 👇',
+      activacion_texto: 'Tocá el círculo de un hábito para marcarlo como hecho. Eso es todo — así arranca tu racha.',
       movimientos: '💰 Movimientos del día',
       ingresos_label: '📈 Ingresos',
       gastos_label: '📉 Gastos',
