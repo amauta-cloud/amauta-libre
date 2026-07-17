@@ -2,29 +2,147 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocale, LOCALES, type Locale } from '@/lib/i18n/LocaleContext'
 
-const purple = '#8B5CF6'
-const gold = '#F5C518'
-const green = '#10b981'
-const bgApp = '#0f0d1a'
-const bgCard = '#1a1730'
+/* ── Paleta ADN AMAUTA (sistema-diseno-amauta) + firma Libre ──
+   dorado/violeta/rosa = ADN compartido de las 4 patas.
+   ámbar = color propio de Libre (la voluntad enciende). */
+const violet = '#B078DC'        // ADN violeta (primario)
+const amber = '#E8912D'         // firma Libre (voluntad)
+const gold = '#F9C850'          // ADN dorado
+const pink = '#EC96C3'          // ADN rosa
+const green = '#10b981'         // finanzas / éxito
+const bgApp = '#0a0514'         // night2
+const bgNight = '#140b26'       // night (secciones alternas)
+const bgCard = '#191233'        // card elevada
 const textPrimary = '#f3f0ff'
-const textMuted = '#9ca3af'
-const gradientCTA = 'linear-gradient(135deg, #8B5CF6, #EC4899)'
+const textMuted = '#c3b9d6'
+const gradientCTA = `linear-gradient(135deg, ${violet}, ${pink})`
 const borderSubtle = 'rgba(255,255,255,0.07)'
-const borderPurple = 'rgba(139,92,246,0.2)'
+const borderViolet = 'rgba(176,120,220,0.2)'
+
+/* ── Copy de marca (ecosistema) — ES nativo, EN para el mundo, resto cae a ES ── */
+const ECO: Record<'es' | 'en', {
+  eyebrow: string; tagline: string
+  espejo_q1: string; espejo_hl: string; espejo_q2: string; espejo_sub: string
+  pod_tag: string; pod_h2: string; pod_sub: string
+  pod_here: string
+  patas: { dim: string; verbo: string; desc: string; cta: string }[]
+}> = {
+  es: {
+    eyebrow: 'El poder de tu voluntad',
+    tagline: 'Soberano de tu propia vida.',
+    espejo_q1: 'Un barco a la deriva no sabe adónde va.',
+    espejo_hl: 'Eso somos la mayoría.',
+    espejo_q2: 'Si llevás control, lo que te queda por hacer es accionar.',
+    espejo_sub: 'Libre no te va a cambiar la vida. Te muestra dónde estás parado para que la cambies vos.',
+    pod_tag: 'Ecosistema Amauta',
+    pod_h2: 'Libre es una de tus cuatro soberanías',
+    pod_sub: 'Cada parte de vos tiene su herramienta. Cuatro poderes, una sola vida tuya.',
+    pod_here: 'Estás acá',
+    patas: [
+      { dim: 'MENTE', verbo: 'Aprendé', desc: 'Los libros como obras de arte. Nutrí lo que pensás.', cta: 'Ver la librería →' },
+      { dim: 'VOLUNTAD', verbo: 'Accioná', desc: 'Hábitos, metas y finanzas. Ordená tu vida diaria.', cta: 'Estás usándolo' },
+      { dim: 'CUERPO', verbo: 'Fortalecéte', desc: 'Nutrición y energía para sostener todo lo demás.', cta: 'Conocer más →' },
+      { dim: 'OBRA', verbo: 'Multiplicáte', desc: 'Automatización con IA. Liberá tu trabajo.', cta: 'Ver servicios →' },
+    ],
+  },
+  en: {
+    eyebrow: 'The power of your will',
+    tagline: 'Sovereign of your own life.',
+    espejo_q1: 'A drifting boat has no idea where it’s going.',
+    espejo_hl: 'That’s most of us.',
+    espejo_q2: 'Once you’re in control, all that’s left is to take action.',
+    espejo_sub: 'Libre won’t change your life. It shows you where you stand so you can change it yourself.',
+    pod_tag: 'Amauta Ecosystem',
+    pod_h2: 'Libre is one of your four sovereignties',
+    pod_sub: 'Every part of you has its tool. Four powers, one life — yours.',
+    pod_here: 'You are here',
+    patas: [
+      { dim: 'MIND', verbo: 'Learn', desc: 'Books as works of art. Feed what you think.', cta: 'Visit the bookstore →' },
+      { dim: 'WILL', verbo: 'Act', desc: 'Habits, goals and finances. Order your daily life.', cta: 'You’re using it' },
+      { dim: 'BODY', verbo: 'Strengthen', desc: 'Nutrition and energy to sustain everything else.', cta: 'Learn more →' },
+      { dim: 'WORK', verbo: 'Multiply', desc: 'AI automation. Free up your work.', cta: 'See services →' },
+    ],
+  },
+}
 
 export default function LandingPage() {
   const { t, locale, setLocale } = useLocale()
   const [langOpen, setLangOpen] = useState(false)
   const currentLocale = LOCALES.find(l => l.code === locale) ?? LOCALES[0]
+  const eco = ECO[(locale === 'en' ? 'en' : 'es') as 'es' | 'en']
 
   function handleLang(code: Locale) {
     setLocale(code)
     setLangOpen(false)
   }
+
+  // Efectos del hero: chispas (canvas) + luz del puntero + scroll-reveal
+  useEffect(() => {
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches
+    const cleanups: Array<() => void> = []
+
+    // Chispas doradas
+    const hero = document.querySelector<HTMLElement>('.hero')
+    const cv = document.getElementById('h-sparks') as HTMLCanvasElement | null
+    if (cv && hero && !reduce) {
+      const ctx = cv.getContext('2d')!
+      let P: { x: number; y: number; r: number; vy: number; vx: number; a: number }[] = []
+      let W = 0, Hh = 0, raf = 0
+      const sz = () => { W = cv.width = hero.offsetWidth; Hh = cv.height = hero.offsetHeight }
+      const make = () => {
+        P = []
+        const n = Math.min(52, Math.floor(W / 26))
+        for (let i = 0; i < n; i++) P.push({ x: Math.random() * W, y: Math.random() * Hh, r: Math.random() * 1.6 + 0.5, vy: -(Math.random() * 0.3 + 0.1), vx: (Math.random() - 0.5) * 0.2, a: Math.random() * 6 })
+      }
+      const draw = () => {
+        ctx.clearRect(0, 0, W, Hh)
+        for (const p of P) {
+          p.y += p.vy; p.x += p.vx; p.a += 0.02
+          if (p.y < -10) { p.y = Hh + 10; p.x = Math.random() * W }
+          const tw = 0.5 + Math.abs(Math.sin(p.a)) * 0.5
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7)
+          ctx.fillStyle = `rgba(249,200,80,${tw * 0.7})`; ctx.shadowBlur = 8; ctx.shadowColor = 'rgba(249,200,80,.8)'; ctx.fill()
+        }
+        raf = requestAnimationFrame(draw)
+      }
+      sz(); make(); draw()
+      const onResize = () => { sz(); make() }
+      window.addEventListener('resize', onResize, { passive: true })
+      cleanups.push(() => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize) })
+    }
+
+    // Luz que sigue el puntero
+    if (!reduce) {
+      const glow = document.getElementById('h-glow')
+      if (glow) {
+        let tx = window.innerWidth / 2, ty = window.innerHeight / 2, gx = tx, gy = ty, raf = 0
+        const onMove = (e: MouseEvent) => { glow.style.opacity = '1'; tx = e.clientX; ty = e.clientY }
+        const onLeave = () => { glow.style.opacity = '0' }
+        window.addEventListener('mousemove', onMove, { passive: true })
+        document.addEventListener('mouseleave', onLeave)
+        const loop = () => { gx += (tx - gx) * 0.15; gy += (ty - gy) * 0.15; glow.style.left = gx + 'px'; glow.style.top = gy + 'px'; raf = requestAnimationFrame(loop) }
+        loop()
+        cleanups.push(() => { cancelAnimationFrame(raf); window.removeEventListener('mousemove', onMove); document.removeEventListener('mouseleave', onLeave) })
+      }
+    }
+
+    // Scroll-reveal
+    const els = Array.from(document.querySelectorAll('.reveal'))
+    if ('IntersectionObserver' in window && !reduce) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('is-visible'); io.unobserve(en.target) } })
+      }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' })
+      els.forEach(el => io.observe(el))
+      cleanups.push(() => io.disconnect())
+    } else {
+      els.forEach(el => el.classList.add('is-visible'))
+    }
+
+    return () => cleanups.forEach(fn => fn())
+  }, [])
 
   const screenshots = [
     { src: '/screenshots/screenshot_1_habitos.png', label: t('landing.screenshot_1_label'), desc: t('landing.screenshot_1_desc') },
@@ -43,7 +161,7 @@ export default function LandingPage() {
     {
       emoji: '⚡',
       title: t('landing.mod_habitos_title'),
-      color: purple,
+      color: violet,
       items: [t('landing.mod_habitos_1'), t('landing.mod_habitos_2'), t('landing.mod_habitos_3'), t('landing.mod_habitos_4')],
     },
     {
@@ -62,7 +180,7 @@ export default function LandingPage() {
 
   const metas = [
     { emoji: '🌱', label: t('landing.meta_30_label'), question: t('landing.meta_30_q'), color: green, bg: `${green}12` },
-    { emoji: '🚀', label: t('landing.meta_90_label'), question: t('landing.meta_90_q'), color: purple, bg: `${purple}12` },
+    { emoji: '🚀', label: t('landing.meta_90_label'), question: t('landing.meta_90_q'), color: violet, bg: `${violet}12` },
     { emoji: '🏆', label: t('landing.meta_180_label'), question: t('landing.meta_180_q'), color: gold, bg: `${gold}12` },
   ]
 
@@ -89,30 +207,57 @@ export default function LandingPage() {
     t('landing.instalar_ios_4'),
   ]
 
+  // Las 4 patas del ecosistema (Libre resaltada)
+  const patas = [
+    { name: 'Librería', color: '#1E6F8C', href: 'https://libreria.amauta.cloud/', ...eco.patas[0], here: false },
+    { name: 'Libre', color: amber, href: 'https://libre.amauta.cloud/', ...eco.patas[1], here: true },
+    { name: 'Bienestar', color: '#059669', href: 'https://amauta.cloud/bienestar', ...eco.patas[2], here: false },
+    { name: 'Cloud', color: '#06AED5', href: 'https://amauta.cloud/amauta-cloud', ...eco.patas[3], here: false },
+  ]
+
   return (
-    <div style={{ background: bgApp, color: textPrimary, fontFamily: "'Inter', sans-serif", minHeight: '100vh' }}>
+    <div style={{ background: bgApp, color: textPrimary, fontFamily: "var(--font-montserrat), Montserrat, sans-serif", minHeight: '100vh' }}>
+
+      {/* Luz que sigue el puntero (global, fixed) */}
+      <div id="h-glow" aria-hidden="true" />
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
         .btn-cta {
           background: ${gradientCTA};
           color: white; border: none; border-radius: 12px;
           font-weight: 700; cursor: pointer;
-          transition: opacity 0.2s, transform 0.1s;
+          transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
           display: inline-flex; align-items: center; gap: 10px; text-decoration: none;
         }
-        .btn-cta:hover { opacity: 0.9; transform: translateY(-1px); }
-        .card { background: ${bgCard}; border: 1px solid ${borderPurple}; border-radius: 16px; padding: 28px 24px; }
+        .btn-cta:hover { opacity: 0.94; transform: translateY(-2px); }
+        .card { background: ${bgCard}; border: 1px solid ${borderViolet}; border-radius: 16px; padding: 28px 24px; }
         .section { padding: 80px 24px; max-width: 960px; margin: 0 auto; }
-        .section-full { padding: 80px 24px; }
         .tag {
-          display: inline-block; background: rgba(139,92,246,0.12); color: #a78bfa;
-          border: 1px solid rgba(139,92,246,0.3); border-radius: 999px;
+          display: inline-block; background: rgba(176,120,220,0.12); color: #d6bff0;
+          border: 1px solid rgba(176,120,220,0.3); border-radius: 999px;
           font-size: 0.78rem; font-weight: 600; padding: 4px 14px; margin-bottom: 20px;
           letter-spacing: 0.04em; text-transform: uppercase;
         }
+        /* ── Efectos del hero: aurora + chispas + luz del puntero + emblema ── */
+        #h-glow { position: fixed; top: 0; left: 0; width: 520px; height: 520px; border-radius: 50%; pointer-events: none; z-index: 3; transform: translate(-50%,-50%); opacity: 0; transition: opacity 0.5s; mix-blend-mode: screen; background: radial-gradient(circle, rgba(249,200,80,.22) 0%, rgba(176,120,220,.13) 38%, transparent 72%); }
+        .h-aurora { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .h-aurora b { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .40; mix-blend-mode: screen; will-change: transform; }
+        .h-aurora .b1 { width: 52vw; height: 52vw; max-width: 640px; max-height: 640px; background: ${violet}; top: -14%; left: -8%; animation: hdrift1 24s ease-in-out infinite; }
+        .h-aurora .b2 { width: 44vw; height: 44vw; max-width: 540px; max-height: 540px; background: ${amber}; bottom: -18%; right: -6%; animation: hdrift2 28s ease-in-out infinite; }
+        .h-aurora .b3 { width: 40vw; height: 40vw; max-width: 500px; max-height: 500px; background: ${pink}; top: 30%; left: 44%; animation: hdrift3 32s ease-in-out infinite; }
+        @keyframes hdrift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(8%,10%) scale(1.12); } }
+        @keyframes hdrift2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-9%,-6%) scale(.9); } }
+        @keyframes hdrift3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-6%,8%) scale(1.1); } }
+        #h-sparks { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+        .hero-emblema { animation: floaty 5.5s ease-in-out infinite; filter: drop-shadow(0 0 42px rgba(249,200,80,.34)) drop-shadow(0 14px 32px rgba(0,0,0,.45)); }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
+        .reveal.is-visible { opacity: 1; transform: none; }
+        .pod-card { transition: transform .22s, box-shadow .22s, border-color .22s; }
+        .pod-card:hover { transform: translateY(-6px); box-shadow: 0 22px 50px rgba(0,0,0,.45); }
         @media (max-width: 640px) {
           .section { padding: 60px 20px; }
           .grid-3 { grid-template-columns: 1fr !important; }
@@ -121,15 +266,20 @@ export default function LandingPage() {
           .hero-title { font-size: clamp(2rem, 8vw, 3.4rem) !important; }
           .nav-inner { padding: 0 20px !important; }
           .screenshot-item { border-radius: 16px !important; }
+          .poderes-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .h-aurora b, .hero-emblema { animation: none !important; }
+          .reveal { opacity: 1; transform: none; }
         }
       `}</style>
 
       {/* ── NAV ── */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(15,13,26,0.85)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${borderSubtle}` }}>
+      <nav style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(10,5,20,0.82)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${borderSubtle}` }}>
         <div className="nav-inner" style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Image src="/logo-transparent.png" alt="Amauta Libre" width={32} height={32} style={{ borderRadius: 8 }} />
-            <span style={{ fontWeight: 700, fontSize: '1rem', color: textPrimary }}>Amauta Libre</span>
+            <Image src="/logo-amauta-libre.png" alt="Amauta Libre" width={40} height={40} priority style={{ width: 40, height: 40, objectFit: 'contain' }} />
+            <span style={{ fontWeight: 800, fontSize: '1rem', color: textPrimary, letterSpacing: '-0.01em' }}>Amauta Libre</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -148,7 +298,7 @@ export default function LandingPage() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 5,
                   padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
-                  background: langOpen ? 'rgba(139,92,246,0.15)' : 'rgba(255,255,255,0.06)',
+                  background: langOpen ? 'rgba(176,120,220,0.15)' : 'rgba(255,255,255,0.06)',
                   color: textMuted, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
                   transition: 'all 0.15s',
                 }}
@@ -159,14 +309,13 @@ export default function LandingPage() {
               </button>
               {langOpen && (
                 <>
-                  {/* Backdrop to close */}
                   <div
                     onClick={() => setLangOpen(false)}
                     style={{ position: 'fixed', inset: 0, zIndex: 49 }}
                   />
                   <div style={{
                     position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 50,
-                    background: '#1a1730', border: '1px solid rgba(139,92,246,0.25)',
+                    background: bgCard, border: '1px solid rgba(176,120,220,0.25)',
                     borderRadius: 12, padding: '6px', minWidth: 160,
                     boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
                     display: 'flex', flexDirection: 'column', gap: 2,
@@ -178,8 +327,8 @@ export default function LandingPage() {
                         style={{
                           display: 'flex', alignItems: 'center', gap: 8,
                           padding: '7px 10px', borderRadius: 8, border: 'none',
-                          background: l.code === locale ? 'rgba(139,92,246,0.2)' : 'transparent',
-                          color: l.code === locale ? '#a78bfa' : '#9ca3af',
+                          background: l.code === locale ? 'rgba(176,120,220,0.2)' : 'transparent',
+                          color: l.code === locale ? '#d6bff0' : textMuted,
                           fontWeight: l.code === locale ? 700 : 400,
                           fontSize: '0.82rem', cursor: 'pointer', textAlign: 'left',
                           transition: 'all 0.1s', width: '100%',
@@ -203,78 +352,104 @@ export default function LandingPage() {
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ padding: '100px 24px 80px', maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
-        <div style={{ display: 'inline-block', background: 'rgba(139,92,246,0.08)', border: `1px solid rgba(139,92,246,0.25)`, borderRadius: 999, padding: '5px 16px', fontSize: '0.78rem', fontWeight: 600, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 28 }}>
-          {t('landing.hero_pill')}
-        </div>
+      <section className="hero" style={{ position: 'relative', isolation: 'isolate', overflow: 'hidden', padding: '92px 24px 80px', textAlign: 'center', background: 'radial-gradient(120% 90% at 50% 0%, #241238, #0a0514)' }}>
+        <div className="h-aurora" aria-hidden="true"><b className="b1" /><b className="b2" /><b className="b3" /></div>
+        <canvas id="h-sparks" aria-hidden="true" />
 
-        <h1 className="hero-title" style={{ fontSize: 'clamp(2.4rem, 6vw, 3.8rem)', fontWeight: 800, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 20 }}>
-          {t('landing.hero_h1_1')}<br />
-          <span style={{ background: gradientCTA, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t('landing.hero_h1_2')}</span>
-        </h1>
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 960, margin: '0 auto' }}>
+          <Image className="hero-emblema" src="/logo-amauta-libre.png" alt="Amauta Libre" width={150} height={150} priority style={{ width: 'clamp(104px, 13vw, 150px)', height: 'auto', margin: '0 auto 8px', display: 'block' }} />
 
-        <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', color: textMuted, maxWidth: 520, margin: '0 auto 40px', lineHeight: 1.6 }}>
-          {t('landing.hero_sub')}
-        </p>
+          <p style={{ letterSpacing: '0.34em', fontSize: 'clamp(10px, 1.4vw, 12px)', color: amber, fontWeight: 700, textTransform: 'uppercase', marginBottom: 18 }}>
+            {eco.eyebrow}
+          </p>
 
-        <Link href="/login" className="btn-cta" style={{ padding: '16px 36px', fontSize: '1.05rem', borderRadius: 14, boxShadow: '0 8px 32px rgba(139,92,246,0.3)' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-          {t('landing.hero_cta')}
-        </Link>
+          <h1 className="hero-title" style={{ fontSize: 'clamp(2.4rem, 6vw, 3.8rem)', fontWeight: 800, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 14 }}>
+            {t('landing.hero_h1_1')}<br />
+            <span style={{ background: gradientCTA, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t('landing.hero_h1_2')}</span>
+          </h1>
 
-        <p style={{ marginTop: 16, fontSize: '0.82rem', color: '#6b7280' }}>
-          {t('landing.hero_note')}
-        </p>
+          <p style={{ fontSize: 'clamp(1.05rem, 2.4vw, 1.35rem)', color: pink, fontStyle: 'italic', fontWeight: 600, marginBottom: 22 }}>
+            {eco.tagline}
+          </p>
 
-        {/* Ring mockup visual */}
-        <div style={{ marginTop: 64, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ background: bgCard, border: `1px solid ${borderPurple}`, borderRadius: 24, padding: 32, maxWidth: 320, width: '100%', boxShadow: '0 24px 80px rgba(139,92,246,0.15)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>⚡ Hoy</span>
-              <span style={{ color: '#F5C518', fontSize: '0.85rem', fontWeight: 600 }}>🔥 12 días</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-              <div style={{ position: 'relative', width: 110, height: 110 }}>
-                <svg width="110" height="110" viewBox="0 0 110 110">
-                  <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(139,92,246,0.15)" strokeWidth="10" />
-                  <circle cx="55" cy="55" r="46" fill="none" stroke="url(#grad)" strokeWidth="10" strokeLinecap="round" strokeDasharray="289" strokeDashoffset="72" transform="rotate(-90 55 55)" />
-                  <defs>
-                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#8B5CF6" />
-                      <stop offset="100%" stopColor="#EC4899" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontWeight: 800, fontSize: '1.4rem', background: gradientCTA, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>75%</span>
-                  <span style={{ fontSize: '0.65rem', color: textMuted }}>hoy</span>
+          <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', color: textMuted, maxWidth: 540, margin: '0 auto 40px', lineHeight: 1.6 }}>
+            {t('landing.hero_sub')}
+          </p>
+
+          <Link href="/login" className="btn-cta" style={{ padding: '16px 36px', fontSize: '1.05rem', borderRadius: 14, boxShadow: '0 12px 34px rgba(176,120,220,0.38)' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            {t('landing.hero_cta')}
+          </Link>
+
+          <p style={{ marginTop: 16, fontSize: '0.82rem', color: '#8b81a0' }}>
+            {t('landing.hero_note')}
+          </p>
+
+          {/* Ring mockup visual */}
+          <div style={{ marginTop: 60, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ background: bgCard, border: `1px solid ${borderViolet}`, borderRadius: 24, padding: 32, maxWidth: 320, width: '100%', boxShadow: '0 24px 80px rgba(176,120,220,0.18)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>⚡ Hoy</span>
+                <span style={{ color: amber, fontSize: '0.85rem', fontWeight: 600 }}>🔥 12 días</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+                <div style={{ position: 'relative', width: 110, height: 110 }}>
+                  <svg width="110" height="110" viewBox="0 0 110 110">
+                    <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(176,120,220,0.15)" strokeWidth="10" />
+                    <circle cx="55" cy="55" r="46" fill="none" stroke="url(#grad)" strokeWidth="10" strokeLinecap="round" strokeDasharray="289" strokeDashoffset="72" transform="rotate(-90 55 55)" />
+                    <defs>
+                      <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor={violet} />
+                        <stop offset="100%" stopColor={pink} />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontWeight: 800, fontSize: '1.4rem', background: gradientCTA, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>75%</span>
+                    <span style={{ fontSize: '0.65rem', color: textMuted }}>hoy</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            {[
-              { emoji: '💧', name: 'Agua', done: true },
-              { emoji: '📚', name: 'Lectura', done: true },
-              { emoji: '🏃', name: 'Ejercicio', done: true },
-              { emoji: '🧘', name: 'Meditación', done: false },
-            ].map((h) => (
-              <div key={h.name} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: `1px solid ${borderSubtle}` }}>
-                <div style={{ width: 26, height: 26, borderRadius: '50%', background: h.done ? gradientCTA : 'rgba(255,255,255,0.06)', border: h.done ? 'none' : '1.5px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {h.done && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+              {[
+                { emoji: '💧', name: 'Agua', done: true },
+                { emoji: '📚', name: 'Lectura', done: true },
+                { emoji: '🏃', name: 'Ejercicio', done: true },
+                { emoji: '🧘', name: 'Meditación', done: false },
+              ].map((h) => (
+                <div key={h.name} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: `1px solid ${borderSubtle}` }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: h.done ? gradientCTA : 'rgba(255,255,255,0.06)', border: h.done ? 'none' : '1.5px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {h.done && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+                  </div>
+                  <span style={{ fontSize: '0.88rem', opacity: h.done ? 1 : 0.5 }}>{h.emoji} {h.name}</span>
                 </div>
-                <span style={{ fontSize: '0.88rem', opacity: h.done ? 1 : 0.5 }}>{h.emoji} {h.name}</span>
-              </div>
-            ))}
-            <p style={{ marginTop: 16, fontSize: '0.8rem', color: '#a78bfa', textAlign: 'center', fontWeight: 600 }}>Vas bien, seguí</p>
+              ))}
+              <p style={{ marginTop: 16, fontSize: '0.8rem', color: '#d6bff0', textAlign: 'center', fontWeight: 600 }}>Vas bien, seguí</p>
+            </div>
           </div>
         </div>
       </section>
 
+      {/* ── ESPEJO (barco a la deriva) ── */}
+      <section className="reveal" style={{ padding: '84px 24px', textAlign: 'center', background: bgNight, borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
+        <div style={{ maxWidth: 840, margin: '0 auto' }}>
+          <blockquote style={{ fontSize: 'clamp(1.4rem, 3.4vw, 2.1rem)', fontWeight: 800, lineHeight: 1.35, color: '#fff', margin: 0 }}>
+            &ldquo;{eco.espejo_q1} <span style={{ color: gold }}>{eco.espejo_hl}</span>&rdquo;
+          </blockquote>
+          <p style={{ marginTop: 22, color: pink, fontStyle: 'italic', fontWeight: 600, fontSize: 'clamp(1rem, 2vw, 1.2rem)' }}>
+            {eco.espejo_q2}
+          </p>
+          <p style={{ marginTop: 14, color: textMuted, fontSize: '1rem', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.7 }}>
+            {eco.espejo_sub}
+          </p>
+        </div>
+      </section>
+
       {/* ── SOCIAL PROOF ── */}
-      <section style={{ padding: '28px 24px', borderBottom: `1px solid ${borderSubtle}`, background: 'rgba(139,92,246,0.04)' }}>
+      <section style={{ padding: '28px 24px', borderBottom: `1px solid ${borderSubtle}`, background: 'rgba(176,120,220,0.04)' }}>
         <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '32px 48px' }}>
           <div style={{ display: 'flex', gap: 40 }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.8rem', fontWeight: 900, color: purple, lineHeight: 1 }}>70</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 900, color: violet, lineHeight: 1 }}>70</div>
               <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: 4 }}>{t('landing.proof_users_label')}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
@@ -316,7 +491,7 @@ export default function LandingPage() {
           </p>
           <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, alignItems: 'start' }}>
             {screenshots.map((s) => (
-              <div key={s.src} className="screenshot-item" style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(139,92,246,0.22)', boxShadow: '0 16px 48px rgba(0,0,0,0.5)' }}>
+              <div key={s.src} className="screenshot-item" style={{ borderRadius: 20, overflow: 'hidden', border: `1px solid ${borderViolet}`, boxShadow: '0 16px 48px rgba(0,0,0,0.5)' }}>
                 <Image
                   src={s.src}
                   alt={s.label}
@@ -335,7 +510,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── PROBLEMA ── */}
-      <section style={{ padding: '80px 24px', background: 'rgba(139,92,246,0.03)', borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
+      <section style={{ padding: '80px 24px', background: 'rgba(176,120,220,0.03)', borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
         <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: 16 }}>
             {t('landing.problema_h2')}
@@ -456,7 +631,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── GRATIS SIN TRAMPA ── */}
-      <section style={{ padding: '80px 24px', background: 'rgba(139,92,246,0.03)', borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
+      <section style={{ padding: '80px 24px', background: 'rgba(176,120,220,0.03)', borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
         <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
           <div className="tag">{t('landing.gratis_tag')}</div>
           <h2 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: 12 }}>
@@ -498,7 +673,7 @@ export default function LandingPage() {
             { flag: '🇮🇩', name: 'Indonesia' },
             { flag: '🇷🇺', name: 'Русский' },
           ].map((lang) => (
-            <div key={lang.name} style={{ background: bgCard, border: `1px solid ${borderPurple}`, borderRadius: 12, padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem', fontWeight: 600 }}>
+            <div key={lang.name} style={{ background: bgCard, border: `1px solid ${borderViolet}`, borderRadius: 12, padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem', fontWeight: 600 }}>
               <span style={{ fontSize: '1.2rem' }}>{lang.flag}</span>
               <span style={{ color: textMuted }}>{lang.name}</span>
             </div>
@@ -507,7 +682,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── INSTALÁ COMO APP ── */}
-      <section style={{ padding: '80px 24px', background: 'rgba(139,92,246,0.03)', borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
+      <section style={{ padding: '80px 24px', background: 'rgba(176,120,220,0.03)', borderTop: `1px solid ${borderSubtle}`, borderBottom: `1px solid ${borderSubtle}` }}>
         <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
           <div className="tag">{t('landing.instalar_tag')}</div>
           <h2 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: 12 }}>
@@ -546,45 +721,80 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-          <p style={{ marginTop: 32, fontSize: '0.82rem', color: '#6b7280' }}>
+          <p style={{ marginTop: 32, fontSize: '0.82rem', color: '#8b81a0' }}>
             {t('landing.instalar_nota')}
           </p>
+        </div>
+      </section>
+
+      {/* ── LOS 4 PODERES (ecosistema) ── */}
+      <section className="reveal" style={{ padding: '84px 24px', background: 'radial-gradient(ellipse at top, #1a0a2e 0%, #0a0514 65%)', borderTop: `1px solid ${borderSubtle}` }}>
+        <div style={{ maxWidth: 1040, margin: '0 auto', textAlign: 'center' }}>
+          <div className="tag">{eco.pod_tag}</div>
+          <h2 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: 12 }}>
+            {eco.pod_h2}
+          </h2>
+          <p style={{ color: textMuted, marginBottom: 48, fontSize: '1rem', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.6 }}>
+            {eco.pod_sub}
+          </p>
+          <div className="poderes-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18 }}>
+            {patas.map((p) => (
+              <a
+                key={p.name}
+                className="pod-card"
+                href={p.here ? undefined : p.href}
+                target={p.here ? undefined : '_blank'}
+                rel={p.here ? undefined : 'noopener noreferrer'}
+                style={{
+                  position: 'relative', display: 'block', textAlign: 'center', textDecoration: 'none',
+                  background: p.here ? `linear-gradient(180deg, ${amber}14, ${bgCard})` : bgCard,
+                  border: `1px solid ${p.here ? amber + '66' : borderSubtle}`,
+                  borderRadius: 18, padding: '24px 18px 22px', cursor: p.here ? 'default' : 'pointer',
+                }}
+              >
+                <div style={{ height: 5, borderRadius: 999, background: p.color, width: 44, margin: '0 auto 16px' }} />
+                {p.here && (
+                  <span style={{ position: 'absolute', top: 12, right: 12, fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: amber, background: `${amber}1f`, border: `1px solid ${amber}55`, borderRadius: 999, padding: '3px 9px' }}>
+                    {eco.pod_here}
+                  </span>
+                )}
+                <div style={{ fontSize: '0.72rem', color: textMuted, marginBottom: 4 }}>el poder de tu <b style={{ color: p.color }}>{p.dim}</b></div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: 6, color: '#fff' }}>{p.verbo}</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: p.color, marginBottom: 10 }}>Amauta {p.name}</div>
+                <p style={{ fontSize: '0.8rem', color: textMuted, lineHeight: 1.55, minHeight: 58 }}>{p.desc}</p>
+                <p style={{ fontSize: '0.82rem', fontWeight: 700, color: p.here ? amber : p.color, marginTop: 12 }}>{p.cta}</p>
+              </a>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── CTA FINAL ── */}
       <section style={{ padding: '100px 24px', textAlign: 'center', background: 'radial-gradient(ellipse at center, #1a0a2e 0%, #0b0520 70%)' }}>
         <div style={{ maxWidth: 600, margin: '0 auto' }}>
-          <Image src="/logo-transparent.png" alt="Amauta Libre" width={64} height={64} style={{ borderRadius: 16, marginBottom: 28, boxShadow: '0 8px 32px rgba(139,92,246,0.4)' }} />
+          <Image src="/logo-amauta-libre.png" alt="Amauta Libre" width={96} height={96} style={{ width: 96, height: 96, objectFit: 'contain', margin: '0 auto 24px', display: 'block', filter: 'drop-shadow(0 8px 32px rgba(249,200,80,0.3))' }} />
           <h2 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', fontWeight: 800, marginBottom: 16, lineHeight: 1.15 }}>
             {t('landing.cta_h2')}
           </h2>
           <p style={{ color: textMuted, fontSize: '1.05rem', marginBottom: 40, lineHeight: 1.6 }}>
             {t('landing.cta_sub')}
           </p>
-          <Link href="/login" className="btn-cta" style={{ padding: '18px 44px', fontSize: '1.1rem', borderRadius: 14, boxShadow: '0 12px 40px rgba(139,92,246,0.35)', margin: '0 auto' }}>
+          <Link href="/login" className="btn-cta" style={{ padding: '18px 44px', fontSize: '1.1rem', borderRadius: 14, boxShadow: '0 12px 40px rgba(176,120,220,0.35)', margin: '0 auto' }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
             {t('landing.cta_btn')}
           </Link>
 
-          {/* CTA secundario — Amauta Cloud */}
-          <div style={{ marginTop: 32, padding: '20px 24px', borderRadius: 14, border: '1px solid rgba(139,92,246,0.2)', background: 'rgba(139,92,246,0.06)' }}>
-            <p style={{ fontSize: '0.8rem', color: textMuted, marginBottom: 10 }}>
-              {t('landing.cta_cloud_q')}
-            </p>
-            <a href="https://amauta.cloud/landing" target="_blank" rel="noopener noreferrer" style={{ color: '#a78bfa', fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none' }}>
-              {t('landing.cta_cloud_link')}
-            </a>
-          </div>
-
-          <p style={{ marginTop: 24, fontSize: '0.82rem', color: '#6b7280' }}>
+          <p style={{ marginTop: 28, fontSize: '0.95rem', color: pink, fontStyle: 'italic', fontWeight: 600 }}>
+            {eco.tagline}
+          </p>
+          <p style={{ marginTop: 12, fontSize: '0.82rem', color: '#8b81a0' }}>
             {t('landing.cta_footer')}
           </p>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ borderTop: `1px solid ${borderSubtle}`, padding: '32px 24px', textAlign: 'center' }}>
+      <footer style={{ borderTop: `1px solid ${borderSubtle}`, padding: '32px 24px', textAlign: 'center', background: bgApp }}>
         <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 24, fontSize: '0.82rem', color: textMuted }}>
           <span>© {new Date().getFullYear()} Amauta Libre</span>
           <Link href="/privacidad" style={{ color: textMuted, textDecoration: 'none' }}>{t('landing.footer_privacidad')}</Link>

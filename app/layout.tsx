@@ -1,19 +1,20 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Montserrat } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import { LocaleProvider } from '@/lib/i18n/LocaleContext'
 
-const inter = Inter({
+const montserrat = Montserrat({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-montserrat',
 })
 
 export const metadata: Metadata = {
-  title: 'Amauta Libre — Tus hábitos, tus tareas, tu crecimiento.',
-  description: 'App gratuita de hábitos, finanzas personales y metas. Sin plan pago. Sin tarjeta. Funciona desde el navegador de tu celular.',
+  title: 'Amauta Libre — App de hábitos, finanzas y metas | Soberano de tu propia vida',
+  description: 'La app gratis para tomar el timón de tus días: hábitos, finanzas y metas en un solo lugar. Sin plan pago, sin tarjeta. El poder de tu voluntad, una de las cuatro soberanías del ecosistema Amauta.',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
@@ -21,8 +22,8 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
   },
   openGraph: {
-    title: 'Amauta Libre',
-    description: 'Tus hábitos, tus tareas, tu crecimiento. Gratis para siempre.',
+    title: 'Amauta Libre — Soberano de tu propia vida',
+    description: 'El poder de tu voluntad: hábitos, finanzas y metas en un solo lugar. Gratis para siempre.',
     url: 'https://libre.amauta.cloud',
     siteName: 'Amauta Libre',
     images: [{ url: 'https://libre.amauta.cloud/og-image.png', width: 1200, height: 630 }],
@@ -30,8 +31,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Amauta Libre',
-    description: 'Tus hábitos, tus tareas, tu crecimiento. Gratis para siempre.',
+    title: 'Amauta Libre — Soberano de tu propia vida',
+    description: 'El poder de tu voluntad: hábitos, finanzas y metas en un solo lugar. Gratis para siempre.',
     images: ['https://libre.amauta.cloud/og-image.png'],
   },
   icons: {
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#7c3aed',
+  themeColor: '#0a0514',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -50,7 +51,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={inter.variable}>
+    <html lang="es" className={montserrat.variable}>
       <head>
         <meta name="google-adsense-account" content="ca-pub-7991607173519932" />
         <script
@@ -59,7 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
         />
       </head>
-      <body style={{ fontFamily: 'var(--font-inter), Inter, sans-serif' }}>
+      <body style={{ fontFamily: 'var(--font-montserrat), Montserrat, sans-serif' }}>
         <LocaleProvider>
           {children}
         </LocaleProvider>
