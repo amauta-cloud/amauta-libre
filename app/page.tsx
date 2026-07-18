@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { useLocale, LOCALES, type Locale } from '@/lib/i18n/LocaleContext'
+import { getEco } from '@/lib/i18n/eco'
 
 /* ── Paleta ADN AMAUTA (sistema-diseno-amauta) + firma Libre ──
    dorado/violeta/rosa = ADN compartido de las 4 patas.
@@ -22,57 +23,14 @@ const gradientCTA = `linear-gradient(135deg, ${violet}, ${pink})`
 const borderSubtle = 'rgba(255,255,255,0.07)'
 const borderViolet = 'rgba(176,120,220,0.2)'
 
-/* ── Copy de marca (ecosistema) — ES nativo, EN para el mundo, resto cae a ES ── */
-const ECO: Record<'es' | 'en', {
-  eyebrow: string; tagline: string
-  espejo_q1: string; espejo_hl: string; espejo_q2: string; espejo_sub: string
-  pod_tag: string; pod_h2: string; pod_sub: string
-  pod_here: string
-  patas: { dim: string; verbo: string; desc: string; cta: string }[]
-}> = {
-  es: {
-    eyebrow: 'El poder de tu voluntad',
-    tagline: 'Soberano de tu propia vida.',
-    espejo_q1: 'Un barco a la deriva no sabe adónde va.',
-    espejo_hl: 'Eso somos la mayoría.',
-    espejo_q2: 'Si llevás control, lo que te queda por hacer es accionar.',
-    espejo_sub: 'Libre no te va a cambiar la vida. Te muestra dónde estás parado para que la cambies vos.',
-    pod_tag: 'Ecosistema Amauta',
-    pod_h2: 'Libre es una de tus cuatro soberanías',
-    pod_sub: 'Cada parte de vos tiene su herramienta. Cuatro poderes, una sola vida tuya.',
-    pod_here: 'Estás acá',
-    patas: [
-      { dim: 'MENTE', verbo: 'Aprendé', desc: 'Los libros como obras de arte. Nutrí lo que pensás.', cta: 'Ver la librería →' },
-      { dim: 'VOLUNTAD', verbo: 'Accioná', desc: 'Hábitos, metas y finanzas. Ordená tu vida diaria.', cta: 'Estás usándolo' },
-      { dim: 'CUERPO', verbo: 'Fortalecéte', desc: 'Nutrición y energía para sostener todo lo demás.', cta: 'Conocer más →' },
-      { dim: 'OBRA', verbo: 'Multiplicáte', desc: 'Automatización con IA. Liberá tu trabajo.', cta: 'Ver servicios →' },
-    ],
-  },
-  en: {
-    eyebrow: 'The power of your will',
-    tagline: 'Sovereign of your own life.',
-    espejo_q1: 'A drifting boat has no idea where it’s going.',
-    espejo_hl: 'That’s most of us.',
-    espejo_q2: 'Once you’re in control, all that’s left is to take action.',
-    espejo_sub: 'Libre won’t change your life. It shows you where you stand so you can change it yourself.',
-    pod_tag: 'Amauta Ecosystem',
-    pod_h2: 'Libre is one of your four sovereignties',
-    pod_sub: 'Every part of you has its tool. Four powers, one life — yours.',
-    pod_here: 'You are here',
-    patas: [
-      { dim: 'MIND', verbo: 'Learn', desc: 'Books as works of art. Feed what you think.', cta: 'Visit the bookstore →' },
-      { dim: 'WILL', verbo: 'Act', desc: 'Habits, goals and finances. Order your daily life.', cta: 'You’re using it' },
-      { dim: 'BODY', verbo: 'Strengthen', desc: 'Nutrition and energy to sustain everything else.', cta: 'Learn more →' },
-      { dim: 'WORK', verbo: 'Multiply', desc: 'AI automation. Free up your work.', cta: 'See services →' },
-    ],
-  },
-}
-
 export default function LandingPage() {
-  const { t, locale, setLocale } = useLocale()
+  const { t, locale, setLocale, dir } = useLocale()
   const [langOpen, setLangOpen] = useState(false)
   const currentLocale = LOCALES.find(l => l.code === locale) ?? LOCALES[0]
-  const eco = ECO[(locale === 'en' ? 'en' : 'es') as 'es' | 'en']
+  const eco = getEco(locale)
+  const arrow = dir === 'rtl' ? '←' : '→'
+  // El "tracking" ancho se ve mal en escrituras no latinas (árabe/devanagari): lo relajo ahí.
+  const eyebrowTracking = ['ar', 'hi'].includes(locale) ? '0.02em' : '0.34em'
 
   function handleLang(code: Locale) {
     setLocale(code)
@@ -209,10 +167,10 @@ export default function LandingPage() {
 
   // Las 4 patas del ecosistema (Libre resaltada)
   const patas = [
-    { name: 'Librería', color: '#1E6F8C', href: 'https://libreria.amauta.cloud/', ...eco.patas[0], here: false },
-    { name: 'Libre', color: amber, href: 'https://libre.amauta.cloud/', ...eco.patas[1], here: true },
-    { name: 'Bienestar', color: '#059669', href: 'https://amauta.cloud/bienestar', ...eco.patas[2], here: false },
-    { name: 'Cloud', color: '#06AED5', href: 'https://amauta.cloud/amauta-cloud', ...eco.patas[3], here: false },
+    { name: 'Librería', color: '#1E6F8C', href: 'https://libreria.amauta.cloud/', ...eco.p.libreria, here: false },
+    { name: 'Libre', color: amber, href: 'https://libre.amauta.cloud/', ...eco.p.libre, here: true },
+    { name: 'Bienestar', color: '#059669', href: 'https://amauta.cloud/bienestar', ...eco.p.bienestar, here: false },
+    { name: 'Cloud', color: '#06AED5', href: 'https://amauta.cloud/amauta-cloud', ...eco.p.cloud, here: false },
   ]
 
   return (
@@ -359,7 +317,7 @@ export default function LandingPage() {
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 960, margin: '0 auto' }}>
           <Image className="hero-emblema" src="/logo-amauta-libre.png" alt="Amauta Libre" width={150} height={150} priority style={{ width: 'clamp(104px, 13vw, 150px)', height: 'auto', margin: '0 auto 8px', display: 'block' }} />
 
-          <p style={{ letterSpacing: '0.34em', fontSize: 'clamp(10px, 1.4vw, 12px)', color: amber, fontWeight: 700, textTransform: 'uppercase', marginBottom: 18 }}>
+          <p style={{ letterSpacing: eyebrowTracking, fontSize: 'clamp(10px, 1.4vw, 12px)', color: amber, fontWeight: 700, textTransform: 'uppercase', marginBottom: 18 }}>
             {eco.eyebrow}
           </p>
 
@@ -754,7 +712,7 @@ export default function LandingPage() {
               >
                 <div style={{ height: 5, borderRadius: 999, background: p.color, width: 44, margin: '0 auto 16px' }} />
                 {p.here && (
-                  <span style={{ position: 'absolute', top: 12, right: 12, fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: amber, background: `${amber}1f`, border: `1px solid ${amber}55`, borderRadius: 999, padding: '3px 9px' }}>
+                  <span style={{ position: 'absolute', top: 12, ...(dir === 'rtl' ? { left: 12 } : { right: 12 }), fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: amber, background: `${amber}1f`, border: `1px solid ${amber}55`, borderRadius: 999, padding: '3px 9px' }}>
                     {eco.pod_here}
                   </span>
                 )}
@@ -762,7 +720,7 @@ export default function LandingPage() {
                 <div style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: 6, color: '#fff' }}>{p.verbo}</div>
                 <div style={{ fontSize: '0.9rem', fontWeight: 700, color: p.color, marginBottom: 10 }}>Amauta {p.name}</div>
                 <p style={{ fontSize: '0.8rem', color: textMuted, lineHeight: 1.55, minHeight: 58 }}>{p.desc}</p>
-                <p style={{ fontSize: '0.82rem', fontWeight: 700, color: p.here ? amber : p.color, marginTop: 12 }}>{p.cta}</p>
+                <p style={{ fontSize: '0.82rem', fontWeight: 700, color: p.here ? amber : p.color, marginTop: 12 }}>{p.here ? p.cta : `${p.cta} ${arrow}`}</p>
               </a>
             ))}
           </div>
