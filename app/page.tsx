@@ -29,6 +29,8 @@ export default function LandingPage() {
   const currentLocale = LOCALES.find(l => l.code === locale) ?? LOCALES[0]
   const eco = getEco(locale)
   const arrow = dir === 'rtl' ? '←' : '→'
+  // "el poder de tu {dim}" partido en el placeholder: respeta el orden de palabras de cada idioma
+  const podPre = eco.pod_prefix.split('{dim}')
   // El "tracking" ancho se ve mal en escrituras no latinas (árabe/devanagari): lo relajo ahí.
   const eyebrowTracking = ['ar', 'hi'].includes(locale) ? '0.02em' : '0.34em'
 
@@ -72,8 +74,9 @@ export default function LandingPage() {
       cleanups.push(() => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize) })
     }
 
-    // Luz que sigue el puntero
-    if (!reduce) {
+    // Luz que sigue el puntero — solo con mouse real: en touch nunca se ve y el loop quemaba batería
+    const finePointer = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    if (!reduce && finePointer) {
       const glow = document.getElementById('h-glow')
       if (glow) {
         let tx = window.innerWidth / 2, ty = window.innerHeight / 2, gx = tx, gy = ty, raf = 0
@@ -180,9 +183,10 @@ export default function LandingPage() {
       <div id="h-glow" aria-hidden="true" />
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap');
+        /* Montserrat ya la carga next/font en layout.tsx (self-hosted): sin @import a Google. */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
+        a:focus-visible, button:focus-visible { outline: 3px solid ${gold}; outline-offset: 3px; border-radius: 8px; }
         .btn-cta {
           background: ${gradientCTA};
           color: white; border: none; border-radius: 12px;
@@ -272,7 +276,7 @@ export default function LandingPage() {
                     style={{ position: 'fixed', inset: 0, zIndex: 49 }}
                   />
                   <div style={{
-                    position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 50,
+                    position: 'absolute', top: 'calc(100% + 8px)', insetInlineEnd: 0, zIndex: 50,
                     background: bgCard, border: '1px solid rgba(176,120,220,0.25)',
                     borderRadius: 12, padding: '6px', minWidth: 160,
                     boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
@@ -288,13 +292,13 @@ export default function LandingPage() {
                           background: l.code === locale ? 'rgba(176,120,220,0.2)' : 'transparent',
                           color: l.code === locale ? '#d6bff0' : textMuted,
                           fontWeight: l.code === locale ? 700 : 400,
-                          fontSize: '0.82rem', cursor: 'pointer', textAlign: 'left',
+                          fontSize: '0.82rem', cursor: 'pointer', textAlign: 'start',
                           transition: 'all 0.1s', width: '100%',
                         }}
                       >
                         <span style={{ fontSize: '1rem' }}>{l.flag}</span>
                         <span>{l.label}</span>
-                        {l.code === locale && <span style={{ marginLeft: 'auto', fontSize: '0.7rem' }}>✓</span>}
+                        {l.code === locale && <span style={{ marginInlineStart: 'auto', fontSize: '0.7rem' }}>✓</span>}
                       </button>
                     ))}
                   </div>
@@ -455,9 +459,10 @@ export default function LandingPage() {
                   alt={s.label}
                   width={300}
                   height={620}
+                  sizes="(max-width: 640px) 45vw, 240px"
                   style={{ width: '100%', height: 'auto', display: 'block' }}
                 />
-                <div style={{ padding: '10px 12px', background: bgCard, borderTop: `1px solid ${borderSubtle}`, textAlign: 'left' }}>
+                <div style={{ padding: '10px 12px', background: bgCard, borderTop: `1px solid ${borderSubtle}`, textAlign: 'start' }}>
                   <div style={{ fontSize: '0.78rem', fontWeight: 700, color: textPrimary }}>{s.label}</div>
                   <div style={{ fontSize: '0.7rem', color: textMuted }}>{s.desc}</div>
                 </div>
@@ -478,7 +483,7 @@ export default function LandingPage() {
           </p>
           <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
             {problemas.map((p) => (
-              <div key={p.title} className="card" style={{ textAlign: 'left' }}>
+              <div key={p.title} className="card" style={{ textAlign: 'start' }}>
                 <div style={{ fontSize: '1.8rem', marginBottom: 12 }}>{p.icon}</div>
                 <h3 style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 8, color: textPrimary }}>{p.title}</h3>
                 <p style={{ color: textMuted, fontSize: '0.875rem', lineHeight: 1.6 }}>{p.desc}</p>
@@ -650,7 +655,7 @@ export default function LandingPage() {
             {t('landing.instalar_sub')}
           </p>
           <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, maxWidth: 720, margin: '0 auto' }}>
-            <div className="card" style={{ textAlign: 'left' }}>
+            <div className="card" style={{ textAlign: 'start' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                 <span style={{ fontSize: '1.6rem' }}>🤖</span>
                 <span style={{ fontWeight: 700, fontSize: '1rem' }}>Android (Chrome)</span>
@@ -664,7 +669,7 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-            <div className="card" style={{ textAlign: 'left' }}>
+            <div className="card" style={{ textAlign: 'start' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                 <span style={{ fontSize: '1.6rem' }}>🍎</span>
                 <span style={{ fontWeight: 700, fontSize: '1rem' }}>iPhone (Safari)</span>
@@ -681,6 +686,30 @@ export default function LandingPage() {
           </div>
           <p style={{ marginTop: 32, fontSize: '0.82rem', color: '#8b81a0' }}>
             {t('landing.instalar_nota')}
+          </p>
+        </div>
+      </section>
+
+      {/* ── CTA FINAL ── */}
+      <section style={{ padding: '100px 24px', textAlign: 'center', background: 'radial-gradient(ellipse at center, #1a0a2e 0%, #0b0520 70%)' }}>
+        <div style={{ maxWidth: 600, margin: '0 auto' }}>
+          <Image src="/logo-amauta-libre.png" alt="Amauta Libre" width={96} height={96} style={{ width: 96, height: 96, objectFit: 'contain', margin: '0 auto 24px', display: 'block', filter: 'drop-shadow(0 8px 32px rgba(249,200,80,0.3))' }} />
+          <h2 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', fontWeight: 800, marginBottom: 16, lineHeight: 1.15 }}>
+            {t('landing.cta_h2')}
+          </h2>
+          <p style={{ color: textMuted, fontSize: '1.05rem', marginBottom: 40, lineHeight: 1.6 }}>
+            {t('landing.cta_sub')}
+          </p>
+          <Link href="/login" className="btn-cta" style={{ padding: '18px 44px', fontSize: '1.1rem', borderRadius: 14, boxShadow: '0 12px 40px rgba(176,120,220,0.35)', margin: '0 auto' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            {t('landing.cta_btn')}
+          </Link>
+
+          <p style={{ marginTop: 28, fontSize: '0.95rem', color: pink, fontStyle: 'italic', fontWeight: 600 }}>
+            {eco.tagline}
+          </p>
+          <p style={{ marginTop: 12, fontSize: '0.82rem', color: '#8b81a0' }}>
+            {t('landing.cta_footer')}
           </p>
         </div>
       </section>
@@ -716,7 +745,9 @@ export default function LandingPage() {
                     {eco.pod_here}
                   </span>
                 )}
-                <div style={{ fontSize: '0.72rem', color: textMuted, marginBottom: 4 }}>el poder de tu <b style={{ color: p.color }}>{p.dim}</b></div>
+                <div style={{ fontSize: '0.72rem', color: textMuted, marginBottom: 4 }}>
+                  {podPre[0]}<b style={{ color: p.color }}>{p.dim}</b>{podPre[1] ?? ''}
+                </div>
                 <div style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: 6, color: '#fff' }}>{p.verbo}</div>
                 <div style={{ fontSize: '0.9rem', fontWeight: 700, color: p.color, marginBottom: 10 }}>Amauta {p.name}</div>
                 <p style={{ fontSize: '0.8rem', color: textMuted, lineHeight: 1.55, minHeight: 58 }}>{p.desc}</p>
@@ -724,30 +755,6 @@ export default function LandingPage() {
               </a>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ── CTA FINAL ── */}
-      <section style={{ padding: '100px 24px', textAlign: 'center', background: 'radial-gradient(ellipse at center, #1a0a2e 0%, #0b0520 70%)' }}>
-        <div style={{ maxWidth: 600, margin: '0 auto' }}>
-          <Image src="/logo-amauta-libre.png" alt="Amauta Libre" width={96} height={96} style={{ width: 96, height: 96, objectFit: 'contain', margin: '0 auto 24px', display: 'block', filter: 'drop-shadow(0 8px 32px rgba(249,200,80,0.3))' }} />
-          <h2 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', fontWeight: 800, marginBottom: 16, lineHeight: 1.15 }}>
-            {t('landing.cta_h2')}
-          </h2>
-          <p style={{ color: textMuted, fontSize: '1.05rem', marginBottom: 40, lineHeight: 1.6 }}>
-            {t('landing.cta_sub')}
-          </p>
-          <Link href="/login" className="btn-cta" style={{ padding: '18px 44px', fontSize: '1.1rem', borderRadius: 14, boxShadow: '0 12px 40px rgba(176,120,220,0.35)', margin: '0 auto' }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            {t('landing.cta_btn')}
-          </Link>
-
-          <p style={{ marginTop: 28, fontSize: '0.95rem', color: pink, fontStyle: 'italic', fontWeight: 600 }}>
-            {eco.tagline}
-          </p>
-          <p style={{ marginTop: 12, fontSize: '0.82rem', color: '#8b81a0' }}>
-            {t('landing.cta_footer')}
-          </p>
         </div>
       </section>
 

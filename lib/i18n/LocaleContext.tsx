@@ -86,6 +86,13 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   const dir = locale === 'ar' ? 'rtl' : 'ltr'
 
+  // El documento tiene que declarar el idioma real: los lectores de pantalla
+  // eligen la voz por <html lang>, y Google lee el idioma de ahí.
+  useEffect(() => {
+    document.documentElement.lang = locale
+    document.documentElement.dir = dir
+  }, [locale, dir])
+
   return (
     <LocaleContext.Provider value={{ locale, setLocale, t, dir }}>
       <div dir={dir}>{children}</div>

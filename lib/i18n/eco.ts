@@ -19,6 +19,7 @@ export type EcoCopy = {
   pod_h2: string
   pod_sub: string
   pod_here: string
+  pod_prefix: string
   p: { libreria: EcoPata; libre: EcoPata; bienestar: EcoPata; cloud: EcoPata }
 }
 
@@ -34,6 +35,7 @@ const ECO: Record<Locale, EcoCopy> = {
     pod_h2: 'Libre es una de tus cuatro soberanías',
     pod_sub: 'Cada parte de vos tiene su herramienta. Cuatro poderes, una sola vida tuya.',
     pod_here: 'Estás acá',
+    pod_prefix: 'el poder de tu {dim}',
     p: {
       libreria: { dim: 'MENTE', verbo: 'Aprendé', desc: 'Los libros como obras de arte. Nutrí lo que pensás.', cta: 'Ver la librería' },
       libre: { dim: 'VOLUNTAD', verbo: 'Accioná', desc: 'Hábitos, metas y finanzas. Ordená tu vida diaria.', cta: 'Estás usándolo' },
@@ -52,6 +54,7 @@ const ECO: Record<Locale, EcoCopy> = {
     pod_h2: 'Libre is one of your four sovereignties',
     pod_sub: 'Every part of you has its tool. Four powers, one life — yours.',
     pod_here: 'You are here',
+    pod_prefix: 'the power of your {dim}',
     p: {
       libreria: { dim: 'MIND', verbo: 'Learn', desc: 'Books as works of art. Feed what you think.', cta: 'Visit the bookstore' },
       libre: { dim: 'WILL', verbo: 'Act', desc: 'Habits, goals and finances. Order your daily life.', cta: 'You’re using it' },
@@ -70,6 +73,7 @@ const ECO: Record<Locale, EcoCopy> = {
     pod_h2: 'O Libre é uma das suas quatro soberanias',
     pod_sub: 'Cada parte de você tem a sua ferramenta. Quatro poderes, uma só vida: a sua.',
     pod_here: 'Você está aqui',
+    pod_prefix: 'o poder da sua {dim}',
     p: {
       libreria: { dim: 'MENTE', verbo: 'Aprenda', desc: 'Os livros como obras de arte. Nutra o que você pensa.', cta: 'Ver a livraria' },
       libre: { dim: 'VONTADE', verbo: 'Aja', desc: 'Hábitos, metas e finanças. Organize o seu dia a dia.', cta: 'Você está usando' },
@@ -88,6 +92,7 @@ const ECO: Record<Locale, EcoCopy> = {
     pod_h2: 'Libre est l’une de tes quatre souverainetés',
     pod_sub: 'Chaque partie de toi a son outil. Quatre pouvoirs, une seule vie : la tienne.',
     pod_here: 'Tu es ici',
+    pod_prefix: 'le pouvoir de ton {dim}',
     p: {
       libreria: { dim: 'ESPRIT', verbo: 'Apprends', desc: 'Les livres comme des œuvres d’art. Nourris ta pensée.', cta: 'Voir la librairie' },
       libre: { dim: 'VOLONTÉ', verbo: 'Agis', desc: 'Habitudes, objectifs et finances. Mets de l’ordre dans ton quotidien.', cta: 'Tu l’utilises' },
@@ -106,6 +111,7 @@ const ECO: Record<Locale, EcoCopy> = {
     pod_h2: 'Libre 只是你四大主权之一',
     pod_sub: '你的每一面都有专属的工具。四种力量，都属于你唯一的人生。',
     pod_here: '你在这里',
+    pod_prefix: '{dim}的力量',
     p: {
       libreria: { dim: '心智', verbo: '学习', desc: '把书当作艺术品，滋养你的思想。', cta: '逛逛书店' },
       libre: { dim: '意志', verbo: '行动', desc: '习惯、目标与财务，整理你的日常生活。', cta: '你正在使用它' },
@@ -124,6 +130,7 @@ const ECO: Record<Locale, EcoCopy> = {
     pod_h2: 'Libre तुम्हारे चार स्वराज में से एक है',
     pod_sub: 'तुम्हारे हर हिस्से के लिए एक औज़ार। चार ताक़तें, एक ही ज़िंदगी — तुम्हारी।',
     pod_here: 'तुम यहाँ हो',
+    pod_prefix: '{dim} की ताकत',
     p: {
       libreria: { dim: 'मन', verbo: 'सीखो', desc: 'किताबें, कला की कृतियाँ। अपनी सोच को पोषण दो।', cta: 'पुस्तकालय देखो' },
       libre: { dim: 'इच्छाशक्ति', verbo: 'करो', desc: 'आदतें, लक्ष्य और वित्त। अपनी रोज़ की ज़िंदगी सँवारो।', cta: 'तुम इसे इस्तेमाल कर रहे हो' },
@@ -142,6 +149,7 @@ const ECO: Record<Locale, EcoCopy> = {
     pod_h2: 'Libre إحدى سياداتك الأربع',
     pod_sub: 'لكل جزء منك أداته. أربع قوى، وحياة واحدة هي حياتك.',
     pod_here: 'أنت هنا',
+    pod_prefix: 'قوة {dim}',
     p: {
       libreria: { dim: 'العقل', verbo: 'تعلّم', desc: 'الكتب بوصفها أعمالاً فنية. غذِّ فكرك.', cta: 'زُر المكتبة' },
       libre: { dim: 'الإرادة', verbo: 'تحرّك', desc: 'العادات والأهداف والمالية. نظّم حياتك اليومية.', cta: 'أنت تستخدمه الآن' },
@@ -160,6 +168,7 @@ const ECO: Record<Locale, EcoCopy> = {
     pod_h2: 'Libre — одна из четырёх твоих сфер власти над собой',
     pod_sub: 'У каждой части тебя есть свой инструмент. Четыре силы — одна твоя жизнь.',
     pod_here: 'Ты здесь',
+    pod_prefix: 'твоя сила: {dim}',
     p: {
       libreria: { dim: 'РАЗУМ', verbo: 'Учись', desc: 'Книги как произведения искусства. Питай свой разум.', cta: 'В книжный магазин' },
       libre: { dim: 'ВОЛЯ', verbo: 'Действуй', desc: 'Привычки, цели и финансы. Наведи порядок в своём дне.', cta: 'Ты уже пользуешься им' },
@@ -178,6 +187,7 @@ const ECO: Record<Locale, EcoCopy> = {
     pod_h2: 'Libre adalah salah satu dari empat kedaulatanmu',
     pod_sub: 'Setiap bagian dirimu punya alatnya. Empat kekuatan, satu hidup yang seutuhnya milikmu.',
     pod_here: 'Kamu di sini',
+    pod_prefix: 'kekuatan {dim}',
     p: {
       libreria: { dim: 'PIKIRAN', verbo: 'Belajar', desc: 'Buku sebagai karya seni. Beri gizi pada pikiranmu.', cta: 'Lihat toko buku' },
       libre: { dim: 'KEMAUAN', verbo: 'Bertindak', desc: 'Kebiasaan, tujuan, dan keuangan. Tata hidup harianmu.', cta: 'Kamu sedang memakainya' },
@@ -196,6 +206,7 @@ const ECO: Record<Locale, EcoCopy> = {
     pod_h2: 'Libreは、あなたの四つの主権のひとつ',
     pod_sub: 'あなたのどの部分にも、それぞれの道具がある。四つの力、たったひとつのあなたの人生。',
     pod_here: '現在地',
+    pod_prefix: '{dim}の力',
     p: {
       libreria: { dim: '精神', verbo: '学ぶ', desc: '芸術品のような本。あなたの考えを養おう。', cta: '書店を見る' },
       libre: { dim: '意志', verbo: '行動する', desc: '習慣、目標、財務。毎日の生活を整えよう。', cta: '今使っています' },

@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   title: 'Amauta Libre — App de hábitos, finanzas y metas | Soberano de tu propia vida',
   description: 'La app gratis para tomar el timón de tus días: hábitos, finanzas y metas en un solo lugar. Sin plan pago, sin tarjeta. El poder de tu voluntad, una de las cuatro soberanías del ecosistema Amauta.',
   manifest: '/manifest.webmanifest',
+  metadataBase: new URL('https://libre.amauta.cloud'),
+  alternates: { canonical: 'https://libre.amauta.cloud' },
   appleWebApp: {
     capable: true,
     title: 'Amauta Libre',
@@ -45,8 +47,8 @@ export const viewport: Viewport = {
   themeColor: '#0a0514',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Sin maximumScale/userScalable: bloquear el zoom incumple WCAG 1.4.4.
+  // El auto-zoom de iOS al enfocar inputs se evita con font-size 16px en los inputs.
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
