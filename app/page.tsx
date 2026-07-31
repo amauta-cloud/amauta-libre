@@ -411,10 +411,6 @@ export default function LandingPage() {
         <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '32px 48px' }}>
           <div style={{ display: 'flex', gap: 40 }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.8rem', fontWeight: 900, color: violet, lineHeight: 1 }}>70</div>
-              <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: 4 }}>{t('landing.proof_users_label')}</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.8rem', fontWeight: 900, color: green, lineHeight: 1 }}>469</div>
               <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: 4 }}>{t('landing.proof_habits_label')}</div>
             </div>
