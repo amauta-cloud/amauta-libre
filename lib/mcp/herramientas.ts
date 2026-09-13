@@ -183,6 +183,24 @@ async function recalcularDia(sb: SupabaseClient, fecha: string): Promise<{ ingre
   return { ingresos, gastos }
 }
 
+/**
+ * Un movimiento igual ese mismo día (mismo tipo, categoría y monto), cargado a cualquier
+ * hora, por Hermes o a mano en el tablero. El 13/09/2026 Hermes copió una venta del día
+ * anterior sin ver que ya estaba: mirar solo los últimos 10 minutos no alcanza.
+ */
+async function igualEseDia(
+  sb: SupabaseClient, fecha: string, tipo: 'ingreso' | 'gasto', categoria: string, monto: number,
+): Promise<{ id: string; descripcion: string | null } | null> {
+  const { data, error } = await sb.from('finanzas_items').select('id, monto, descripcion')
+    .eq('usuario_id', USUARIO_ID).eq('fecha', fecha).eq('tipo', tipo).eq('categoria', categoria)
+  if (error) throw error
+  return (data ?? []).find(i => Math.abs(Number(i.monto) - monto) < 0.005) ?? null
+}
+
+const yaEsta = (tipo: string, cat: Categoria, monto: number, fecha: string, igual: { id: string; descripcion: string | null }) =>
+  `❓ Ya hay un ${tipo} igual el ${fechaLinda(fecha)}: ${conEmoji(cat)} · ${plata(monto)}${igual.descripcion ? ` · ${igual.descripcion}` : ''} (id ${igual.id}). ` +
+  'No lo cargo de nuevo. Si de verdad es otro, volvé a llamar con repetir: true.'
+
 function preguntar(dudas: string[]): string {
   return dudas.length === 1 ? `❓ ${dudas[0]}` : '❓ No registré nada. Antes necesito saber:\n' + dudas.map((d, i) => `${i + 1}. ${d}`).join('\n')
 }
@@ -201,7 +219,7 @@ export const HERRAMIENTAS: Herramienta[] = [
         categoria: { type: 'string', description: 'Una de las categorías de Ignacio (libre_categorias), por nombre o por número de la lista. Librería → "Amauta Libreria"; Bienestar → "Amauta Bienestar".' },
         descripcion: { type: 'string', description: 'Corta, como la escribe Ignacio: qué, canal, medio y quién. Ej. "Bodas de sangre Facebook efectivo Evelyn", "Bono desempeño agosto 300 puntos". Sin explicaciones.' },
         fecha: { type: 'string', description: 'AAAA-MM-DD, DD/MM o "ayer". Por defecto hoy. La del movimiento real (si copiás una venta de ayer, ayer).' },
-        repetir: { type: 'boolean', description: 'Solo si te avisé que parecía repetido e Ignacio dice que es otro movimiento' },
+        repetir: { type: 'boolean', description: 'Solo si te avisé que ya había uno igual ese día e Ignacio dice que es otro movimiento' },
       },
       required: ['tipo', 'monto', 'categoria'],
     },
@@ -236,16 +254,8 @@ export const HERRAMIENTAS: Herramienta[] = [
 
       try {
         if (args.repetir !== true && texto(args.repetir) !== 'true') {
-          const hace10 = new Date(Date.now() - 10 * 60_000).toISOString()
-          const { data: iguales, error } = await sb
-            .from('finanzas_items').select('id, monto, descripcion')
-            .eq('usuario_id', USUARIO_ID).eq('fecha', fecha).eq('tipo', tipo).eq('categoria', cat.nombre).gte('creado_en', hace10)
-          if (error) throw error
-          const igual = (iguales ?? []).find(i => Math.abs(Number(i.monto) - monto) < 0.005 &&
-            sinTildes(i.descripcion ?? '') === sinTildes(descripcion ?? ''))
-          if (igual) {
-            return `❓ Esto mismo ya lo anoté hace menos de 10 minutos (id ${igual.id}). No lo cargo de nuevo. Si de verdad es otro movimiento, volvé a llamar con repetir: true.`
-          }
+          const igual = await igualEseDia(sb, fecha, tipo, cat.nombre, monto)
+          if (igual) return yaEsta(tipo, cat, monto, fecha, igual)
         }
         const { data: item, error } = await sb.from('finanzas_items')
           .insert({ usuario_id: USUARIO_ID, fecha, tipo, monto, descripcion, categoria: cat.nombre })
@@ -319,16 +329,8 @@ export const HERRAMIENTAS: Herramienta[] = [
 
       try {
         if (args.repetir !== true && texto(args.repetir) !== 'true') {
-          const hace10 = new Date(Date.now() - 10 * 60_000).toISOString()
-          const { data: iguales, error } = await sb
-            .from('finanzas_items').select('id, monto, descripcion')
-            .eq('usuario_id', USUARIO_ID).eq('fecha', fecha).eq('tipo', 'gasto').eq('categoria', cat.nombre).gte('creado_en', hace10)
-          if (error) throw error
-          const igual = (iguales ?? []).find(i => Math.abs(Number(i.monto) - monto) < 0.005 &&
-            sinTildes(i.descripcion ?? '') === sinTildes(descripcion ?? ''))
-          if (igual) {
-            return `❓ Este pago ya lo anoté hace menos de 10 minutos (id ${igual.id}). No lo cargo de nuevo. Si de verdad es otro, volvé a llamar con repetir: true.`
-          }
+          const igual = await igualEseDia(sb, fecha, 'gasto', cat.nombre, monto)
+          if (igual) return yaEsta('gasto', cat, monto, fecha, igual)
         }
         // Los dos movimientos en un solo insert: entran los dos o ninguno.
         const { data: filas, error } = await sb.from('finanzas_items').insert([
@@ -378,7 +380,7 @@ export const HERRAMIENTAS: Herramienta[] = [
   },
   {
     name: 'libre_movimientos',
-    description: 'Últimos ingresos y gastos anotados en AMAUTA Libre, con su id (sirve para anular). No registra nada.',
+    description: 'Últimos ingresos y gastos anotados en AMAUTA Libre (por Hermes o a mano), con su id. Sirve para revisar antes de anotar y para anular. Sin categoría busca en todas. No registra nada.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -393,16 +395,19 @@ export const HERRAMIENTAS: Herramienta[] = [
         const desde = sumarDias(hoyAR(), -(dias - 1))
         let q = sb.from('finanzas_items').select('id, fecha, tipo, monto, descripcion, categoria, creado_en')
           .eq('usuario_id', USUARIO_ID).gte('fecha', desde)
+        let filtro = ''
         if (texto(args.categoria)) {
           const cat = elegirCategoria(texto(args.categoria), await categorias(sb))
           if (!cat) return `❓ "${texto(args.categoria)}" no es una de tus categorías.`
           q = q.eq('categoria', cat.nombre)
+          filtro = ` de ${cat.nombre}`
         }
         const { data, error } = await q.order('fecha', { ascending: false }).order('creado_en', { ascending: false }).limit(30)
         if (error) throw error
         const items = (data ?? []) as Item[]
-        if (!items.length) return `No hay movimientos en los últimos ${dias} días.`
-        return items.map(i => `${fechaLinda(i.fecha)} · ${i.tipo === 'ingreso' ? '➕' : '➖'} ${plata(Number(i.monto))} · ${i.categoria ?? 'sin categoría'}${i.descripcion ? ' · ' + i.descripcion : ''} · id ${i.id}`).join('\n')
+        // Si se filtró por categoría, que se lea: "no hay de Amauta Libreria" no es "no hay nada".
+        if (!items.length) return `No hay movimientos${filtro} en los últimos ${dias} días${filtro ? ' (solo busqué en esa categoría)' : ''}.`
+        return (filtro ? `Movimientos${filtro} de los últimos ${dias} días:\n` : '') + items.map(i => `${fechaLinda(i.fecha)} · ${i.tipo === 'ingreso' ? '➕' : '➖'} ${plata(Number(i.monto))} · ${i.categoria ?? 'sin categoría'}${i.descripcion ? ' · ' + i.descripcion : ''} · id ${i.id}`).join('\n')
       } catch (e) {
         console.error('[mcp libre] movimientos', e)
         return `⚠️ No pude leer los movimientos: ${ERROR_INTERNO}`
