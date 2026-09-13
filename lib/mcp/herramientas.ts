@@ -462,6 +462,72 @@ export const HERRAMIENTAS: Herramienta[] = [
     },
   },
   {
+    name: 'libre_reporte',
+    description: 'Ingresos y gastos de AMAUTA Libre entre dos fechas, con el resultado y el detalle por categoría (por ejemplo "¿cuánto gasté en Ocio en agosto?" o "¿cuánto usé la tarjeta este mes?"). No registra nada.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        desde: { type: 'string', description: 'hoy · ayer · AAAA-MM-DD · DD/MM. Por defecto hoy.' },
+        hasta: { type: 'string', description: 'Igual que desde. Por defecto el mismo día que desde.' },
+        categoria: { type: 'string', description: 'Opcional: solo esa categoría' },
+        formato: { type: 'string', enum: ['texto', 'datos'], description: 'texto (por defecto). datos devuelve JSON: lo usan los avisos programados.' },
+      },
+    },
+    async run(args) {
+      const dudas: string[] = []
+      const desde = leerFecha(args.desde, dudas)
+      const hasta = texto(args.hasta) ? leerFecha(args.hasta, dudas) : desde
+      if (!desde || !hasta) return preguntar(dudas)
+      if (hasta < desde) return `❓ "hasta" (${fechaLinda(hasta)}) es anterior a "desde" (${fechaLinda(desde)}). ¿Qué período querés?`
+      try {
+        const sb = db()
+        let filtro: string | null = null
+        if (texto(args.categoria)) {
+          const cat = elegirCategoria(texto(args.categoria), await categorias(sb))
+          if (!cat) return `❓ "${texto(args.categoria)}" no es una de tus categorías.`
+          filtro = cat.nombre
+        }
+        const items: Item[] = []
+        // De a 1000 filas (el tope de Supabase por pedido); 20 páginas alcanzan para años.
+        for (let pagina = 0; pagina < 20; pagina++) {
+          let q = sb.from('finanzas_items').select('id, fecha, tipo, monto, descripcion, categoria, creado_en')
+            .eq('usuario_id', USUARIO_ID).gte('fecha', desde).lte('fecha', hasta)
+          if (filtro) q = q.eq('categoria', filtro)
+          const { data, error } = await q.order('fecha', { ascending: true }).order('creado_en', { ascending: true })
+            .range(pagina * 1000, pagina * 1000 + 999)
+          if (error) throw error
+          const filas = (data ?? []) as Item[]
+          items.push(...filas.map(i => ({ ...i, monto: Number(i.monto) })))
+          if (filas.length < 1000) break
+        }
+        let ingresos = 0
+        let gastos = 0
+        const porCategoria: Record<string, { ingresos: number; gastos: number }> = {}
+        for (const i of items) {
+          const c = (porCategoria[i.categoria ?? 'Sin categoría'] ??= { ingresos: 0, gastos: 0 })
+          if (i.tipo === 'ingreso') { ingresos += i.monto; c.ingresos = redondear(c.ingresos + i.monto) } else { gastos += i.monto; c.gastos = redondear(c.gastos + i.monto) }
+        }
+        const r = {
+          desde, hasta, categoria: filtro, ingresos: redondear(ingresos), gastos: redondear(gastos),
+          resultado: redondear(ingresos - gastos), porCategoria, items,
+        }
+        if (texto(args.formato) === 'datos') return JSON.stringify(r)
+        const lineas = Object.entries(porCategoria)
+          .sort((a, b) => (b[1].ingresos + b[1].gastos) - (a[1].ingresos + a[1].gastos))
+          .map(([nombre, v]) => `   • ${nombre}: ${v.ingresos ? `+${plata(v.ingresos)}` : ''}${v.ingresos && v.gastos ? ' · ' : ''}${v.gastos ? `−${plata(v.gastos)}` : ''}`)
+        const periodo = desde === hasta ? fechaLinda(desde) : `del ${fechaLinda(desde)} al ${fechaLinda(hasta)}`
+        return [
+          `AMAUTA Libre — ${periodo}${filtro ? ` · solo ${filtro}` : ''}`,
+          `Ingresos ${plata(r.ingresos)} · Gastos ${plata(r.gastos)} · Resultado ${r.resultado < 0 ? '−' : ''}${plata(Math.abs(r.resultado))}`,
+          ...(lineas.length ? ['Por categoría:', ...lineas] : ['Sin movimientos.']),
+        ].join('\n')
+      } catch (e) {
+        console.error('[mcp libre] reporte', e)
+        return `⚠️ No pude armar el reporte: ${ERROR_INTERNO}`
+      }
+    },
+  },
+  {
     name: 'libre_anular',
     description: 'Borra uno o varios ingresos o gastos de AMAUTA Libre con los id del informe (o de libre_movimientos) y recalcula el total de esos días. Usalo cuando Ignacio dice que algo quedó mal o cuando anulaste lo mismo en la Librería o en Bienestar. Un pago con tarjeta tiene dos id: anulá los dos.',
     inputSchema: {
