@@ -143,11 +143,16 @@ function elegirCategoria(pedido: string, cats: Categoria[]): Categoria | null {
   if (exacta) return exacta
   const pq = palabras(pedido)
   if (!pq.length) return null
-  const candidatas = cats.filter(c => {
+  // Primero palabras enteras: "libreria" es Amauta Libreria y "libre" es Amauta Libre.
+  // Con prefijos solos, "libreria" empieza con "libre" y chocaba con las dos.
+  const enteras = cats.filter(c => pq.every(w => palabras(c.nombre).includes(w)))
+  if (enteras.length === 1) return enteras[0]
+  if (enteras.length > 1) return null
+  const porPrefijo = cats.filter(c => {
     const pc = palabras(c.nombre)
     return pq.every(w => pc.some(x => x.startsWith(w) || w.startsWith(x)))
   })
-  return candidatas.length === 1 ? candidatas[0] : null
+  return porPrefijo.length === 1 ? porPrefijo[0] : null
 }
 
 // ─── Escribir como la app ─────────────────────────────────────────────────────
