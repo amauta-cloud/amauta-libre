@@ -167,6 +167,14 @@ async function recalcularDia(sb: SupabaseClient, fecha: string): Promise<{ ingre
   const { data: dia, error: e1 } = await sb
     .from('finanzas_diarias').select('ahorro').eq('usuario_id', USUARIO_ID).eq('fecha', fecha).maybeSingle()
   if (e1) throw e1
+  // Un día que queda sin movimientos y sin ahorro marcado no es un día con finanzas: se
+  // borra la fila en vez de dejarla en cero (si no, al anular lo único cargado quedaba
+  // contando como día registrado).
+  if (ingresos === 0 && gastos === 0 && !dia?.ahorro) {
+    const { error: e3 } = await sb.from('finanzas_diarias').delete().eq('usuario_id', USUARIO_ID).eq('fecha', fecha)
+    if (e3) throw e3
+    return { ingresos, gastos }
+  }
   const { error: e2 } = await sb.from('finanzas_diarias').upsert(
     { usuario_id: USUARIO_ID, fecha, ingresos, gastos, ahorro: dia?.ahorro ?? false },
     { onConflict: 'usuario_id,fecha' },
