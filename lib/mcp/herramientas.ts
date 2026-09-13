@@ -192,7 +192,7 @@ function preguntar(dudas: string[]): string {
 export const HERRAMIENTAS: Herramienta[] = [
   {
     name: 'libre_registrar',
-    description: 'Anota DIRECTO un ingreso o un gasto en AMAUTA Libre, la app donde Ignacio registra TODAS sus finanzas. Usala (1) para copiar lo que anotaste en la Librería o en Bienestar y mueve plata (venta cobrada, bono, cobro de deuda, pago a proveedor, gasto, compra pagada), con la categoría de ese negocio, y (2) para cualquier ingreso o gasto de Ignacio que te cuente. La categoría tiene que ser una de las suyas: si no está claro cuál, devuelve ❓ con la lista numerada para que Ignacio elija. Devuelve ✅ con el total del día releído y el id para deshacerlo con libre_anular.',
+    description: 'Anota DIRECTO un ingreso o un gasto en AMAUTA Libre, la app donde Ignacio registra TODAS sus finanzas. Usala (1) para copiar lo que anotaste en la Librería o en Bienestar y mueve plata (venta cobrada, bono, cobro de deuda, pago a proveedor, gasto, compra pagada), con la categoría de ese negocio, y (2) para cualquier ingreso o gasto de Ignacio que te cuente. La categoría tiene que ser una de las suyas: si no está claro cuál, devuelve ❓ con la lista numerada para que Ignacio elija. Devuelve ✅ con el total del día releído y el id para deshacerlo con libre_anular. Si lo pagó con la tarjeta de crédito apalancándose (transferencia con tarjeta de Mercado Pago), usá libre_pago_con_tarjeta.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -270,6 +270,94 @@ export const HERRAMIENTAS: Herramienta[] = [
         ].join('\n')
       } catch (e) {
         console.error('[mcp libre] registrar', e)
+        return `⚠️ NO SE REGISTRÓ: ${ERROR_INTERNO}`
+      }
+    },
+  },
+  {
+    name: 'libre_pago_con_tarjeta',
+    description: 'Anota DIRECTO un pago apalancado con la tarjeta de crédito (por ejemplo "transferir con tarjeta" de Mercado Pago, que cobra 6,99% + IVA de interés en la tarjeta). Carga los dos movimientos como los lleva Ignacio: un INGRESO en Tarjeta de Crédito (la plata que pone la tarjeta) y un GASTO por lo que se pagó, en su categoría, por el mismo monto. El interés no se anota aparte (se paga con el resumen de la tarjeta), pero el informe dice cuánto cuesta. Si no está clara la categoría del pago, devuelve ❓ con la lista. Devuelve ✅ con el día releído y los dos id para deshacerlo con libre_anular.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        monto: { type: 'string', description: 'Lo que se transfirió o pagó, sin el interés: 15000 o "15.000"' },
+        categoria: { type: 'string', description: 'La categoría de lo que se pagó (una de las de Ignacio), por nombre o número. No "Tarjeta de Crédito": esa la pone la herramienta.' },
+        descripcion: { type: 'string', description: 'Qué se pagó y a quién, corto: "Empanadas", "Alquiler a Juan". Sin explicaciones.' },
+        fecha: { type: 'string', description: 'AAAA-MM-DD, DD/MM o "ayer". Por defecto hoy.' },
+        interes: { type: 'string', description: 'Porcentaje de interés sin IVA. Por defecto 6,99 (Mercado Pago).' },
+        repetir: { type: 'boolean', description: 'Solo si te avisé que parecía repetido e Ignacio dice que es otro pago' },
+      },
+      required: ['monto', 'categoria'],
+    },
+    async run(args) {
+      const dudas: string[] = []
+      const monto = leerMonto(args.monto, dudas)
+      const fecha = leerFecha(args.fecha, dudas)
+      const descripcion = texto(args.descripcion).replace(/\s+/g, ' ').slice(0, 120) || null
+      const interesTexto = texto(args.interes).replace('%', '').replace(',', '.')
+      const interes = interesTexto ? Number(interesTexto) : 6.99
+      if (!Number.isFinite(interes) || interes < 0 || interes > 100) dudas.push(`¿Qué interés cobra? "${texto(args.interes)}" no es un porcentaje válido.`)
+      let sb: SupabaseClient
+      let cats: Categoria[]
+      try {
+        sb = db()
+        cats = await categorias(sb)
+      } catch (e) {
+        console.error('[mcp libre] categorias', e)
+        return `⚠️ NO SE REGISTRÓ: ${ERROR_INTERNO}`
+      }
+      const tarjeta = cats.find(c => sinTildes(c.nombre).startsWith('tarjeta de credito')) ?? null
+      if (!tarjeta) dudas.push(`No encontré la categoría "Tarjeta de Crédito" en tu cuenta. ¿En cuál anoto la plata que puso la tarjeta?\n${listaCategorias(cats)}`)
+      const cat = elegirCategoria(texto(args.categoria), cats)
+      if (!cat) {
+        const dijo = texto(args.categoria)
+        dudas.push(`${dijo ? `"${dijo}" no es una de tus categorías. ` : ''}¿En qué categoría va lo que pagaste?\n${listaCategorias(cats)}`)
+      } else if (tarjeta && cat.nombre === tarjeta.nombre) {
+        dudas.push('Lo que pagaste no va en Tarjeta de Crédito (esa es la plata que pone la tarjeta): ¿qué pagaste y en qué categoría va?')
+      }
+      if (dudas.length || monto === null || !fecha || !cat || !tarjeta) return preguntar(dudas)
+
+      try {
+        if (args.repetir !== true && texto(args.repetir) !== 'true') {
+          const hace10 = new Date(Date.now() - 10 * 60_000).toISOString()
+          const { data: iguales, error } = await sb
+            .from('finanzas_items').select('id, monto, descripcion')
+            .eq('usuario_id', USUARIO_ID).eq('fecha', fecha).eq('tipo', 'gasto').eq('categoria', cat.nombre).gte('creado_en', hace10)
+          if (error) throw error
+          const igual = (iguales ?? []).find(i => Math.abs(Number(i.monto) - monto) < 0.005 &&
+            sinTildes(i.descripcion ?? '') === sinTildes(descripcion ?? ''))
+          if (igual) {
+            return `❓ Este pago ya lo anoté hace menos de 10 minutos (id ${igual.id}). No lo cargo de nuevo. Si de verdad es otro, volvé a llamar con repetir: true.`
+          }
+        }
+        // Los dos movimientos en un solo insert: entran los dos o ninguno.
+        const { data: filas, error } = await sb.from('finanzas_items').insert([
+          { usuario_id: USUARIO_ID, fecha, tipo: 'ingreso', monto, descripcion: `${descripcion ?? cat.nombre} · con tarjeta`, categoria: tarjeta.nombre },
+          { usuario_id: USUARIO_ID, fecha, tipo: 'gasto', monto, descripcion, categoria: cat.nombre },
+        ]).select('id, tipo')
+        if (error) throw error
+
+        // Ya quedó anotado: de acá en adelante nada puede decir "NO SE REGISTRÓ".
+        const ids = (filas ?? []).map(f => f.id).join(', ')
+        const costo = redondear(monto * (interes / 100) * 1.21)
+        let releido: string
+        try {
+          const dia = await recalcularDia(sb, fecha)
+          releido = `✔️ Releído: el ${fechaLinda(fecha)} suma ingresos ${plata(dia.ingresos)} · gastos ${plata(dia.gastos)}`
+        } catch (e) {
+          console.error('[mcp libre] recalcular', e)
+          releido = '🔸 Quedó anotado, pero no pude actualizar el total del día: abrí ese día en el tablero para que se recalcule.'
+        }
+        return [
+          `✅ REGISTRADO EN AMAUTA LIBRE — PAGO CON TARJETA · ${plata(monto)}`,
+          `   • INGRESO · ${conEmoji(tarjeta)} · ${plata(monto)}`,
+          `   • GASTO · ${conEmoji(cat)} · ${plata(monto)}${descripcion ? ' · ' + descripcion : ''}`,
+          `   ${fechaLinda(fecha)} · Costo del préstamo: ${plata(costo)} (${String(interes).replace('.', ',')}% + IVA), se paga con el resumen de la tarjeta.`,
+          releido,
+          `Para deshacerlo: libre_anular con id ${ids}`,
+        ].join('\n')
+      } catch (e) {
+        console.error('[mcp libre] pago con tarjeta', e)
         return `⚠️ NO SE REGISTRÓ: ${ERROR_INTERNO}`
       }
     },
@@ -365,35 +453,41 @@ export const HERRAMIENTAS: Herramienta[] = [
   },
   {
     name: 'libre_anular',
-    description: 'Borra un ingreso o gasto de AMAUTA Libre con el id del informe (o de libre_movimientos) y recalcula el total de ese día. Usalo cuando Ignacio dice que algo quedó mal o cuando anulaste lo mismo en la Librería o en Bienestar.',
+    description: 'Borra uno o varios ingresos o gastos de AMAUTA Libre con los id del informe (o de libre_movimientos) y recalcula el total de esos días. Usalo cuando Ignacio dice que algo quedó mal o cuando anulaste lo mismo en la Librería o en Bienestar. Un pago con tarjeta tiene dos id: anulá los dos.',
     inputSchema: {
       type: 'object',
-      properties: { id: { type: 'string', description: 'El id del movimiento' } },
+      properties: { id: { type: 'string', description: 'Uno o varios id separados por coma' } },
       required: ['id'],
     },
     async run(args) {
-      const id = texto(args.id)
-      if (!/^[0-9a-f-]{36}$/i.test(id)) return '❓ Pasame el id completo que figura en el informe.'
+      const ids = [...new Set(texto(args.id).split(/[\s,;]+/).filter(Boolean))]
+      if (!ids.length || ids.some(i => !/^[0-9a-f-]{36}$/i.test(i))) return '❓ Pasame el id completo que figura en el informe (si son varios, separados por coma).'
       try {
         const sb = db()
-        const { data: item, error } = await sb.from('finanzas_items')
-          .select('id, fecha, tipo, monto, descripcion, categoria').eq('usuario_id', USUARIO_ID).eq('id', id).maybeSingle()
+        const { data: items, error } = await sb.from('finanzas_items')
+          .select('id, fecha, tipo, monto, descripcion, categoria').eq('usuario_id', USUARIO_ID).in('id', ids)
         if (error) throw error
-        if (!item) return '⚠️ NO SE ANULÓ: no encontré ese movimiento en tu cuenta.'
-        const { error: e2 } = await sb.from('finanzas_items').delete().eq('usuario_id', USUARIO_ID).eq('id', id)
+        if (!items?.length) return '⚠️ NO SE ANULÓ: no encontré esos movimientos en tu cuenta.'
+        const { error: e2 } = await sb.from('finanzas_items').delete().eq('usuario_id', USUARIO_ID).in('id', items.map(i => i.id))
         if (e2) throw e2
-        let releido: string
-        try {
-          const dia = await recalcularDia(sb, item.fecha)
-          releido = `✔️ Releído: el ${fechaLinda(item.fecha)} queda con ingresos ${plata(dia.ingresos)} · gastos ${plata(dia.gastos)}`
-        } catch (e) {
-          console.error('[mcp libre] recalcular al anular', e)
-          releido = '🔸 Se borró, pero no pude actualizar el total del día: abrí ese día en el tablero.'
+        const lineas = items.map(i =>
+          `   • ${i.tipo === 'ingreso' ? 'INGRESO' : 'GASTO'} · ${i.categoria ?? 'sin categoría'} · ${plata(Number(i.monto))}${i.descripcion ? ' · ' + i.descripcion : ''} · ${fechaLinda(i.fecha)}`)
+        const faltan = ids.filter(i => !items.some(x => x.id === i))
+        const releidos: string[] = []
+        for (const fecha of [...new Set(items.map(i => i.fecha))]) {
+          try {
+            const dia = await recalcularDia(sb, fecha)
+            releidos.push(`✔️ Releído: el ${fechaLinda(fecha)} queda con ingresos ${plata(dia.ingresos)} · gastos ${plata(dia.gastos)}`)
+          } catch (e) {
+            console.error('[mcp libre] recalcular al anular', e)
+            releidos.push(`🔸 Se borró, pero no pude actualizar el total del ${fechaLinda(fecha)}: abrí ese día en el tablero.`)
+          }
         }
         return [
-          `↩️ ANULADO EN AMAUTA LIBRE — ${item.tipo === 'ingreso' ? 'INGRESO' : 'GASTO'} · ${item.categoria ?? 'sin categoría'} · ${plata(Number(item.monto))}`,
-          `   ${item.descripcion ? item.descripcion + ' · ' : ''}${fechaLinda(item.fecha)}`,
-          releido,
+          `↩️ ANULADO EN AMAUTA LIBRE — ${items.length} movimiento${items.length > 1 ? 's' : ''}`,
+          ...lineas,
+          ...(faltan.length ? [`🔸 No encontré: ${faltan.join(', ')}`] : []),
+          ...releidos,
         ].join('\n')
       } catch (e) {
         console.error('[mcp libre] anular', e)
