@@ -195,15 +195,21 @@ async function recalcularDia(sb: SupabaseClient, fecha: string): Promise<{ ingre
  */
 async function igualEseDia(
   sb: SupabaseClient, fecha: string, tipo: 'ingreso' | 'gasto', categoria: string, monto: number,
-): Promise<{ id: string; descripcion: string | null } | null> {
-  const { data, error } = await sb.from('finanzas_items').select('id, monto, descripcion')
-    .eq('usuario_id', USUARIO_ID).eq('fecha', fecha).eq('tipo', tipo).eq('categoria', categoria)
+): Promise<{ id: string; descripcion: string | null; fecha: string } | null> {
+  // Lo de los negocios (categorías Amauta…) se controla 7 días para cada lado: Ignacio a veces anota
+  // la venta a mano en Libre y después se la cuenta a Hermes (decisión del 14/09/2026). Lo personal,
+  // solo el mismo día: un gasto igual en la semana (la misma nafta, el mismo café) es normal.
+  const semana = categoria.toLowerCase().startsWith('amauta')
+  const { data, error } = await sb.from('finanzas_items').select('id, monto, descripcion, fecha')
+    .eq('usuario_id', USUARIO_ID).gte('fecha', semana ? sumarDias(fecha, -7) : fecha).lte('fecha', semana ? sumarDias(fecha, 7) : fecha)
+    .eq('tipo', tipo).eq('categoria', categoria)
   if (error) throw error
-  return (data ?? []).find(i => Math.abs(Number(i.monto) - monto) < 0.005) ?? null
+  return ((data ?? []) as { id: string; monto: number; descripcion: string | null; fecha: string }[])
+    .find(i => Math.abs(Number(i.monto) - monto) < 0.005) ?? null
 }
 
-const yaEsta = (tipo: string, cat: Categoria, monto: number, fecha: string, igual: { id: string; descripcion: string | null }) =>
-  `❓ Ya hay un ${tipo} igual el ${fechaLinda(fecha)}: ${conEmoji(cat)} · ${plata(monto)}${igual.descripcion ? ` · ${igual.descripcion}` : ''} (id ${igual.id}). ` +
+const yaEsta = (tipo: string, cat: Categoria, monto: number, fecha: string, igual: { id: string; descripcion: string | null; fecha?: string }) =>
+  `❓ Ya hay un ${tipo} igual el ${fechaLinda(igual.fecha ?? fecha)}: ${conEmoji(cat)} · ${plata(monto)}${igual.descripcion ? ` · ${igual.descripcion}` : ''} (id ${igual.id}). ` +
   'No lo cargo de nuevo. Si de verdad es otro, volvé a llamar con repetir: true.'
 
 function preguntar(dudas: string[]): string {
