@@ -400,8 +400,11 @@ export const HERRAMIENTAS_HABITOS: Herramienta[] = [
         try {
           const d = await rutinaDelDia(sb, fecha)
           const faltan = d.lista.filter(h => !cumplido(h, d.porHabito.get(h.id)))
+          // Corto, se lee en el celular: lo que falta se nombra solo si son pocos.
           releido = `✔️ Releído: el ${diaLargo(fecha)} vas ${d.hechos} de ${d.lista.length}` +
-            (faltan.length ? `. Faltan: ${faltan.map(h => `${conEmoji(h)}${cuantoLleva(h, d.porHabito.get(h.id))}`).join(' · ')}` : ' 🎉')
+            (!faltan.length ? ' 🎉'
+              : faltan.length <= 3 ? `. Faltan: ${faltan.map(h => `${conEmoji(h)}${cuantoLleva(h, d.porHabito.get(h.id))}`).join(' · ')}`
+                : `. Te faltan ${faltan.length}.`)
         } catch (e) {
           console.error('[mcp libre] habitos releer', e)
           releido = '🔸 Quedó marcado, pero no pude releer el día.'
