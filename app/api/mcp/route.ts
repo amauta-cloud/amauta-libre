@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-// Servidor MCP de AMAUTA Libre, para que Hermes (@nachito) anote las finanzas de Ignacio.
+// Servidor MCP de AMAUTA Libre, para que Hermes (@nachito) anote las finanzas de Ignacio y le lleve
+// la rutina de hábitos.
 //
 // Mismo modelo que Bienestar y la Librería: JSON-RPC 2.0 sobre HTTP (el modo simple del
 // transporte Streamable HTTP de MCP), una request y una respuesta. El middleware ya deja
@@ -10,8 +11,12 @@ export const maxDuration = 60
 
 import { createHash, timingSafeEqual } from 'crypto'
 import { NextResponse } from 'next/server'
-import { HERRAMIENTAS } from '@/lib/mcp/herramientas'
+import { HERRAMIENTAS as FINANZAS } from '@/lib/mcp/herramientas'
+import { HERRAMIENTAS_HABITOS } from '@/lib/mcp/habitos'
 import { TOKEN_SHA256 } from '@/lib/mcp/acceso'
+
+// Finanzas (13/09/2026) y hábitos (15/09/2026).
+const HERRAMIENTAS = [...FINANZAS, ...HERRAMIENTAS_HABITOS]
 
 type Rpc = { jsonrpc: '2.0'; id?: string | number | null; method?: string; params?: Record<string, unknown> }
 
