@@ -3,7 +3,8 @@ import type { MetadataRoute } from 'next'
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Amauta Libre',
-    short_name: 'Amauta',
+    // Nombre bajo el ícono en Android: igual que en iPhone, y distinto de la gestión de la Librería
+    short_name: 'Amauta Libre',
     description: 'Tus hábitos, tus tareas, tu crecimiento. Gratis para siempre.',
     start_url: '/tablero',
     display: 'standalone',

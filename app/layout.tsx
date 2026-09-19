@@ -3,6 +3,7 @@ import { Montserrat } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
+import CartelInstalarIphone from '@/components/CartelInstalarIphone'
 import { LocaleProvider } from '@/lib/i18n/LocaleContext'
 
 const montserrat = Montserrat({
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body style={{ fontFamily: 'var(--font-montserrat), Montserrat, sans-serif' }}>
         <LocaleProvider>
           {children}
+          <CartelInstalarIphone />
         </LocaleProvider>
         <ServiceWorkerRegister />
         <footer style={{ textAlign: 'center', padding: '8px', opacity: 0.6 }}>
