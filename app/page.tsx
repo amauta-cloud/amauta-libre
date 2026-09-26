@@ -240,7 +240,7 @@ export default function LandingPage() {
       <nav style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(10,5,20,0.82)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${borderSubtle}` }}>
         <div className="nav-inner" style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Image src="/logo-amauta-libre.png" alt="Amauta Libre" width={40} height={40} priority style={{ width: 40, height: 40, objectFit: 'contain' }} />
+            <Image src="/logo-amauta-libre.png" alt="Amauta Libre" width={128} height={128} sizes="40px" priority style={{ width: 40, height: 40, objectFit: 'contain' }} />
             <span style={{ fontWeight: 800, fontSize: '1rem', color: textPrimary, letterSpacing: '-0.01em' }}>Amauta Libre</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
