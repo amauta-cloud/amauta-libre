@@ -289,7 +289,7 @@ export const HERRAMIENTAS: Herramienta[] = [
           || ['tarjeta de credito', 'prestamo'].includes(sinTildes(cat.nombre))
         const diez = Math.round(monto * 0.1)
         const regla10 = tipo === 'ingreso' && !sinRegla && diez > 0
-          ? [`📈 PREGUNTALE A IGNACIO (regla del 10%, como en la app): «¿Invertís ${plata(diez)}? (sí / no / otro monto)». `
+          ? [`📈 REGLA DEL 10% (como en la app): terminá tu respuesta con esta pregunta, textual y como último renglón: «📈 ¿Invertís el 10% (${plata(diez)})? Sí / no / otro monto». `
             + `Si dice sí: libre_registrar gasto · Inversión · ${diez} · "10% de ${descripcion || cat.nombre}" · fecha ${fecha}. `
             + 'Si dice otro monto, ese monto. Si dice que no, no anotes nada.']
           : []
