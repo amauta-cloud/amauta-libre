@@ -231,6 +231,7 @@ export const HERRAMIENTAS: Herramienta[] = [
         descripcion: { type: 'string', description: 'Corta, como la escribe Ignacio: qué, canal, medio y quién. Ej. "Bodas de sangre Facebook efectivo Evelyn", "Bono desempeño agosto 300 puntos". Sin explicaciones.' },
         fecha: { type: 'string', description: 'AAAA-MM-DD, DD/MM o "ayer". Por defecto hoy. La del movimiento real (si copiás una venta de ayer, ayer).' },
         repetir: { type: 'boolean', description: 'Solo si te avisé que ya había uno igual ese día e Ignacio dice que es otro movimiento' },
+        regla10: { type: 'boolean', description: 'Regla del 10% (como en la app): en un ingreso, la respuesta trae la pregunta de si invierte el 10%. Mandá false solo si el ingreso no es plata que le quedó a Ignacio: venta cobrada directo al proveedor, devolución o pase entre sus cuentas.' },
       },
       required: ['tipo', 'monto', 'categoria'],
     },
@@ -282,12 +283,23 @@ export const HERRAMIENTAS: Herramienta[] = [
           console.error('[mcp libre] recalcular', e)
           releido = '🔸 Quedó anotado, pero no pude actualizar el total del día: abrí ese día en el tablero para que se recalcule.'
         }
+        // Regla del 10% (02/10/2026, pedido de Ignacio): igual que el tablero de la app, que sugiere
+        // invertir el 10% de lo que entra y lo carga como gasto en Inversión.
+        const sinRegla = args.regla10 === false || texto(args.regla10) === 'false'
+          || ['tarjeta de credito', 'prestamo'].includes(sinTildes(cat.nombre))
+        const diez = Math.round(monto * 0.1)
+        const regla10 = tipo === 'ingreso' && !sinRegla && diez > 0
+          ? [`📈 PREGUNTALE A IGNACIO (regla del 10%, como en la app): «¿Invertís ${plata(diez)}? (sí / no / otro monto)». `
+            + `Si dice sí: libre_registrar gasto · Inversión · ${diez} · "10% de ${descripcion || cat.nombre}" · fecha ${fecha}. `
+            + 'Si dice otro monto, ese monto. Si dice que no, no anotes nada.']
+          : []
         return [
           `✅ REGISTRADO EN AMAUTA LIBRE — ${tipo === 'ingreso' ? 'INGRESO' : 'GASTO'} · ${conEmoji(cat)} · ${plata(monto)}`,
           `   ${descripcion ? descripcion + ' · ' : ''}${fechaLinda(fecha)}`,
           ...avisos.map(a => `🔸 ${a}`),
           releido,
           `Para deshacerlo: libre_anular con id ${item.id}`,
+          ...regla10,
         ].join('\n')
       } catch (e) {
         console.error('[mcp libre] registrar', e)
