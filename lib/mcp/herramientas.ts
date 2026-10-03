@@ -231,7 +231,7 @@ export const HERRAMIENTAS: Herramienta[] = [
         descripcion: { type: 'string', description: 'Corta, como la escribe Ignacio: qué, canal, medio y quién. Ej. "Bodas de sangre Facebook efectivo Evelyn", "Bono desempeño agosto 300 puntos". Sin explicaciones.' },
         fecha: { type: 'string', description: 'AAAA-MM-DD, DD/MM o "ayer". Por defecto hoy. La del movimiento real (si copiás una venta de ayer, ayer).' },
         repetir: { type: 'boolean', description: 'Solo si te avisé que ya había uno igual ese día e Ignacio dice que es otro movimiento' },
-        regla10: { type: 'boolean', description: 'Regla del 10% (como en la app): en un ingreso, la respuesta trae la pregunta de si invierte el 10%. Mandá false solo si el ingreso no es plata que le quedó a Ignacio: venta cobrada directo al proveedor, devolución o pase entre sus cuentas.' },
+        regla10: { type: 'boolean', description: 'Regla del 10% (como en la app): en un ingreso, la respuesta trae la pregunta de si invierte el 10%. Mandá false solo en una devolución o un pase entre sus propias cuentas. Las ventas cobradas directo al proveedor sí cuentan (decisión de Ignacio, 03/10).' },
       },
       required: ['tipo', 'monto', 'categoria'],
     },
