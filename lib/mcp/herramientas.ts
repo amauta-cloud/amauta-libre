@@ -285,13 +285,16 @@ export const HERRAMIENTAS: Herramienta[] = [
         }
         // Regla del 10% (02/10/2026, pedido de Ignacio): igual que el tablero de la app, que sugiere
         // invertir el 10% de lo que entra y lo carga como gasto en Inversión.
+        // 15/10/2026: en vez de preguntar «¿Invertís?», se afirma cuánto toca y el pendiente acumulado. El
+        // pendiente suma lo usado de inversiones (vive en la base de Nachi), así que lo arma inversion.py allá.
         const sinRegla = args.regla10 === false || texto(args.regla10) === 'false'
           || ['tarjeta de credito', 'prestamo'].includes(sinTildes(cat.nombre))
         const diez = Math.round(monto * 0.1)
         const regla10 = tipo === 'ingreso' && !sinRegla && diez > 0
-          ? [`📈 REGLA DEL 10% (como en la app): terminá tu respuesta con esta pregunta, textual y como último renglón: «📈 ¿Invertís el 10% (${plata(diez)})? Sí / no / otro monto». `
-            + `Si dice sí: libre_registrar gasto · Inversión · ${diez} · "10% de ${descripcion || cat.nombre}" · fecha ${fecha}. `
-            + 'Si dice otro monto, ese monto. Si dice que no, no anotes nada.']
+          ? [`📈 REGLA DEL 10% (como en la app): corré \`python3 /root/.hermes/scripts/inversion.py ${monto} ${fecha}\` y terminá tu respuesta con los renglones que imprime, textuales. `
+            + `Si no podés correrlo, terminá con: «📈 Toca invertir el 10 %: ${plata(diez)}» y abajo «¿Hiciste alguna inversión?». `
+            + `Si responde un monto (o «sí» sin monto: ${diez}): libre_registrar gasto · Inversión · ese monto · "10% de ${descripcion || cat.nombre}" · fecha ${fecha}. `
+            + 'Si dice que no, no anotes nada.']
           : []
         return [
           `✅ REGISTRADO EN AMAUTA LIBRE — ${tipo === 'ingreso' ? 'INGRESO' : 'GASTO'} · ${conEmoji(cat)} · ${plata(monto)}`,
