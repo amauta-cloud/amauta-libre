@@ -309,7 +309,7 @@ export const HERRAMIENTAS: Herramienta[] = [
   },
   {
     name: 'libre_pago_con_tarjeta',
-    description: 'Anota DIRECTO un pago apalancado con la tarjeta de crédito (por ejemplo "transferir con tarjeta" de Mercado Pago, que cobra 6,99% + IVA de interés en la tarjeta). Carga los dos movimientos como los lleva Ignacio: un INGRESO en Tarjeta de Crédito (la plata que pone la tarjeta) y un GASTO por lo que se pagó, en su categoría, por el mismo monto. El interés no se anota aparte (se paga con el resumen de la tarjeta), pero el informe dice cuánto cuesta. Si no está clara la categoría del pago, devuelve ❓ con la lista. Devuelve ✅ con el día releído y los dos id para deshacerlo con libre_anular.',
+    description: 'Anota DIRECTO un pago apalancado con la tarjeta de crédito (por ejemplo "transferir con tarjeta" de Mercado Pago, que cobra 6,99% final de interés en la tarjeta, sin IVA aparte). Carga los dos movimientos como los lleva Ignacio: un INGRESO en Tarjeta de Crédito (la plata que pone la tarjeta) y un GASTO por lo que se pagó, en su categoría, por el mismo monto. El interés no se anota aparte (se paga con el resumen de la tarjeta), pero el informe dice cuánto cuesta. Si no está clara la categoría del pago, devuelve ❓ con la lista. Devuelve ✅ con el día releído y los dos id para deshacerlo con libre_anular.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -317,7 +317,7 @@ export const HERRAMIENTAS: Herramienta[] = [
         categoria: { type: 'string', description: 'La categoría de lo que se pagó (una de las de Ignacio), por nombre o número. No "Tarjeta de Crédito": esa la pone la herramienta.' },
         descripcion: { type: 'string', description: 'Qué se pagó y a quién, corto: "Empanadas", "Alquiler a Juan". Sin explicaciones.' },
         fecha: { type: 'string', description: 'AAAA-MM-DD, DD/MM o "ayer". Por defecto hoy.' },
-        interes: { type: 'string', description: 'Porcentaje de interés sin IVA. Por defecto 6,99 (Mercado Pago).' },
+        interes: { type: 'string', description: 'Porcentaje final que cobra (ya incluye todo). Por defecto 6,99 (Mercado Pago, verificado con comprobantes: $7.000 → $7.489,30).' },
         repetir: { type: 'boolean', description: 'Solo si te avisé que parecía repetido e Ignacio dice que es otro pago' },
       },
       required: ['monto', 'categoria'],
@@ -364,7 +364,7 @@ export const HERRAMIENTAS: Herramienta[] = [
 
         // Ya quedó anotado: de acá en adelante nada puede decir "NO SE REGISTRÓ".
         const ids = (filas ?? []).map(f => f.id).join(', ')
-        const costo = redondear(monto * (interes / 100) * 1.21)
+        const costo = redondear(monto * (interes / 100))   // 6,99% final: verificado 15/10/2026 con dos comprobantes (no se suma IVA)
         let releido: string
         try {
           const dia = await recalcularDia(sb, fecha)
@@ -377,7 +377,7 @@ export const HERRAMIENTAS: Herramienta[] = [
           `✅ REGISTRADO EN AMAUTA LIBRE — PAGO CON TARJETA · ${plata(monto)}`,
           `   • INGRESO · ${conEmoji(tarjeta)} · ${plata(monto)}`,
           `   • GASTO · ${conEmoji(cat)} · ${plata(monto)}${descripcion ? ' · ' + descripcion : ''}`,
-          `   ${fechaLinda(fecha)} · Costo del préstamo: ${plata(costo)} (${String(interes).replace('.', ',')}% + IVA), se paga con el resumen de la tarjeta.`,
+          `   ${fechaLinda(fecha)} · Costo del préstamo: ${plata(costo)} (${String(interes).replace('.', ',')}%), se paga con el resumen de la tarjeta.`,
           releido,
           `Para deshacerlo: libre_anular con id ${ids}`,
         ].join('\n')
