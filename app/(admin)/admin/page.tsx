@@ -4,6 +4,7 @@ import { createClient as createAdmin } from '@supabase/supabase-js'
 import Link from 'next/link'
 import AdminPushButton from '@/components/AdminPushButton'
 import AdminUsuariosTable from '@/components/AdminUsuariosTable'
+import { Tablero, Fila, Bloque, Kpi, GraficoDias, Embudo, Alertas, Ranking, cambioPct, type Alerta } from '@/components/Tablero'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,31 +27,18 @@ function fmt(n: number) {
   return n.toLocaleString('es-AR')
 }
 
-function tendencia(actual: number, anterior: number): { pct: number; up: boolean } | null {
-  if (anterior === 0) return null
-  const pct = Math.round(((actual - anterior) / anterior) * 100)
-  return { pct, up: pct >= 0 }
+// 18/10/2026: Supabase devuelve como máximo 1.000 filas por consulta (los registros de 90 días ya eran 978 y
+// finanzas 926): se piden de a 1.000 hasta traer todo, si no los activos y «usan finanzas» se cuentan de menos.
+async function todas<T>(armar: (desde: number, hasta: number) => PromiseLike<{ data: T[] | null }>): Promise<{ data: T[] }> {
+  const out: T[] = []
+  for (let i = 0; ; i += 1000) {
+    const { data } = await armar(i, i + 999)
+    out.push(...(data ?? []))
+    if (!data || data.length < 1000) return { data: out }
+  }
 }
-
-function StatCard({ label, value, color, sub, trend }: {
-  label: string; value: string; color: string; sub: string
-  trend?: { pct: number; up: boolean } | null
-}) {
-  return (
-    <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '14px', padding: '1.25rem' }}>
-      <div style={{ fontSize: '0.62rem', color: '#6b7280', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '0.4rem' }}>{label}</div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-        <div style={{ fontSize: '2rem', fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
-        {trend && (
-          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: trend.up ? '#10b981' : '#ef4444' }}>
-            {trend.up ? '▲' : '▼'} {Math.abs(trend.pct)}%
-          </span>
-        )}
-      </div>
-      <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.3rem' }}>{sub}</div>
-    </div>
-  )
-}
+// Activo = completó al menos un hábito ese día (la misma regla que las rachas)
+const completo = (r: { valor_bool: boolean | null; valor_numero: number | null }) => r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -64,16 +52,15 @@ export default async function AdminPage() {
 
   const nowArg = new Date(Date.now() - 3 * 60 * 60 * 1000) // UTC-3 Argentina
   const today = dateStr(nowArg)
-  const hace7 = dateStr(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-  const hace14 = dateStr(new Date(Date.now() - 14 * 24 * 60 * 60 * 1000))
-  const hace30 = dateStr(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-  const hace90 = dateStr(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000))
+  // Todas las fechas en hora de Argentina (antes el gráfico iba en UTC y «hoy» en Argentina: de noche se corría)
+  const diaArg = (n: number) => dateStr(new Date(nowArg.getTime() - n * 24 * 60 * 60 * 1000))
+  const hace7 = diaArg(6)     // los últimos 7 días, hoy incluido
+  const hace14 = diaArg(13)
+  const hace30 = diaArg(29)
+  const hace90 = diaArg(89)
 
   const [
     usuariosRes,
-    activosHoyRes,
-    activos7Res,
-    activos30Res,
     pushSubsRes,
     habitosRes,
     educacionRes,
@@ -85,18 +72,15 @@ export default async function AdminPage() {
     metasRes,
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email'),
-    admin.from('habito_registros').select('usuario_id').eq('fecha', today),
-    admin.from('habito_registros').select('usuario_id').gte('fecha', hace7),
-    admin.from('habito_registros').select('usuario_id').gte('fecha', hace30),
     admin.from('push_subscriptions').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
-    admin.from('habitos').select('id, nombre, emoji, categoria, usuario_id').eq('activo', true),
+    todas<{ id: string; nombre: string; emoji: string; categoria: string | null; usuario_id: string }>((a, b) => admin.from('habitos').select('id, nombre, emoji, categoria, usuario_id').eq('activo', true).order('id').range(a, b)),
     admin.from('educacion_estado').select('usuario_id, etapa_actual'),
-    admin.from('habito_registros').select('usuario_id, fecha, valor_bool, valor_numero').gte('fecha', hace90),
+    todas<{ usuario_id: string; fecha: string; valor_bool: boolean | null; valor_numero: number | null }>((a, b) => admin.from('habito_registros').select('usuario_id, fecha, valor_bool, valor_numero').gte('fecha', hace90).order('fecha').order('usuario_id').range(a, b)),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     admin.from('habito_registros').select('usuario_id, habito_id, valor_bool, valor_numero').eq('fecha', today).limit(500),
     admin.from('soporte_mensajes').select('id, usuario_id, mensaje, categoria, creado_en').order('creado_en', { ascending: false }).limit(50).then(r => r.error ? { data: [] as { id: string; usuario_id: string; mensaje: string; categoria: string; creado_en: string }[] } : r),
-    admin.from('finanzas_items').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
-    admin.from('metas').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
+    todas<{ usuario_id: string }>((a, b) => admin.from('finanzas_items').select('usuario_id').order('usuario_id').range(a, b)),
+    todas<{ usuario_id: string }>((a, b) => admin.from('metas').select('usuario_id').order('usuario_id').range(a, b)),
   ])
 
   const usuarios = usuariosRes.data ?? []
@@ -107,9 +91,13 @@ export default async function AdminPage() {
   const usuariosConFinanzas = new Set((finanzasRes.data ?? []).map(r => r.usuario_id)).size
   const pctFinanzas = totalUsuarios > 0 ? Math.round((usuariosConFinanzas / totalUsuarios) * 100) : 0
 
-  const activosHoy = new Set((activosHoyRes.data ?? []).map(r => r.usuario_id)).size
-  const activos7 = new Set((activos7Res.data ?? []).map(r => r.usuario_id)).size
-  const activos30 = new Set((activos30Res.data ?? []).map(r => r.usuario_id)).size
+  const regsOk = (registros90Res.data ?? []).filter(completo)
+  const activosEntre = (desde: string, hasta = today) => new Set(regsOk.filter(r => r.fecha >= desde && r.fecha <= hasta).map(r => r.usuario_id))
+  const setActivos30 = activosEntre(hace30)
+  const activosHoy = activosEntre(today).size
+  const activos7 = activosEntre(hace7).size
+  const activos7Ant = activosEntre(hace14, diaArg(7)).size
+  const activos30 = setActivos30.size
   const pushSubs = (pushSubsRes.data ?? []).length
 
   const authUsers = authUsersRes.data?.users ?? []
@@ -124,7 +112,6 @@ export default async function AdminPage() {
     return d > hace14Date && d <= hace7Date
   }).length
   const nuevos30 = authUsers.filter(u => new Date(u.created_at) > hace30Date).length
-  const tendenciaNuevos = tendencia(nuevos7, nuevos7Ant)
 
   // Top hábitos por cantidad de usuarios
   const habitoCount: Record<string, { emoji: string; count: number }> = {}
@@ -153,20 +140,21 @@ export default async function AdminPage() {
   const retencionColor = retencion7 >= 40 ? '#10b981' : retencion7 >= 20 ? '#f59e0b' : '#ef4444'
 
   // Embudo de conversión
-  const usuariosConHabitos = new Set((habitosRes.data ?? []).map((h: any) => h.usuario_id)).size
-  const usuariosConMetas = new Set((metasRes.data ?? []).map(r => r.usuario_id)).size
-  const embudoSteps = [
-    { label: 'Registrados', value: totalUsuarios, color: '#a78bfa' },
-    { label: 'Con hábitos', value: usuariosConHabitos, color: '#60a5fa' },
-    { label: 'Con metas', value: usuariosConMetas, color: '#34d399' },
-    { label: 'Aprendizaje completo', value: completadosEdu, color: '#F5C518' },
-    { label: 'Activos 30d', value: activos30, color: '#10b981' },
-  ]
+  // Embudo en cadena (18/10/2026): cada paso es parte del anterior; antes mezclaba grupos sueltos y el «-%» no tenía sentido
+  const setHabitos = new Set((habitosRes.data ?? []).map(h => h.usuario_id))
+  const setMetas = new Set((metasRes.data ?? []).map(r => r.usuario_id))
+  const setEdu = new Set((educacionRes.data ?? []).filter(e => e.etapa_actual >= 16).map(e => e.usuario_id))
+  const paso2 = usuarios.filter(u => setHabitos.has(u.id))
+  const paso3 = paso2.filter(u => setActivos30.has(u.id))
+  const paso4 = paso3.filter(u => setMetas.has(u.id))
+  const paso5 = paso4.filter(u => setEdu.has(u.id))
+  const embudo: [string, number][] = [['Se registraron', totalUsuarios], ['Crearon hábitos', paso2.length], ['Activos en 30 días', paso3.length], ['Con metas', paso4.length], ['Aprendizaje completo', paso5.length]]
+  const corteEmbudo = embudo.slice(1).reduce((peor, [, v], i) => { const t = embudo[i][1] ? v / embudo[i][1] : 1; return t < peor.t ? { i: i + 1, t } : peor }, { i: -1, t: 1 }).i
 
   // DAU chart: últimos 30 días
   const registros90 = registros90Res.data ?? []
   const dauPorFecha: Record<string, Set<string>> = {}
-  for (const r of registros90) {
+  for (const r of regsOk) {
     if (r.fecha >= hace30) {
       if (!dauPorFecha[r.fecha]) dauPorFecha[r.fecha] = new Set()
       dauPorFecha[r.fecha].add(r.usuario_id)
@@ -174,9 +162,8 @@ export default async function AdminPage() {
   }
   const dauArray: { fecha: string; label: string; count: number }[] = []
   for (let i = 29; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000)
-    const fecha = dateStr(d)
-    const label = i % 7 === 0 ? `${d.getDate()}/${d.getMonth() + 1}` : ''
+    const fecha = diaArg(i)
+    const label = `${fecha.slice(8, 10)}/${Number(fecha.slice(5, 7))}`
     dauArray.push({ fecha, label, count: dauPorFecha[fecha]?.size ?? 0 })
   }
   const maxDau = Math.max(...dauArray.map(d => d.count), 1)
@@ -190,9 +177,17 @@ export default async function AdminPage() {
   }
 
   const dormidos = usuarios.filter(u => {
-    const ultima = ultimaActMap[u.id]
-    return ultima && ultima < hace30
+    const alta = authUserMap.get(u.id)
+    return alta && new Date(alta) < hace30Date && !setActivos30.has(u.id)
   }).length
+
+  const soporte7 = soporteMensajes.filter(m => m.creado_en >= `${hace7}T03:00:00`).length
+  const alertas: Alerta[] = []
+  if (dormidos) alertas.push({ nivel: 'ojo', titulo: `${dormidos} usuario${dormidos > 1 ? 's' : ''} sin completar nada en 30 días`, texto: 'Registrados hace más de un mes: candidatos para una campaña de reactivación.' })
+  if (retencion7 < 20) alertas.push({ nivel: 'mal', titulo: `Solo el ${retencion7} % estuvo activo esta semana`, texto: 'Menos de 1 de cada 5 usuarios completó un hábito en 7 días.' })
+  else if (retencion7 >= 40) alertas.push({ nivel: 'bien', titulo: `${retencion7} % activos esta semana`, texto: 'Más de 4 de cada 10 completaron un hábito.' })
+  else alertas.push({ nivel: 'ojo', titulo: `${retencion7} % activos esta semana`, texto: 'Entre 2 y 4 de cada 10 completaron un hábito.' })
+  if (soporte7) alertas.push({ nivel: 'ojo', titulo: `${soporte7} mensaje${soporte7 > 1 ? 's' : ''} de soporte esta semana`, texto: 'Están al final del panel.' })
 
   // Habitos map id → { nombre, emoji }
   type HabitoRow = { id: string; nombre: string; emoji: string; categoria: string }
@@ -283,66 +278,33 @@ export default async function AdminPage() {
           </div>
         </div>
 
-        {/* Stats cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(155px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
-          <StatCard label="Total usuarios" value={fmt(totalUsuarios)} color="#a78bfa" sub="registrados" />
-          <StatCard label="Activos hoy" value={fmt(activosHoy)} color="#10b981" sub="registraron hábitos" />
-          <StatCard label="Activos 7 días" value={fmt(activos7)} color="#34d399" sub={`${retencion7}% retención`} />
-          <StatCard label="Nuevos 7 días" value={fmt(nuevos7)} color="#60a5fa" sub={`${fmt(nuevos30)} en 30 días`} trend={tendenciaNuevos} />
-          <StatCard label="Push subs" value={fmt(pushSubs)} color="#f59e0b" sub="notificaciones activas" />
-          <StatCard label="Usan finanzas" value={`${pctFinanzas}%`} color="#10b981" sub={`${usuariosConFinanzas} de ${totalUsuarios} usuarios`} />
-        </div>
-
-        {/* Alerta dormidos */}
-        {dormidos > 0 && (
-          <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px', padding: '0.875rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1rem', flexShrink: 0 }}>⚠️</span>
-            <div>
-              <span style={{ color: '#fca5a5', fontSize: '0.82rem', fontWeight: 600 }}>{dormidos} usuario{dormidos > 1 ? 's' : ''} sin actividad en más de 30 días</span>
-              <span style={{ color: '#6b7280', fontSize: '0.75rem', marginLeft: '0.5rem' }}>candidatos para campaña de reactivación</span>
-            </div>
-          </div>
-        )}
-
-        {/* DAU Chart — actividad diaria 30 días */}
-        <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
-            <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: 0 }}>Usuarios activos por día</h2>
-            <span style={{ color: '#4b5563', fontSize: '0.68rem' }}>últimos 30 días</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '80px' }}>
-            {dauArray.map((d) => {
-              const pct = maxDau > 0 ? (d.count / maxDau) * 100 : 0
-              const isToday = d.fecha === today
-              return (
-                <div key={d.fecha} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', height: '100%', justifyContent: 'flex-end' }}>
-                  <div
-                    title={`${d.fecha}: ${d.count} usuario${d.count !== 1 ? 's' : ''}`}
-                    style={{
-                      width: '100%',
-                      height: `${Math.max(pct, d.count > 0 ? 4 : 2)}%`,
-                      borderRadius: '3px 3px 0 0',
-                      background: isToday ? '#a78bfa' : d.count > 0 ? '#7c3aed' : 'rgba(255,255,255,0.04)',
-                      minHeight: '2px',
-                      transition: 'height 0.2s',
-                    }}
-                  />
-                </div>
-              )
-            })}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', marginTop: '4px' }}>
-            {dauArray.map((d) => (
-              <div key={d.fecha} style={{ flex: 1, textAlign: 'center', fontSize: '0.55rem', color: '#4b5563', overflow: 'hidden' }}>
-                {d.label}
-              </div>
-            ))}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-            <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>Pico: {maxDau} usuario{maxDau !== 1 ? 's' : ''}</span>
-            <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>Promedio: {dauArray.length > 0 ? Math.round(dauArray.reduce((a, d) => a + d.count, 0) / dauArray.length) : 0} / día</span>
-          </div>
-        </div>
+        {/* Tablero (18/10/2026, mismo motor que los paneles de AMAUTA, con los colores de Libre) */}
+        <Tablero>
+          <Fila>
+            <Kpi dato="Usuarios" valor={fmt(totalUsuarios)} nota={`${fmt(nuevos30)} nuevos en 30 días · ${pushSubs} con avisos`} />
+            <Kpi dato="Activos 7 días" valor={fmt(activos7)} cambio={cambioPct(activos7, activos7Ant)} nota={`${retencion7} % de los usuarios · hoy ${activosHoy}`} serie={dauArray.map(d => d.count)} color="var(--tb-ok)" />
+            <Kpi dato="Nuevos 7 días" valor={fmt(nuevos7)} cambio={cambioPct(nuevos7, nuevos7Ant)} nota={`los 7 anteriores: ${nuevos7Ant}`} color="var(--tb-dorado)" />
+            <Kpi dato="Usan finanzas" valor={`${pctFinanzas} %`} nota={`${usuariosConFinanzas} de ${totalUsuarios} usuarios`} color="var(--tb-rosa)" />
+          </Fila>
+          <Fila columnas={2}>
+            <Bloque titulo="Usuarios activos por día" nota="completaron al menos un hábito · 30 días">
+              <GraficoDias etiquetas={dauArray.map(d => d.label.split('/')[0])} barras={dauArray.map(d => d.count)} nombreBarra="Usuarios activos" />
+              <p className="tb-nota" style={{ marginTop: '.4rem' }}>Pico: {maxDau} · promedio: {Math.round(dauArray.reduce((a, d) => a + d.count, 0) / dauArray.length)} por día.</p>
+            </Bloque>
+            <Bloque titulo="Alertas" nota="para mirar">
+              <Alertas items={alertas} vacio="Todo en orden." />
+            </Bloque>
+          </Fila>
+          <Fila columnas={2}>
+            <Bloque titulo="Embudo" nota="cada paso es parte del anterior">
+              <Embudo pasos={embudo} corte={corteEmbudo} nota={corteEmbudo > 0 ? `↳ Donde más se pierde: de «${embudo[corteEmbudo - 1][0]}» a «${embudo[corteEmbudo][0]}».` : undefined} />
+            </Bloque>
+            <Bloque titulo="Qué parte usan" nota="usuarios">
+              <Ranking items={[['Hábitos', setHabitos.size], ['Finanzas', usuariosConFinanzas], ['Metas', setMetas.size], ['Avisos al celular', pushSubs], ['Aprendizaje completo', completadosEdu]]} />
+              <p className="tb-nota" style={{ marginTop: '.6rem' }}>Cuántos usaron cada parte alguna vez, de {totalUsuarios} registrados.</p>
+            </Bloque>
+          </Fila>
+        </Tablero>
 
         {/* Tablero hoy + Rachas activas */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -498,39 +460,6 @@ export default async function AdminPage() {
               <div style={{ fontSize: '2rem', fontWeight: 800, color: '#F5C518', lineHeight: 1 }}>{pctEdu}%</div>
               <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.3rem' }}>{completadosEdu} de {totalUsuarios} usuarios</div>
             </div>
-          </div>
-        </div>
-
-        {/* Embudo de conversión */}
-        <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', marginBottom: '1.5rem' }}>
-          <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 1rem 0' }}>Embudo de conversión</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {embudoSteps.map((step, i) => {
-              const pct = embudoSteps[0].value > 0 ? Math.round((step.value / embudoSteps[0].value) * 100) : 0
-              const dropPct = i > 0 && embudoSteps[i - 1].value > 0
-                ? Math.round(((embudoSteps[i - 1].value - step.value) / embudoSteps[i - 1].value) * 100)
-                : null
-              return (
-                <div key={step.label}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontSize: '0.6rem', color: '#4b5563', width: '1rem' }}>{i + 1}</span>
-                      <span style={{ fontSize: '0.78rem', color: '#d1d5db' }}>{step.label}</span>
-                      {dropPct !== null && dropPct > 0 && (
-                        <span style={{ fontSize: '0.62rem', color: '#ef4444', fontWeight: 600 }}>-{dropPct}%</span>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'baseline' }}>
-                      <span style={{ fontSize: '0.88rem', fontWeight: 700, color: step.color }}>{fmt(step.value)}</span>
-                      <span style={{ fontSize: '0.65rem', color: '#4b5563' }}>{pct}%</span>
-                    </div>
-                  </div>
-                  <div style={{ height: '4px', borderRadius: '99px', background: 'rgba(255,255,255,0.05)' }}>
-                    <div style={{ height: '100%', borderRadius: '99px', background: step.color, width: `${pct}%`, transition: 'width 0.4s' }} />
-                  </div>
-                </div>
-              )
-            })}
           </div>
         </div>
 
