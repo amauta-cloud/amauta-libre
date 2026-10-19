@@ -167,7 +167,7 @@ export function Embudo({ pasos, corte, nota }: { pasos: [string, number][]; cort
         const prev = k ? pasos[k - 1][1] : 0
         const txt = k === 0 ? '100 %' : prev ? pct((n / prev) * 100, 1) : '—'
         return <div key={nombre} className="tb-escalon">
-          <div className="tb-peldano" style={{ width: `${ancho}%`, background: k === pasos.length - 1 && pasos.length > 2 ? 'var(--tb-ok)' : colores[k % colores.length] }}>{num(n)} <span>{nombre}</span></div>
+          <div className="tb-peldano" style={{ width: `${ancho}%`, background: k === pasos.length - 1 && pasos.length > 2 && n > 0 ? 'var(--tb-ok)' : colores[k % colores.length] }}>{num(n)} <span>{nombre}</span></div>
           <div className={`tb-paso${k === corte ? ' corte' : ''}`}>{txt}</div>
         </div>
       })}

@@ -23,7 +23,8 @@ export default function OfertaRecordatorio() {
 
   useEffect(() => {
     try {
-      if (!('PushManager' in window) || !('serviceWorker' in navigator)) return
+      // en algunos iPhone (Safari sin instalar) no existe Notification: sin esto se rompía
+      if (!('PushManager' in window) || !('serviceWorker' in navigator) || typeof Notification === 'undefined') return
       if (Notification.permission === 'denied') return
       const cerrada = Number(localStorage.getItem(CLAVE) || 0)
       if (cerrada && Date.now() - cerrada < SIETE_DIAS) return
@@ -47,7 +48,7 @@ export default function OfertaRecordatorio() {
       setTimeout(() => setVer(false), 2500)
     } catch {
       setEstado('idle')
-      if (Notification.permission === 'denied') setVer(false)
+      if (typeof Notification !== 'undefined' && Notification.permission === 'denied') setVer(false)
     }
   }
 
