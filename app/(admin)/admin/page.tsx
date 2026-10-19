@@ -52,6 +52,7 @@ export default async function AdminPage() {
 
   const [
     usuariosRes,
+    nombresHabitosRes,
     pushSubsRes,
     habitosRes,
     educacionRes,
@@ -63,6 +64,8 @@ export default async function AdminPage() {
     metasRes,
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email'),
+    // todos los hábitos (también los desactivados): sin esto lo cumplido con uno desactivado salía como «Hábito borrado»
+    todas<{ id: string; nombre: string; emoji: string; activo: boolean }>((a, b) => admin.from('habitos').select('id, nombre, emoji, activo').order('id').range(a, b)),
     admin.from('push_subscriptions').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
     todas<{ id: string; nombre: string; emoji: string; categoria: string | null; usuario_id: string }>((a, b) => admin.from('habitos').select('id, nombre, emoji, categoria, usuario_id').eq('activo', true).order('id').range(a, b)),
     admin.from('educacion_estado').select('usuario_id, etapa_actual'),
@@ -106,7 +109,7 @@ export default async function AdminPage() {
   const nuevos30 = authUsers.filter(u => new Date(u.created_at) > hace30Date).length
 
   // 18/10/2026: «más usados» contaba los hábitos ASIGNADOS (los de ejemplo los tienen casi todos). Ahora: los que más se cumplen
-  const nombrePorHabito = new Map((habitosRes.data ?? []).map(h => [h.id, `${h.emoji} ${h.nombre}`]))
+  const nombrePorHabito = new Map((nombresHabitosRes.data ?? []).map(h => [h.id, `${h.emoji} ${h.nombre}${h.activo ? '' : ' (desactivado)'}`]))
   const cumplidos: Record<string, { veces: number; gente: Set<string> }> = {}
   for (const r of regsOk) {
     if (r.fecha < hace30) continue
