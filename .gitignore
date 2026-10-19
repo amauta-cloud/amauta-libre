@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Llaves de firma de Android: nunca a GitHub (auditoría 19/10/2026)
+*.keystore
+play-store-assets/signing-key-info*.txt
