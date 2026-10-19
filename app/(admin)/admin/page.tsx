@@ -144,12 +144,15 @@ export default async function AdminPage() {
   const setHabitos = new Set((habitosRes.data ?? []).map(h => h.usuario_id))
   const setMetas = new Set((metasRes.data ?? []).map(r => r.usuario_id))
   const setEdu = new Set((educacionRes.data ?? []).filter(e => e.etapa_actual >= 16).map(e => e.usuario_id))
-  const paso2 = usuarios.filter(u => setHabitos.has(u.id))
+  // «Crearon hábitos» daba 100 %: la app le crea hábitos de ejemplo a todos al registrarse. Lo que cuenta es completarlos.
+  const setCompletaron = new Set(regsOk.map(r => r.usuario_id))
+  const paso2 = usuarios.filter(u => setCompletaron.has(u.id))
   const paso3 = paso2.filter(u => setActivos30.has(u.id))
   const paso4 = paso3.filter(u => setMetas.has(u.id))
   const paso5 = paso4.filter(u => setEdu.has(u.id))
-  const embudo: [string, number][] = [['Se registraron', totalUsuarios], ['Crearon hábitos', paso2.length], ['Activos en 30 días', paso3.length], ['Con metas', paso4.length], ['Aprendizaje completo', paso5.length]]
-  const corteEmbudo = embudo.slice(1).reduce((peor, [, v], i) => { const t = embudo[i][1] ? v / embudo[i][1] : 1; return t < peor.t ? { i: i + 1, t } : peor }, { i: -1, t: 1 }).i
+  const embudo: [string, number][] = [['Se registraron', totalUsuarios], ['Completaron un hábito (90 días)', paso2.length], ['Activos en 30 días', paso3.length], ['Con metas', paso4.length], ['Aprendizaje completo', paso5.length]]
+  // Donde más se pierde = donde más GENTE se va (de 94 a 3 pesa más que de 2 a 0)
+  const corteEmbudo = embudo.slice(1).reduce((peor, [, v], i) => { const se = embudo[i][1] - v; return se > peor.se ? { i: i + 1, se } : peor }, { i: -1, se: 0 }).i
 
   // DAU chart: últimos 30 días
   const registros90 = registros90Res.data ?? []
@@ -297,10 +300,10 @@ export default async function AdminPage() {
           </Fila>
           <Fila columnas={2}>
             <Bloque titulo="Embudo" nota="cada paso es parte del anterior">
-              <Embudo pasos={embudo} corte={corteEmbudo} nota={corteEmbudo > 0 ? `↳ Donde más se pierde: de «${embudo[corteEmbudo - 1][0]}» a «${embudo[corteEmbudo][0]}».` : undefined} />
+              <Embudo pasos={embudo} corte={corteEmbudo} nota={corteEmbudo > 0 ? `↳ Donde más gente se pierde: ${fmt(embudo[corteEmbudo - 1][1] - embudo[corteEmbudo][1])} entre «${embudo[corteEmbudo - 1][0]}» y «${embudo[corteEmbudo][0]}».` : undefined} />
             </Bloque>
             <Bloque titulo="Qué parte usan" nota="usuarios">
-              <Ranking items={[['Hábitos', setHabitos.size], ['Finanzas', usuariosConFinanzas], ['Metas', setMetas.size], ['Avisos al celular', pushSubs], ['Aprendizaje completo', completadosEdu]]} />
+              <Ranking items={[['Completaron un hábito (90 días)', setCompletaron.size], ['Finanzas', usuariosConFinanzas], ['Metas', setMetas.size], ['Avisos al celular', pushSubs], ['Aprendizaje completo', completadosEdu]]} />
               <p className="tb-nota" style={{ marginTop: '.6rem' }}>Cuántos usaron cada parte alguna vez, de {totalUsuarios} registrados.</p>
             </Bloque>
           </Fila>
