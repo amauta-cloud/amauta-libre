@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
 import { authorizePush } from '@/lib/push-auth'
+import { cumplido } from '@/lib/cumplido'
 
 export async function GET(req: NextRequest) {
   const unauthorized = await authorizePush(req)
@@ -36,12 +37,15 @@ export async function GET(req: NextRequest) {
 
   const { data: registros } = await supabase
     .from('habito_registros')
-    .select('usuario_id, fecha, valor_bool, valor_numero')
+    .select('usuario_id, habito_id, fecha, valor_bool, valor_numero')
     .gte('fecha', hace7Str)
+  // Las metas de los hábitos con número: la misma regla de «cumplido» que la app (19/10/2026)
+  const { data: conMeta } = await supabase.from('habitos').select('id, meta_numero').not('meta_numero', 'is', null).limit(5000)
+  const metaPorHabito = new Map((conMeta ?? []).map(h => [h.id, h.meta_numero]))
 
   const diasPorUsuario = new Map<string, Set<string>>()
   for (const r of registros ?? []) {
-    const activo = r.valor_bool === true || (r.valor_numero != null && r.valor_numero > 0)
+    const activo = cumplido(r, metaPorHabito.get(r.habito_id))
     if (!activo) continue
     if (!diasPorUsuario.has(r.usuario_id)) diasPorUsuario.set(r.usuario_id, new Set())
     diasPorUsuario.get(r.usuario_id)!.add(r.fecha)

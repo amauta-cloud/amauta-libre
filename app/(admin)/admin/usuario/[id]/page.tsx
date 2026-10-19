@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { cumplido } from '@/lib/cumplido'
 import { createClient as createAdmin } from '@supabase/supabase-js'
 import Link from 'next/link'
 import AdminNotasField from '@/components/AdminNotasField'
@@ -59,7 +60,7 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
     tareasRes,
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email').eq('id', id).single(),
-    admin.from('habitos').select('id, nombre, emoji, categoria, activo, tipo, dias_semana').eq('usuario_id', id),
+    admin.from('habitos').select('id, nombre, emoji, categoria, activo, tipo, dias_semana, meta_numero').eq('usuario_id', id),
     admin.from('habito_registros').select('habito_id, fecha, valor_bool, valor_numero').eq('usuario_id', id).gte('fecha', hace90),
     admin.from('educacion_estado').select('etapa_actual, reflexion_inicial').eq('usuario_id', id).maybeSingle(),
     admin.from('metas').select('meta30, meta90, meta180').eq('usuario_id', id).maybeSingle(),
@@ -82,7 +83,8 @@ export default async function UsuarioPage({ params }: { params: Promise<{ id: st
   type TareaRow = { estado: string; fecha_limite: string | null }
   const tareas = (tareasRes.data ?? []) as TareaRow[]
 
-  const isCompletado = (r: RegistroRow) => r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)
+  const metaPorHabito = new Map(habitos.map(h => [h.id, (h as { meta_numero?: number | null }).meta_numero ?? null]))
+  const isCompletado = (r: RegistroRow) => cumplido(r, metaPorHabito.get(r.habito_id))
 
   // Streak — misma lógica que la app: respeta dias_semana + umbral 25% + UTC-3
   type HabitoConDias = { id: string; nombre: string; emoji: string; categoria: string; activo: boolean; tipo: string; dias_semana: number[] | null }

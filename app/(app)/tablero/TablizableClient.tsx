@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useLocale } from '@/lib/i18n/LocaleContext'
+import { cumplido } from '@/lib/cumplido'
 import OnboardingTutorial from '@/components/OnboardingTutorial'
 import RatingPrompt from '@/components/RatingPrompt'
 import OfertaRecordatorio from '@/components/OfertaRecordatorio'
@@ -258,18 +259,14 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
   // Live stats
   const todayDow = new Date(today + 'T12:00:00').getDay()
   const habitosHoy = localHabitos.filter(h => isHoy(h, todayDow))
-  const completados = habitosHoy.filter(h => {
-    const r = regMap[h.id]
-    if (!r) return false
-    if (h.tipo === 'boolean') return r.valor_bool === true
-    if (h.tipo === 'numero') return r.valor_numero !== null && r.valor_numero > 0
-    return false
-  }).length
+  const metaDe = (id: string) => localHabitos.find(h => h.id === id)?.meta_numero ?? null
+  const completados = habitosHoy.filter(h => cumplido(regMap[h.id], h.meta_numero)).length
   const pct = habitosHoy.length > 0 ? Math.round((completados / habitosHoy.length) * 100) : 0
 
   // Activación: ¿el usuario marcó ALGÚN hábito alguna vez? (57% de la base
   // nunca lo hizo). Si nunca activó y hoy no marcó nada, mostramos un nudge
   // que lo guía a tocar su primer hábito. Desaparece al marcar el primero.
+  // Acá alcanza con haber anotado algo alguna vez (es «usó la app», no «cumplió»): a propósito sin la meta.
   const nuncaActivado = !liveHistorial.some(r => r.valor_bool === true || (r.valor_numero != null && r.valor_numero > 0))
   const mostrarNudgeActivacion = nuncaActivado && completados === 0 && habitosHoy.length > 0
 
@@ -419,7 +416,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     if (!isHoy(h, todayDow)) return 0
     const doneToday = (() => {
       const r = liveHistorial.find(x => x.habito_id === habitoId && x.fecha === today)
-      return r?.valor_bool === true || (r?.valor_numero != null && r.valor_numero > 0)
+      return cumplido(r, h.meta_numero)
     })()
     let streak = doneToday ? 1 : 0
     for (let i = 1; i <= 60; i++) {
@@ -428,7 +425,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
       if (!isHoy(h, d.getDay())) continue
       const f = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
       const r = liveHistorial.find(x => x.habito_id === habitoId && x.fecha === f)
-      const done = r?.valor_bool === true || (r?.valor_numero != null && r.valor_numero > 0)
+      const done = cumplido(r, h.meta_numero)
       if (done) streak++
       else break
     }
@@ -593,7 +590,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
     // Contar solo registros de hábitos activos programados ese día. Sin este
     // filtro, registros de hábitos ya borrados inflaban el numerador (>100%).
     const idsDia = new Set(habitosDia.map(h => h.id))
-    const done = dayRegs.filter(r => idsDia.has(r.habito_id) && (r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0))).length
+    const done = dayRegs.filter(r => idsDia.has(r.habito_id) && cumplido(r, metaDe(r.habito_id))).length
     return Math.min(100, Math.round((done / habitosDia.length) * 100))
   }
 
@@ -1026,7 +1023,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
             {habitosHoy.map(h => {
               const reg = regMap[h.id]
-              const done = h.tipo === 'boolean' ? reg?.valor_bool === true : (reg?.valor_numero ?? 0) > 0
+              const done = cumplido(reg, h.meta_numero)
               return (
                 <div key={h.id} style={{
                   background: '#1a1730',
@@ -1139,7 +1136,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               d.setDate(d.getDate() - i)
               const fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
               const regsDelDia = liveHistorial.filter(r => r.fecha === fecha)
-              const hechos = regsDelDia.filter(r => r.valor_bool === true || (r.valor_numero != null && r.valor_numero > 0)).length
+              const hechos = regsDelDia.filter(r => cumplido(r, metaDe(r.habito_id))).length
               const habitosDia = localHabitos.filter(h => isHoy(h, d.getDay()))
               const total = habitosDia.length
               const pct = total > 0 && regsDelDia.length > 0 ? Math.round((hechos / total) * 100) : (fecha === today && total > 0 ? Math.round((completados / total) * 100) : 0)
@@ -1588,7 +1585,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
                   <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600, marginBottom: '1rem' }}>{t('tablero.mes.cumplimiento')}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {localHabitos.map(h => {
-                      const count = monthRegistros.filter(r => r.habito_id === h.id && (r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0))).length
+                      const count = monthRegistros.filter(r => r.habito_id === h.id && cumplido(r, h.meta_numero)).length
                       const p = totalDias > 0 ? Math.round(count / totalDias * 100) : 0
                       return (
                         <div key={h.id}>
@@ -2312,7 +2309,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                 {localHabitos.map(h => {
                   const reg = editDayRegMap[h.id]
-                  const done = h.tipo === 'boolean' ? reg?.valor_bool === true : (reg?.valor_numero ?? 0) > 0
+                  const done = cumplido(reg, h.meta_numero)
                   return (
                     <div key={h.id}>
                       {h.tipo === 'boolean' ? (
@@ -2569,7 +2566,7 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
           d.setDate(d.getDate() - i)
           const fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
           const reg = liveHistorial.find(r => r.habito_id === h.id && r.fecha === fecha)
-          const done = reg?.valor_bool === true || (reg?.valor_numero != null && reg.valor_numero > 0)
+          const done = cumplido(reg, h.meta_numero)
           days30.push({ fecha, done })
         }
         const completados30 = days30.filter(d => d.done).length

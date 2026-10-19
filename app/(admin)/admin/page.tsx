@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { cumplido } from '@/lib/cumplido'
 import { createClient as createAdmin } from '@supabase/supabase-js'
 import Link from 'next/link'
 import AdminPushButton from '@/components/AdminPushButton'
@@ -28,8 +29,6 @@ async function todas<T>(armar: (desde: number, hasta: number) => PromiseLike<{ d
     if (!data || data.length < 1000) return { data: out }
   }
 }
-// Activo = completó al menos un hábito ese día (la misma regla que las rachas)
-const completo = (r: { valor_bool: boolean | null; valor_numero: number | null }) => r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -65,7 +64,7 @@ export default async function AdminPage() {
   ] = await Promise.all([
     admin.from('usuarios').select('id, nombre, email'),
     // todos los hábitos (también los desactivados): sin esto lo cumplido con uno desactivado salía como «Hábito borrado»
-    todas<{ id: string; nombre: string; emoji: string; activo: boolean }>((a, b) => admin.from('habitos').select('id, nombre, emoji, activo').order('id').range(a, b)),
+    todas<{ id: string; nombre: string; emoji: string; activo: boolean; meta_numero: number | null }>((a, b) => admin.from('habitos').select('id, nombre, emoji, activo, meta_numero').order('id').range(a, b)),
     admin.from('push_subscriptions').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
     todas<{ id: string; nombre: string; emoji: string; categoria: string | null; usuario_id: string }>((a, b) => admin.from('habitos').select('id, nombre, emoji, categoria, usuario_id').eq('activo', true).order('id').range(a, b)),
     admin.from('educacion_estado').select('usuario_id, etapa_actual'),
@@ -85,6 +84,9 @@ export default async function AdminPage() {
   const usuariosConFinanzas = new Set((finanzasRes.data ?? []).map(r => r.usuario_id)).size
   const pctFinanzas = totalUsuarios > 0 ? Math.round((usuariosConFinanzas / totalUsuarios) * 100) : 0
 
+  // Activo = completó al menos un hábito ese día (la misma regla que las rachas y que la app: con número, llegar a la meta)
+  const metaPorHabito = new Map((nombresHabitosRes.data ?? []).map(h => [h.id, h.meta_numero]))
+  const completo = (r: { habito_id: string; valor_bool: boolean | null; valor_numero: number | null }) => cumplido(r, metaPorHabito.get(r.habito_id))
   const regsOk = (registros90Res.data ?? []).filter(completo)
   const hoyPorUsuarioIds = new Set(regsOk.filter(r => r.fecha === today).map(r => r.usuario_id))
   const activosEntre = (desde: string, hasta = today) => new Set(regsOk.filter(r => r.fecha >= desde && r.fecha <= hasta).map(r => r.usuario_id))
@@ -188,17 +190,15 @@ export default async function AdminPage() {
   const registrosHoy = ((registrosHoyRes as any).data ?? []) as RegRow[]
   const hoyPorUsuario: Record<string, RegRow[]> = {}
   for (const r of registrosHoy) {
-    const completado = r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)
-    if (!completado) continue
+    if (!completo(r)) continue
     if (!hoyPorUsuario[r.usuario_id]) hoyPorUsuario[r.usuario_id] = []
     hoyPorUsuario[r.usuario_id].push(r)
   }
 
   // Rachas para todos los usuarios — misma lógica que la app (al menos 1 hábito completado, UTC-3)
   const userDateSets: Record<string, Set<string>> = {}
-  for (const r of registros90 as { usuario_id: string; fecha: string; valor_bool: boolean | null; valor_numero: number | null }[]) {
-    const completado = r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)
-    if (completado) {
+  for (const r of registros90 as { usuario_id: string; habito_id: string; fecha: string; valor_bool: boolean | null; valor_numero: number | null }[]) {
+    if (completo(r)) {
       if (!userDateSets[r.usuario_id]) userDateSets[r.usuario_id] = new Set()
       userDateSets[r.usuario_id].add(r.fecha)
     }

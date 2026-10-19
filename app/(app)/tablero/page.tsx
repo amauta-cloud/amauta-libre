@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { cumplido } from '@/lib/cumplido'
 import TablizableClient from './TablizableClient'
 import TableroMiniCards from './TableroMiniCards'
 import SaludoHeader from '@/components/SaludoHeader'
@@ -55,8 +56,9 @@ const RACHA_MAX_DIAS = 400
 function calcularRacha(historial: RegistroHistorial[], habitos: Habito[], today: string): number {
   if (habitos.length === 0) return 0
   const completadosPorFecha: Record<string, number> = {}
+  const metaDe = new Map(habitos.map(h => [h.id, h.meta_numero]))
   for (const r of historial) {
-    const completado = r.valor_bool === true || (r.valor_numero !== null && r.valor_numero > 0)
+    const completado = cumplido(r, metaDe.get(r.habito_id))
     if (completado) completadosPorFecha[r.fecha] = (completadosPorFecha[r.fecha] || 0) + 1
   }
   const esDiaBueno = (fecha: string) => {
