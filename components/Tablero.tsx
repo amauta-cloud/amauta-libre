@@ -157,7 +157,8 @@ export function GraficoDias({ etiquetas, barras, linea, marcas, formatoBarra = n
 
 /** Embudo en escalones; el ancho va con la raíz para que los pasos chicos se vean. corte = el paso donde se pierde la gente. */
 export function Embudo({ pasos, corte, nota }: { pasos: [string, number][]; corte?: number; nota?: string }) {
-  const colores = ['var(--tb-cian-claro)', 'var(--tb-cian)', 'var(--tb-violeta)', 'var(--tb-rosa)', 'var(--tb-error)', 'var(--tb-dorado)']
+  // Colores de paso sin significado (el rojo es solo para el corte: el último escalón «Clientes»/«Convertidos» se pintaba de rojo)
+  const colores = ['var(--tb-cian-claro)', 'var(--tb-cian)', 'var(--tb-violeta)', 'var(--tb-rosa)', 'var(--tb-dorado)']
   const base = pasos[0]?.[1] || 1
   return (
     <div className="tb-embudo">
@@ -166,7 +167,7 @@ export function Embudo({ pasos, corte, nota }: { pasos: [string, number][]; cort
         const prev = k ? pasos[k - 1][1] : 0
         const txt = k === 0 ? '100 %' : prev ? pct((n / prev) * 100, 1) : '—'
         return <div key={nombre} className="tb-escalon">
-          <div className="tb-peldano" style={{ width: `${ancho}%`, background: colores[k % colores.length] }}>{num(n)} <span>{nombre}</span></div>
+          <div className="tb-peldano" style={{ width: `${ancho}%`, background: k === pasos.length - 1 && pasos.length > 2 ? 'var(--tb-ok)' : colores[k % colores.length] }}>{num(n)} <span>{nombre}</span></div>
           <div className={`tb-paso${k === corte ? ' corte' : ''}`}>{txt}</div>
         </div>
       })}

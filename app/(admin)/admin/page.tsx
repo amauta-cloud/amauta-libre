@@ -10,15 +10,6 @@ export const dynamic = 'force-dynamic'
 
 const ADMIN_EMAIL = 'amauta.iiaa@gmail.com'
 
-const CATEGORIA_COLORS: Record<string, string> = {
-  Salud: '#10b981',
-  Mente: '#8b5cf6',
-  Dinero: '#f59e0b',
-  Aprender: '#3b82f6',
-  Social: '#f472b6',
-  General: '#6b7280',
-}
-
 function dateStr(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
@@ -75,7 +66,7 @@ export default async function AdminPage() {
     admin.from('push_subscriptions').select('usuario_id').then(r => r.error ? { data: [] as { usuario_id: string }[] } : r),
     todas<{ id: string; nombre: string; emoji: string; categoria: string | null; usuario_id: string }>((a, b) => admin.from('habitos').select('id, nombre, emoji, categoria, usuario_id').eq('activo', true).order('id').range(a, b)),
     admin.from('educacion_estado').select('usuario_id, etapa_actual'),
-    todas<{ usuario_id: string; fecha: string; valor_bool: boolean | null; valor_numero: number | null }>((a, b) => admin.from('habito_registros').select('usuario_id, fecha, valor_bool, valor_numero').gte('fecha', hace90).order('fecha').order('usuario_id').range(a, b)),
+    todas<{ usuario_id: string; habito_id: string; fecha: string; valor_bool: boolean | null; valor_numero: number | null }>((a, b) => admin.from('habito_registros').select('usuario_id, habito_id, fecha, valor_bool, valor_numero').gte('fecha', hace90).order('fecha').order('usuario_id').range(a, b)),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     admin.from('habito_registros').select('usuario_id, habito_id, valor_bool, valor_numero').eq('fecha', today).limit(500),
     admin.from('soporte_mensajes').select('id, usuario_id, mensaje, categoria, creado_en').order('creado_en', { ascending: false }).limit(50).then(r => r.error ? { data: [] as { id: string; usuario_id: string; mensaje: string; categoria: string; creado_en: string }[] } : r),
@@ -92,6 +83,7 @@ export default async function AdminPage() {
   const pctFinanzas = totalUsuarios > 0 ? Math.round((usuariosConFinanzas / totalUsuarios) * 100) : 0
 
   const regsOk = (registros90Res.data ?? []).filter(completo)
+  const hoyPorUsuarioIds = new Set(regsOk.filter(r => r.fecha === today).map(r => r.usuario_id))
   const activosEntre = (desde: string, hasta = today) => new Set(regsOk.filter(r => r.fecha >= desde && r.fecha <= hasta).map(r => r.usuario_id))
   const setActivos30 = activosEntre(hace30)
   const activosHoy = activosEntre(today).size
@@ -113,31 +105,20 @@ export default async function AdminPage() {
   }).length
   const nuevos30 = authUsers.filter(u => new Date(u.created_at) > hace30Date).length
 
-  // Top hábitos por cantidad de usuarios
-  const habitoCount: Record<string, { emoji: string; count: number }> = {}
-  for (const h of (habitosRes.data ?? [])) {
-    if (!habitoCount[h.nombre]) habitoCount[h.nombre] = { emoji: h.emoji, count: 0 }
-    habitoCount[h.nombre].count++
+  // 18/10/2026: «más usados» contaba los hábitos ASIGNADOS (los de ejemplo los tienen casi todos). Ahora: los que más se cumplen
+  const nombrePorHabito = new Map((habitosRes.data ?? []).map(h => [h.id, `${h.emoji} ${h.nombre}`]))
+  const cumplidos: Record<string, { veces: number; gente: Set<string> }> = {}
+  for (const r of regsOk) {
+    if (r.fecha < hace30) continue
+    const n = nombrePorHabito.get(r.habito_id) ?? 'Hábito borrado'
+    cumplidos[n] ??= { veces: 0, gente: new Set() }
+    cumplidos[n].veces++; cumplidos[n].gente.add(r.usuario_id)
   }
-  const topHabitos = Object.entries(habitoCount)
-    .sort((a, b) => b[1].count - a[1].count)
-    .slice(0, 8)
-
-  // Distribución de categorías
-  const catCount: Record<string, number> = {}
-  for (const h of (habitosRes.data ?? [])) {
-    const cat = h.categoria ?? 'General'
-    catCount[cat] = (catCount[cat] ?? 0) + 1
-  }
-  const totalHabitos = Object.values(catCount).reduce((a, b) => a + b, 0)
-  const catOrdenadas = Object.entries(catCount)
-    .sort((a, b) => b[1] - a[1])
-
+  const masCumplidos = Object.entries(cumplidos).sort((a, b) => b[1].veces - a[1].veces).slice(0, 8)
+  const activosHoyLista = usuarios.filter(u => hoyPorUsuarioIds.has(u.id))
   // Aprendizaje (educación)
   const completadosEdu = (educacionRes.data ?? []).filter(e => e.etapa_actual >= 16).length
-  const pctEdu = totalUsuarios > 0 ? Math.round((completadosEdu / totalUsuarios) * 100) : 0
   const retencion7 = totalUsuarios > 0 ? Math.round((activos7 / totalUsuarios) * 100) : 0
-  const retencionColor = retencion7 >= 40 ? '#10b981' : retencion7 >= 20 ? '#f59e0b' : '#ef4444'
 
   // Embudo de conversión
   // Embudo en cadena (18/10/2026): cada paso es parte del anterior; antes mezclaba grupos sueltos y el «-%» no tenía sentido
@@ -309,162 +290,24 @@ export default async function AdminPage() {
           </Fila>
         </Tablero>
 
-        {/* Tablero hoy + Rachas activas */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-
-          {/* Tablero hoy */}
-          <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.875rem' }}>
-              <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: 0 }}>Tablero hoy</h2>
-              <span style={{ color: '#4b5563', fontSize: '0.68rem' }}>{activosHoy}/{totalUsuarios} activos</span>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '0.4rem' }}>
-              {usuarios.map(u => {
-                const regs = hoyPorUsuario[u.id]
-                const activo = !!regs && regs.length > 0
-                const emojis = regs?.slice(0, 4).map(r => habitosMap[r.habito_id]?.emoji ?? '').filter(Boolean).join('') ?? ''
-                return (
-                  <Link
-                    key={u.id}
-                    href={`/admin/usuario/${u.id}`}
-                    title={`${u.nombre || u.email}: ${regs?.length ?? 0} hábitos hoy`}
-                    style={{
-                      padding: '0.3rem 0.55rem',
-                      borderRadius: '8px',
-                      background: activo ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.03)',
-                      border: `1px solid ${activo ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)'}`,
-                      display: 'flex', alignItems: 'center', gap: '0.35rem',
-                      textDecoration: 'none', cursor: 'pointer',
-                    }}
-                  >
-                    <span style={{ fontSize: '0.6rem', color: activo ? '#10b981' : '#374151', flexShrink: 0 }}>
-                      {activo ? '✓' : '·'}
-                    </span>
-                    <span style={{ fontSize: '0.7rem', color: activo ? '#d1d5db' : '#4b5563', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
-                      {u.nombre?.split(' ')[0] || (u.email as string)?.split('@')[0] || '—'}
-                    </span>
-                    {activo && emojis && (
-                      <span style={{ fontSize: '0.65rem', flexShrink: 0 }}>{emojis}</span>
-                    )}
-                  </Link>
-                )
-              })}
-              {usuarios.length === 0 && (
-                <p style={{ color: '#4b5563', fontSize: '0.78rem', margin: 0 }}>Sin usuarios</p>
-              )}
-            </div>
-          </div>
-
-          {/* Rachas activas */}
-          <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem' }}>
-            <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 0.875rem 0' }}>Rachas activas</h2>
-            {rachasData.length === 0 ? (
-              <p style={{ color: '#4b5563', fontSize: '0.78rem', margin: 0 }}>Sin rachas activas hoy</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-                {rachasData.map((u, i) => {
-                  const pct = Math.round((u.streak / (rachasData[0]?.streak ?? 1)) * 100)
-                  const color = u.streak >= 30 ? '#f59e0b' : u.streak >= 7 ? '#a78bfa' : '#6b7280'
-                  return (
-                    <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                      <span style={{ fontSize: '0.6rem', color: '#374151', width: '0.875rem', textAlign: 'right', flexShrink: 0 }}>{i + 1}</span>
-                      <span style={{ fontSize: '0.75rem', color: '#d1d5db', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
-                        {u.nombre?.split(' ')[0] || (u.email as string | null)?.split('@')[0] || '—'}
-                      </span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
-                        <div style={{ width: '60px', height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.06)' }}>
-                          <div style={{ height: '100%', borderRadius: '99px', background: color, width: `${pct}%` }} />
-                        </div>
-                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color, width: '2.5rem', textAlign: 'right' }}>
-                          {u.streak >= 7 ? '🔥' : '⚡'} {u.streak}d
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-        </div>
-
-        {/* Top hábitos + Categorías + Engagement */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-
-          {/* Top hábitos */}
-          <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem' }}>
-            <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 1rem 0' }}>Hábitos más usados</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-              {topHabitos.length === 0 && <p style={{ color: '#4b5563', fontSize: '0.78rem', margin: 0 }}>Sin datos aún</p>}
-              {topHabitos.map(([nombre, { emoji, count }]) => (
-                <div key={nombre} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '1rem', width: '1.5rem', flexShrink: 0 }}>{emoji}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                      <span style={{ fontSize: '0.77rem', color: '#d1d5db' }}>{nombre}</span>
-                      <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>{count}</span>
-                    </div>
-                    <div style={{ height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.06)' }}>
-                      <div style={{ height: '100%', borderRadius: '99px', background: '#7c3aed', width: `${Math.round((count / (topHabitos[0]?.[1]?.count ?? 1)) * 100)}%` }} />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Categorías */}
-          <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem' }}>
-            <h2 style={{ color: '#e5e7eb', fontSize: '0.82rem', fontWeight: 700, margin: '0 0 1rem 0' }}>Hábitos por categoría</h2>
-            {catOrdenadas.length === 0 ? (
-              <p style={{ color: '#4b5563', fontSize: '0.78rem', margin: 0 }}>Sin datos aún</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                {catOrdenadas.map(([cat, count]) => {
-                  const pct = totalHabitos > 0 ? Math.round((count / totalHabitos) * 100) : 0
-                  const color = CATEGORIA_COLORS[cat] ?? '#6b7280'
-                  return (
-                    <div key={cat}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                        <span style={{ fontSize: '0.77rem', color: '#d1d5db', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />
-                          {cat}
-                        </span>
-                        <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>{count} ({pct}%)</span>
-                      </div>
-                      <div style={{ height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.06)' }}>
-                        <div style={{ height: '100%', borderRadius: '99px', background: color, width: `${pct}%` }} />
-                      </div>
-                    </div>
-                  )
-                })}
-                <p style={{ fontSize: '0.65rem', color: '#4b5563', margin: '0.25rem 0 0 0' }}>{fmt(totalHabitos)} hábitos activos en total</p>
-              </div>
-            )}
-          </div>
-
-          {/* Engagement cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', flex: 1 }}>
-              <div style={{ fontSize: '0.62rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Retención 7 días</div>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: retencionColor, lineHeight: 1 }}>{totalUsuarios > 0 ? `${retencion7}%` : '—'}</div>
-              <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.3rem' }}>{activos7} de {totalUsuarios} usuarios</div>
-              <div style={{ height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.06)', marginTop: '0.6rem' }}>
-                <div style={{ height: '100%', borderRadius: '99px', background: retencionColor, width: `${Math.min(100, retencion7)}%` }} />
-              </div>
-            </div>
-            <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', flex: 1 }}>
-              <div style={{ fontSize: '0.62rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Activos 30 días</div>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#a78bfa', lineHeight: 1 }}>{totalUsuarios > 0 ? `${Math.round((activos30 / totalUsuarios) * 100)}%` : '—'}</div>
-              <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.3rem' }}>{activos30} de {totalUsuarios} usuarios</div>
-            </div>
-            <div style={{ background: '#1a1730', border: '1px solid rgba(139,92,246,0.1)', borderRadius: '14px', padding: '1.25rem', flex: 1 }}>
-              <div style={{ fontSize: '0.62rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Aprendizaje completado</div>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#F5C518', lineHeight: 1 }}>{pctEdu}%</div>
-              <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.3rem' }}>{completadosEdu} de {totalUsuarios} usuarios</div>
-            </div>
-          </div>
-        </div>
+        {/* Hoy, rachas y lo que se cumple (18/10/2026: antes era una nube de 94 nombres, categorías con 93 % «General»
+            y tres tarjetas que repetían el tablero de arriba) */}
+        <Tablero>
+          <Fila columnas={3}>
+            <Bloque titulo="Hoy" nota={`${activosHoyLista.length} de ${totalUsuarios} completaron algo`}>
+              {activosHoyLista.length
+                ? <Ranking items={activosHoyLista.map(u => [u.nombre || u.email || '?', (hoyPorUsuario[u.id] ?? []).length] as [string, number])} />
+                : <div className="tb-vacio">Nadie completó un hábito hoy todavía.</div>}
+              <p className="tb-nota" style={{ marginTop: '.6rem' }}>Hábitos cumplidos hoy por cada uno.</p>
+            </Bloque>
+            <Bloque titulo="Rachas activas" nota="días seguidos">
+              {rachasData.length ? <Ranking items={rachasData.map(u => [u.nombre || u.email || '?', u.streak] as [string, number])} /> : <div className="tb-vacio">Sin rachas activas.</div>}
+            </Bloque>
+            <Bloque titulo="Lo que más se cumple" nota="veces · 30 días">
+              {masCumplidos.length ? <Ranking items={masCumplidos.map(([n, v]) => [`${n} · ${v.gente.size} persona${v.gente.size > 1 ? 's' : ''}`, v.veces] as [string, number])} /> : <div className="tb-vacio">Nadie completó hábitos en 30 días.</div>}
+            </Bloque>
+          </Fila>
+        </Tablero>
 
         {/* Tabla usuarios — client component con search + CSV */}
         <div style={{ marginBottom: '1.5rem' }}>
