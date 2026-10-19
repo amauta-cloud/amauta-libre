@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useLocale } from '@/lib/i18n/LocaleContext'
 import OnboardingTutorial from '@/components/OnboardingTutorial'
 import RatingPrompt from '@/components/RatingPrompt'
+import OfertaRecordatorio from '@/components/OfertaRecordatorio'
 
 type Habito = {
   id: string
@@ -1004,6 +1005,9 @@ export default function TablizableClient({ habitos, regMap: initialRegMap, userI
               </button>
             </div>
           )}
+
+          {/* Recordatorio: se ofrece después del primer tilde del día (18/10/2026) */}
+          {completados > 0 && <OfertaRecordatorio />}
 
           {/* Nudge de activación — solo para quien nunca marcó un hábito */}
           {mostrarNudgeActivacion && (
